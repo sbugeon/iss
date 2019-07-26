@@ -22,19 +22,24 @@ function o=register(o)
 % are.
 
 rr = o.ReferenceRound;
-[nY, nX] = size(o.EmptyTiles);
+[~,nY,nX,~] = size(o.TileFiles);
 nTiles = nY*nX;
 NonemptyTiles = find(~o.EmptyTiles)';
-RefImages = zeros(o.TileSz, o.TileSz, nY, nX, 'uint16');
+RefImages = zeros(o.TileSz, o.TileSz, o.nZ, nTiles, 'uint16');
 
 for t=NonemptyTiles(:)'
-    [y,x] = ind2sub([nY nX], t);
+    [y,x] = ind2sub([nY nX], t);    
+    Im3D = o.load_3D(rr,y,x,o.AnchorChannel);
+    
     if mod(t,10)==0; fprintf('Loading tile %d anchor image\n', t); end
-    Im = imread(o.TileFiles{rr,y,x}, o.AnchorChannel);
+    
     if o.RegSmooth
-        RefImages(:,:,t) = imfilter(Im, fspecial('disk', o.RegSmooth));
+        %Smoothing required else multiple pixels identified as local maxima
+        FE = fspecial3('ellipsoid',[2, 2, 2]);
+        RefImages(:,:,:,t) = imfilter(Im3D, FE);
     else
-        RefImages(:,:,t) = Im;
+        RefImages(:,:,:,t) = Im3D;
+    
     end
 end
 %% get arrays ready
@@ -45,13 +50,13 @@ end
 %WithinTileShift = nan(nTiles,2,o.nRounds);
 
 % VerticalPairs: n x 2 array of tile IDs
-% vShiftsYX: n x 2 array of YX shifts
+% vShifts: n x 3 array of YXZ shifts
 % ccv: n x 1 array of correl coefs
-% HorizontalPairs, hShiftsYX, cch: similar
+% HorizontalPairs, hShifts, cch: similar
 VerticalPairs = zeros(0,2);
 HorizontalPairs = zeros(0,2);
-vShifts = zeros(0,2);
-hShifts = zeros(0,2);
+vShifts = zeros(0,3);
+hShifts = zeros(0,3);
 ccv = zeros(0,1);
 cch = zeros(0,1);
 
@@ -61,34 +66,34 @@ for t=NonemptyTiles
     
     % can I align ref round to south neighbor?
     if y<nY && ~o.EmptyTiles(t+1)
-        [shift, cc] = ImRegFft2(RefImages(:,:,t), RefImages(:,:,t+1), o.RegCorrThresh, o.RegMinSize);
+        [shift, cc] = ImRegFft3D_LowMem(RefImages(:,:,:,t), RefImages(:,:,:,t+1), o.RegCorrThresh, o.RegMinSize);
         if all(isfinite(shift))
             VerticalPairs = [VerticalPairs; t, t+1];
             vShifts = [vShifts; shift];
             ccv = [ccv; cc];
         end
         %ShowPos(o, y, x, y+1, x, rr, shift);
-        fprintf('Tile %d (%d, %d), down: shift %d %d, cc %f\n', t, y, x, shift, cc);
+        fprintf('Tile %d (%d, %d), down: shift %d %d %d, cc %f\n', t, y, x, shift, cc);
 
     end
     
     % can I align to east neighbor
     if x<nX && ~o.EmptyTiles(t+nY)
-        [shift, cc] = ImRegFft2(RefImages(:,:,t), RefImages(:,:,t+nY), o.RegCorrThresh, o.RegMinSize);
+        [shift, cc] = ImRegFft3D_LowMem(RefImages(:,:,:,t), RefImages(:,:,:,t+nY), o.RegCorrThresh, o.RegMinSize);
         if all(isfinite(shift))
             HorizontalPairs = [HorizontalPairs; t, t+nY];
             hShifts = [hShifts; shift];
             cch = [cch; cc];
         end        
         %ShowPos(o, y, x, y, x+1, rr, shift);
-        fprintf('Tile %d (%d, %d), right: shift %d %d, cc %f\n', t, y, x, shift, cc);
+        fprintf('Tile %d (%d, %d), right: shift %d %d %d, cc %f\n', t, y, x, shift, cc);
 
     end
             
     
-    %save(fullfile(o.OutputDirectory, 'o2.mat'), 'o');
+    
 end
-
+%save(fullfile(o.OutputDirectory, 'o2.mat'), 'o');
 
 %% now we need to solve a set of linear equations for each shift,
 % This will be of the form M*x = c, where x and c are both of length 
@@ -96,7 +101,7 @@ end
 % c has columns for y and x coordinates
 
 M = zeros(nTiles, nTiles);
-c = zeros(nTiles, 2);
+c = zeros(nTiles, 3);
 for i=1:size(VerticalPairs,1)
     if isnan(vShifts(i,1)); continue; end
     t1 = VerticalPairs(i,1);
@@ -131,21 +136,21 @@ TileDistFromCenter = abs(mod(0:nTiles-1, nY)-nY/2) + ...
 [~, HomeTile] = min(TileDistFromCenter(:)./~o.EmptyTiles(:));
 %sub2ind([nY nX], ceil(nY/2), ceil(nX/2));
 M(nTiles+1,HomeTile) = 1;
-c(nTiles+1,:) = [Huge, Huge];
+c(nTiles+1,:) = [Huge, Huge, Huge];
 
 Tiny = 1e-4; % for regularization
 TileOffset0 = (M+Tiny*eye(nTiles+1, nTiles))\c;
 
 % find tiles that are connected to the home tile 
 AlignedOK = (TileOffset0(:,1)>Huge/2);
-TileOffset1 = nan(nTiles, 2);
+TileOffset1 = nan(nTiles, 3);
 TileOffset1(AlignedOK,:) = TileOffset0(AlignedOK,:)-Huge;
 
 % RefPos(t,1:2) is origin of reference tile
 RefPos = bsxfun(@minus,TileOffset1, nanmin(TileOffset1))+1;
 
 % tile origin(t,1:2,r)
-o.TileOrigin = zeros(nTiles,2,o.nRounds+o.nExtraRounds);
+o.TileOrigin = zeros(nTiles,3,o.nRounds+o.nExtraRounds);
 o.TileOrigin(:,:,rr) =  RefPos;
 
 %%
@@ -155,20 +160,23 @@ o.TileOrigin(:,:,rr) =  RefPos;
 
 
 %% now make background image
-AnchorOrigin = round(o.TileOrigin(:,:,rr));
+AnchorOrigin = round(o.TileOrigin(:,1:2,rr));           %Only consider YX coordinates
+ZOrigin = round(o.TileOrigin(:,3,rr));                  %To align between Z planes if necessary
 MaxTileLoc = max(AnchorOrigin);
 BigDapiIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
 BigAnchorIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
 
 for t=NonemptyTiles
+    [y,x] = ind2sub([nY nX], t);
     MyOrigin = AnchorOrigin(t,:);
+    MyZOrigin = ZOrigin(t);
     if mod(t,10)==0; fprintf('Loading tile %d DAPI image\n', t); end
     if ~isfinite(MyOrigin(1)); continue; end
-    LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,t}, o.DapiChannel);
+    LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.DapiChannel}, MyZOrigin+o.ZPlane-1);
     BigDapiIm(floor(MyOrigin(1))+(1:o.TileSz), ...
         floor(MyOrigin(2))+(1:o.TileSz)) ...
         = imresize(LocalDapiIm, 1);
-    LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,t}, o.AnchorChannel);
+    LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.AnchorChannel}, MyZOrigin+o.ZPlane-1);
     BigAnchorIm(floor(MyOrigin(1))+(1:o.TileSz), ...
         floor(MyOrigin(2))+(1:o.TileSz)) ...
         = LocalAnchorIm;
@@ -190,7 +198,7 @@ function ShowPos(o, y, x, y1, x1, r, shift)
 	end
     %figure(239856); 
     clf; hold on
-    plot(o.TilePosYX(:,2), o.TilePosYX(:,1), 'k.');
+    plot(o.TilePosYXC(:,2), o.TilePosYXC(:,1), 'k.');
     plot([x x1], [y y1], Color);
     plot(x, y, [Color 'o'], 'markersize', r*3);
     set(gca, 'ydir', 'reverse');

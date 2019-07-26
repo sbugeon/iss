@@ -19,26 +19,22 @@ function o = call_spots_IgnoreChannels(o)
 
 %Only using channels and rounds given by o.UseChannels and o.UseRounds
 if isempty(o.UseChannels)
-    UseChannels = 1:o.nBP;
-else
-    UseChannels = o.UseChannels;
+    o.UseChannels = 1:o.nBP;
 end
-
+    
 if isempty(o.UseRounds)
-    UseRounds = 1:o.nRounds;
-else
-    UseRounds = o.UseRounds;
+    o.UseRounds = 1:o.nRounds;
 end
 
-nChans = size(UseChannels,2);
-nRounds = size(UseRounds,2);
-o.cSpotColors = o.cSpotColors(:,UseChannels,UseRounds);
+nChans = size(o.UseChannels,2);
+nRounds = size(o.UseRounds,2);
+%o.cSpotColors = o.cSpotColors(:,o.UseChannels,o.UseRounds);
 
 %FILTER OUT REALLY HIGH VALUES
-Good = all(o.cSpotColors(:,:)<10000,2);         
-o.cSpotColors = o.cSpotColors(Good,:,:);
-o.cSpotIsolated = o.cSpotIsolated(Good);
-o.SpotGlobalYX = o.SpotGlobalYX(Good,:);
+%Good = all(o.cSpotColors(:,:)<10000,2);         
+%o.cSpotColors = o.cSpotColors(Good,:,:);
+%o.cSpotIsolated = o.cSpotIsolated(Good);
+%o.SpotGlobalYX = o.SpotGlobalYX(Good,:);
 
 %Filter out high values in problematic round 3 colour 1 in bottom right
 %Bad = o.SpotGlobalYX(:,1) > 479 & o.SpotGlobalYX(:,1) < 1878 & o.SpotGlobalYX(:,2)>6695 &...
@@ -51,8 +47,8 @@ SpotColors = bsxfun(@rdivide, o.cSpotColors, prctile(o.cSpotColors, o.SpotNormPr
 
 % now we cluster the intensity vectors to estimate the Bleed Matrix
 BleedMatrix = zeros(nChans,nChans,nRounds); % (Measured, Real, Round)
-for r =1:nRounds
-    m = squeeze(SpotColors(o.cSpotIsolated,:,r)); % data: nCodes by nBases
+for r =o.UseRounds
+    m = squeeze(SpotColors(o.cSpotIsolated,o.UseChannels,r)); % data: nCodes by nBases
     
     [Cluster, v, s2] = ScaledKMeans(m, eye(nChans));
     for i=1:nChans
@@ -66,11 +62,11 @@ if o.Graphics
         subplot(ceil(nRounds/3),3,i); 
         imagesc(BleedMatrix(:,:,i)); 
         caxis([0 1]); 
-        title(sprintf('Cycle %d', UseRounds(i))); 
+        title(sprintf('Cycle %d', o.UseRounds(i))); 
         set(gca, 'xtick', 1:nChans);
-        set(gca, 'XTickLabel', o.bpLabels(UseChannels));
+        set(gca, 'XTickLabel', o.bpLabels(o.UseChannels));
         set(gca, 'ytick', 1:nChans);
-        set(gca, 'yTickLabel', o.bpLabels(UseChannels));
+        set(gca, 'yTickLabel', o.bpLabels(o.UseChannels));
         if i==4
             xlabel('Actual')
             ylabel('Measured');
@@ -142,9 +138,9 @@ UnbledCodes = zeros(nCodes, nChans*nRounds);
 % make starting point using bleed vectors (means for each base on each day)
 for i=1:nCodes
     for r=1:nRounds
-        if any(UseChannels == NumericalCode(i,UseRounds(r))) == 0 continue; end
-        BledCodes(i,(1:nChans) + (r-1)*nChans) = BleedMatrix(:, find(UseChannels == NumericalCode(i,UseRounds(r))), r);
-        UnbledCodes(i,find(UseChannels == NumericalCode(i,UseRounds(r))) + (r-1)*nChans) = 1;
+        if any(o.UseChannels == NumericalCode(i,o.UseRounds(r))) == 0 continue; end
+        BledCodes(i,(1:nChans) + (r-1)*nChans) = BleedMatrix(:, find(o.UseChannels == NumericalCode(i,o.UseRounds(r))), r);
+        UnbledCodes(i,find(o.UseChannels == NumericalCode(i,o.UseRounds(r))) + (r-1)*nChans) = 1;
     end
 end
 

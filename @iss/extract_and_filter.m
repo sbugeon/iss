@@ -2,7 +2,7 @@ function o = extract_and_filter(o)
 % create tiff files for each tile that are top-hat filtered versions of
 % original czi files
 
-    o.TileFiles = cell(o.nRounds+o.nExtraRounds,1,1); % 1,1 because we don't yet know how many tiles
+    o.TileFiles = cell(o.nRounds+o.nExtraRounds,1,1,1); % 1,1,1 because we don't yet know how many tiles
 
     for r = 1:o.nRounds+o.nExtraRounds       
         imfile = fullfile(o.InputDirectory, [o.FileBase{r}, o.RawFileExtension]);
@@ -13,7 +13,7 @@ function o = extract_and_filter(o)
         bfreader.setId(imfile);
 
         % get some basic image metadata
-        [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] = ...
+        [nSeries, nSerieswPos, nChannels, o.nZ, xypos, o.XYpixelsize,o.Zpixelsize] = ...
             get_ome_tilepos(bfreader);
         if isempty(xypos) || size(xypos, 1)==1
             if r == 1
@@ -42,68 +42,98 @@ function o = extract_and_filter(o)
         yStep = median(dy(abs(1- dy(:)/o.MicroscopeStepSize)<.5));
         
         % find coordinates for each tile
-        o.TilePosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+        TilePosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+        if size(xypos, 1)==1
+            TilePosYX = [1,1];
+        end
+        o.TilePosYXC = zeros(nSerieswPos*nChannels,3);
 
         % set up filename grid for this round
-        fName = cell(nSerieswPos,1);
+        fName = cell(nSerieswPos*nChannels,1);
         
+        Index = 1;
         %parfor t = 1:nSerieswPos  
         for t = 1:nSerieswPos  
-           
-            fName{t} = fullfile(o.TileDirectory, ...
-                    [o.FileBase{r}, '_t', num2str(t), '.tif']);
-            
-            if exist(fName{t}, 'file')
-                fprintf('Round %d tile %d already done.\n', r, t);
-                continue;
-            end                   
-            
-                
+                       
             % a new reader per worker
             bfreader = javaObject('loci.formats.Memoizer', bfGetReader(), 0);
             % use the memo file cached before
             bfreader.setId(imfile);
 
             bfreader.setSeries(scene*t-1);
-
             for c = 1:nChannels
-                % structuring element for top-hat
-                if c == o.DapiChannel
-                    SE = strel('disk', round(8/pixelsize));     % DAPI
+                
+                fName{Index} = fullfile(o.TileDirectory, ...
+                    [o.FileBase{r}, '_t', num2str(t),'c', num2str(c), '.tif']);  
+                
+                if exist(fName{Index}, 'file')
+                        fprintf('Round %d tile %d already done.\n', r, Index);
+                        continue;
+                end  
+                                                                        
+                %TopHat SE
+                if c == o.DapiChannel    
+                        %SE = strel3D_2(20,10);       % I.e. set to 8 microns for DAPI
+                        SE = get_3DSE(5,5,10,10);           %THINK MAYBE THIS SHOULD ONLY BE DIFFERENT FOR ANCHOR ROUND
                 else
-                    SE = strel('disk', round(1/pixelsize));
+                        %SE = strel3D_2(3,3);    %I.e. Set to 1 micron
+                        SE = get_3DSE(5,5,10,10);
                 end
 
-
-                % read z stacks
-                I = cell(nZstacks,1);
-                for z = 1:nZstacks
+                I = zeros(o.TileSz,o.TileSz,o.nZ); 
+                for z = 1:o.nZ
                     iPlane = bfreader.getIndex(z-1, c-1, 0)+1;
-                    I{z} = bfGetPlane(bfreader, iPlane);
+                    I(:,:,z) = bfGetPlane(bfreader, iPlane);
+                end                    
+
+                % tophat the 3D image
+                %IFS = imtophat(I, SE);
+                
+                %Pad by replicating edges
+                tic
+                I = padarray(I,(size(SE)-1)/2,'replicate','both');
+                IFS = convn(I,SE,'valid');
+                Offset = 20;                %To remove some of the negative numbers
+                                            %Not set to min(IFS) as some images have 
+                                            %much lower so can't have universal threshold
+                                          
+                IFS = (IFS+Offset)*10;      %scale so get more info when rounded to int
+                toc
+                
+                %tic
+                %IFS = imfilter(I,SE,'replicate','same','conv');
+                %toc
+                %IFS = I;
+                
+                %Append each z plane to same tiff image
+                for z = 1:o.nZ
+                    imwrite(uint16(IFS(:,:,z)),...  %Not sure if uint16 is correct, wasnt working without
+                            fullfile(o.TileDirectory,...
+                            [o.FileBase{r}, '_t', num2str(t),'c', num2str(c), '.tif']),...
+                            'tiff', 'writemode', 'append');
                 end
 
-                % focus stacking
-                IFS = o.fstack_modified(I);
-
-                % tophat
-                IFS = imtophat(IFS, SE);
-
-                % write stack image
-                imwrite(IFS,...
-                    fullfile(o.TileDirectory,...
-                    [o.FileBase{r}, '_t', num2str(t), '.tif']),...
-                    'tiff', 'writemode', 'append');
+                o.TilePosYXC(Index,:) = [TilePosYX(t,:),c];          %Think first Z plane is the highest
+                o.TileFiles{r,o.TilePosYXC(Index,1), o.TilePosYXC(Index,2),o.TilePosYXC(Index,3)} = fName{Index};
+                fprintf('Round %d tile %d colour channel %d finished.\n', r, t, c);                                               
+                Index = Index+1; 
+               
             end
-            fprintf('Round %d tile %d finished.\n', r, t);
             bfreader.close();
-
-        end        
-
-        for t=1:nSerieswPos
-            o.TileFiles{r,o.TilePosYX(t,1), o.TilePosYX(t,2)} = fName{t};
+            
         end
-    end
+        
     
-    o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:)));
+    o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:,1)));
 
+    end
+end
+
+function SE = get_3DSE(r1YX,r1Z,r2YX,r2Z)
+    % structuring element for convlolution filtering
+    % Positive inner circle radius r1 and negative outer annulus radius r2. Overall sums to
+    % one. 
+    SE = zeros(r2YX*2+1,r2YX*2+1,r2Z*2+1);
+    SE(r2YX+1-r1YX:r2YX+1+r1YX,r2YX+1-r1YX:r2YX+1+r1YX,r2Z+1-r1Z:r2Z+1+r1Z) = fspecial3('ellipsoid',[r1YX,r1YX,r1Z]);
+    SE = SE - fspecial3('ellipsoid',[r2YX,r2YX,r2Z]);
 end

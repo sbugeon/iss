@@ -1,4 +1,4 @@
-function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] =...
+function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize,Zpixelsize] =...
     get_ome_tilepos(reader)
 % [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] =...
 %     get_ome_tilepos(reader)
@@ -17,6 +17,7 @@ nChannels = reader.getSizeC;
 omeMeta = reader.getMetadataStore();
 nZstacks = omeMeta.getPixelsSizeZ(0).getValue();
 pixelsize = double(omeMeta.getPixelsPhysicalSizeX(0).value());
+Zpixelsize = double(omeMeta.getPixelsPhysicalSizeZ(0).value());
 
 xypos  = [];
 for i = 1:nSeries

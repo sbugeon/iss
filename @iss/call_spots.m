@@ -12,6 +12,19 @@ function o = call_spots(o)
   
 nChans = o.nBP+2;
 
+%FILTER OUT REALLY HIGH VALUES
+Good = all(o.cSpotColors(:,:)<10000,2);         
+o.cSpotColors = o.cSpotColors(Good,:,:);
+o.cSpotIsolated = o.cSpotIsolated(Good);
+o.SpotGlobalYX = o.SpotGlobalYX(Good,:);
+
+%Filter out high values in problematic round 3 colour 1 in bottom right
+Bad = o.SpotGlobalYX(:,1) > 479 & o.SpotGlobalYX(:,1) < 1878 & o.SpotGlobalYX(:,2)>6695 &...
+    o.cSpotColors(:,1,3)>1000;      
+o.cSpotColors = o.cSpotColors(Bad==0,:,:);
+o.cSpotIsolated = o.cSpotIsolated(Bad==0);
+o.SpotGlobalYX = o.SpotGlobalYX(Bad==0,:);
+
 SpotColors = bsxfun(@rdivide, o.cSpotColors, prctile(o.cSpotColors, o.SpotNormPrctile));
 
 % now we cluster the intensity vectors to estimate the Bleed Matrix
@@ -107,7 +120,7 @@ UnbledCodes = zeros(nCodes, o.nBP*o.nRounds);
 % make starting point using bleed vectors (means for each base on each day)
 for i=1:nCodes
     for r=1:o.nRounds
-        %if NumericalCode(i,r) == 7 continue; end
+        %if any(o.IgnoreChannels == NumericalCode(i,r)) continue; end
         BledCodes(i,(1:o.nBP) + (r-1)*o.nBP) = BleedMatrix(:, NumericalCode(i,r), r);
         UnbledCodes(i,NumericalCode(i,r) + (r-1)*o.nBP) = 1;
     end
@@ -118,7 +131,6 @@ if 1 % 0 to just use original codes
     FlatSpotColors = SpotColors(:,:);
     o.SpotIntensity = sqrt(sum(FlatSpotColors.^2,2));
     NormFlatSpotColors = bsxfun(@rdivide, FlatSpotColors, o.SpotIntensity);
-
     SpotScores = NormFlatSpotColors * NormBledCodes';
 else
     % HACK ALERT

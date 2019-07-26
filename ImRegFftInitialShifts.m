@@ -1,4 +1,4 @@
-function [shift, cc, fa1, fa2] = ImRegFft2(Im1, Im2, CorrThresh, MinSize)
+function [shift, cc, fa1, fa2] = ImRegFftInitialShifts(Im1, Im2, CorrThresh, MinSize)
 % [shift, cc, f1, ft2] = ImRegFft2(Im1, Im2, CorrThresh)
 %
 % do image registration via fft convolution, finding match as point of 
@@ -40,12 +40,13 @@ end
 
 nTries = 13; % how many local maxima to try for CorrThresh before giving up
 
-if iscell(Im1)
-    sz = size(Im1{1}, 1)/2;% /2 because it was zero-padded
-else
-    sz = size(Im1,1); 
-end
 
+%if iscell(Im1)
+    %sz = size(Im1{1}, :)/2;% /2 because it was zero-padded
+%else
+    %sz = size(Im1);
+%end
+sz = size(Im1);
 %%
 if ~iscell(Im1)
     % convert to double because matlab has all sorts of problems with integer data types
@@ -56,26 +57,33 @@ if ~iscell(Im1)
 
     % zero pad them
     Im1zp = zeros(sz*2);
-    Im1zp(1:sz,1:sz) = Im1z;
+    Im1zp(1:sz(1),1:sz(2),1:sz(3)) = Im1z;
     
     % Fourier 
     f1 = fft2(Im1zp);
 
     % compute total energy in sub-images of different sizes
     % first make indefinite integrals of energy, starting with a zero:
-    Cum1 = zeros(sz+1,sz+1);
-    Cum1(2:sz+1,2:sz+1) = cumsum(cumsum(Im1z.^2,1),2);
+    Cum1 = zeros(sz+1);
+    Cum1(2:sz(1)+1,2:sz(2)+1,2:sz(3)+1) = cumsum(cumsum(Im1z.^2,1),2);
 
     % next find box edges (inclusive), as a function of dy and dx. 0 or sz+1 means
     % no overlap
-    Box1Top = [1:sz, ones(1,sz)]';
-    Box1Bot = [sz*ones(1,sz) , 0:(sz-1)]';
-    Box1Left = [1:sz, ones(1,sz)];
-    Box1Right = [sz*ones(1,sz) , (0:sz-1)];
+    Box1Top = [1:sz(1), ones(1,sz(1))];
+    Box1Bot = [sz(1)*ones(1,sz(1)) , 0:(sz(1)-1)];
+    Box1Left = [1:sz(2), ones(1,sz(2))];
+    Box1Right = [sz(2)*ones(1,sz(2)) , (0:sz(2)-1)];
+    %Up/Down refers to z direction
+    Box1Up = [1:sz(3), ones(1,sz(3))];
+    Box1Down = [sz(3)*ones(1,sz(3)) , 0:(sz(3)-1)];
+    
 
-    % finally, doing the 2d definite integral means a difference of a difference
-    Energy1 = Cum1(Box1Top,Box1Left) + Cum1(Box1Bot+1,Box1Right+1)...
-            - Cum1(Box1Top,Box1Right+1) - Cum1(Box1Bot+1,Box1Left);
+    % finally, doing the 2d definite integral means a difference of a
+    % difference NOT SURE ABOUT THIS AT ALL
+    Energy1 = Cum1(Box1Top,Box1Left,Box1Up) + Cum1(Box1Bot+1,Box1Right+1,Box1Up)...
+            - Cum1(Box1Top,Box1Right+1,Box1Up) - Cum1(Box1Bot+1,Box1Left,Box1Up)...
+            + Cum1(Box1Top,Box1Left,Box1Down+1) + Cum1(Box1Bot+1,Box1Right+1,Box1Down+1)...
+            - Cum1(Box1Top,Box1Right+1,Box1Down+1) - Cum1(Box1Bot+1,Box1Left,Box1Down+1);
 else
     f1 = Im1{1};
     Energy1 = Im1{2};
@@ -87,18 +95,22 @@ if ~iscell(Im2)
     Im2d = double(Im2);
     Im2z = (Im2d - mean(Im2d(:)))/std(Im2d(:));
     Im2zp = zeros(sz*2);
-    Im2zp(1:sz,1:sz) = Im2z;
+    Im2zp(1:sz(1),1:sz(2),1:sz(3)) = Im2z;
     f2 = fft2(Im2zp);
 
-    Cum2 = zeros(sz+1,sz+1);
-    Cum2(2:sz+1,2:sz+1) = cumsum(cumsum(Im2z.^2,1),2);
-    Box2Top = [ones(1,sz), (sz+1):-1:2]';
-    Box2Bot = [sz:-1:1, sz*ones(1,sz)]';
-    Box2Left = [ones(1,sz), (sz+1):-1:2];
-    Box2Right = [sz:-1:1, sz*ones(1,sz)];
+    Cum2 = zeros(sz+1);
+    Cum2(2:sz(1)+1,2:sz(2)+1,2:sz(3)+1) = cumsum(cumsum(Im2z.^2,1),2);
+    Box2Top = [ones(1,sz(1)), (sz(1)+1):-1:2]';
+    Box2Bot = [sz(1):-1:1, sz(1)*ones(1,sz(1))]';
+    Box2Left = [ones(1,sz(2)), (sz(2)+1):-1:2];
+    Box2Right = [sz(2):-1:1, sz(2)*ones(1,sz(2))];
+    Box2Up = [ones(1,sz(3)), (sz(3)+1):-1:2];
+    Box2Down = [sz(3):-1:1, sz(3)*ones(1,sz(3))];
 
-    Energy2 = Cum2(Box2Bot+1,Box2Right+1) + Cum2(Box2Top,Box2Left) ...
-            - Cum2(Box2Top,Box2Right+1) - Cum2(Box2Bot+1,Box2Left);
+    Energy2 = Cum2(Box2Bot+1,Box2Right+1,Box2Up) + Cum2(Box2Top,Box2Left,Box2Up) ...
+            - Cum2(Box2Top,Box2Right+1,Box2Up) - Cum2(Box2Bot+1,Box2Left,Box2Up)...
+            + Cum2(Box2Bot+1,Box2Right+1,Box2Down+1) + Cum2(Box2Top,Box2Left,Box2Down+1) ...
+            - Cum2(Box2Top,Box2Right+1,Box2Down+1) - Cum2(Box2Bot+1,Box2Left,Box2Down+1);
 else
     f2 = Im2{1};
     Energy2 = Im2{2};
@@ -116,7 +128,8 @@ Correl = (Conv./(MinSize + sqrt(Energy1.*Energy2)));
 if MaxShift==1
     if cc>=CorrThresh(2)
         [dy0, dx0] = ind2sub(size(Conv), MaxShift);
-        shift = mod([dy0, dx0] +sz, sz*2) - sz - 1;  
+        shift = mod([dy0, dx0] +sz(1:2), sz(1:2)*2) - sz(1:2) - 1;  
+        shift = [shift,0];
     else
         % try second best
         [sorted, order] = sort(Correl(:), 'descend');
@@ -128,9 +141,10 @@ end
 if MaxShift~=1  % including if you just avoided the top one
     if cc>CorrThresh(1)
         [dy0, dx0] = ind2sub(size(Conv), MaxShift);
-        shift = mod([dy0, dx0] +sz, sz*2) - sz - 1;  
+        shift = mod([dy0, dx0] +sz(1:2), sz(1:2)*2) - sz(1:2) - 1;  
+        shift = [shift,0];
     else
-        shift = [NaN, NaN];
+        shift = [NaN, NaN, NaN];
     end
 end
 

@@ -46,7 +46,9 @@ end
 %% find peaks and lower threshold if there aren't enough
 
 % first do morphological filtering
-se1 = strel('disk', o.DetectionRadius);
+se1 = strel3D_2(o.DetectionRadius(1),o.DetectionRadius(2));         %SE has o.DetectionRadius length in z pixels
+%se1 = o.strel3D(ceil(2*o.Zpixelsize/o.XYpixelsize));
+
 Dilate = imdilate(Image, se1);
 
 % local maxima are where image=dilation
@@ -56,17 +58,22 @@ Small = 1e-6; % just a small number, for computing local maxima: shouldn't matte
 %VARIANCE IN THE IMAGE INSTEAD)
 nPeaks = 0;
 i = 0;
-while nPeaks < o.minPeaks                
+while nPeaks < o.minPeaks              
     if i > 0
         DetectionThresh = DetectionThresh - o.ThreshParam;          
+    end
+    if DetectionThresh <= o.MinThresh
+        DetectionThresh = o.MinThresh;
+        MaxPixels = find(Image + Small >= Dilate & Image>DetectionThresh);
+        break 
     end
     MaxPixels = find(Image + Small >= Dilate & Image>DetectionThresh);
     nPeaks = size(MaxPixels,1);
     i = i+1;
 end
 
-[yPeak, xPeak] = ind2sub(size(Image), MaxPixels);
-PeakPos = [yPeak, xPeak];
+[yPeak, xPeak, zPeak] = ind2sub(size(Image), MaxPixels);
+PeakPos = [yPeak, xPeak, zPeak];
 
 %% Isolation Thresholding
 
@@ -81,18 +88,17 @@ end
 %% now find isolated peaks by annular filtering
 if nargout==1
     if o.Graphics==2
-        figure(50965467); clf; 
-        imagesc(Image); hold on; colormap hot
-        plot(xPeak, yPeak, 'wx');
-        drawnow
+        plotSpotsLocal(PeakPos,Image,o.nZ,o.TileSz,'Detected Spots');
     end
 
-    return; 
+    return;
 end
-
 % first make annular filter
-[xr, yr] = meshgrid(-o.IsolationRadius2:o.IsolationRadius2);
-Annulus = (xr.^2 + yr.^2)<=o.IsolationRadius2.^2 & (xr.^2 + yr.^2)>o.IsolationRadius1.^2;
+%zIsolationRadius2 = floor(o.IsolationRadius2*o.XYpixelsize/o.Zpixelsize);       %Zpixelsize is different
+[xr, yr, zr] = meshgrid(-o.IsolationRadius2(1):o.IsolationRadius2(1),-o.IsolationRadius2(1):o.IsolationRadius2(1),...
+    -o.IsolationRadius2(2):o.IsolationRadius2(2));
+Annulus = (xr.^2 + yr.^2+(o.Zpixelsize*zr/o.XYpixelsize).^2)<=o.IsolationRadius2(1).^2 &...
+    (xr.^2 + yr.^2+(o.Zpixelsize*zr/o.XYpixelsize).^2) > o.IsolationRadius1.^2;
 
 % filter the image with it
 AnnularFiltered = imfilter(Image, double(Annulus)/sum(Annulus(:)));
@@ -102,12 +108,7 @@ AnnularFiltered = imfilter(Image, double(Annulus)/sum(Annulus(:)));
 Isolated = (AnnularFiltered(MaxPixels) < IsolationThresh);
 
 if o.Graphics==2
-    figure(50965468); clf; 
-    imagesc(Image); hold on; colormap hot
-    plot(xPeak(Isolated), yPeak(Isolated), 'gx');
-    plot(xPeak(~Isolated), yPeak(~Isolated), 'wx');
-    legend('Isolated', 'Not isolated');
-    drawnow
+    plotSpotsLocal_Isolated(PeakPos,Image,o.nZ,o.TileSz,Isolated,'Isolated and Not Isolated Spots');
 end
 
 return

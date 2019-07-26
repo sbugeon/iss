@@ -1,4 +1,4 @@
-function o = PointCloudRegister(o, y, x0, A0, nTiles, Options)     %MADE A THE SAME FOR ALL TILES
+function o = PointCloudRegister_NoAnchor3D(o, y, x0, A0, nTiles, Options)     %MADE A THE SAME FOR ALL TILES
 % o = o.PointCloudRegister(y, x, A0, Options)
 % 
 % Perform point cloud registration to map points x onto points y by
@@ -23,13 +23,14 @@ function o = PointCloudRegister(o, y, x0, A0, nTiles, Options)     %MADE A THE S
 % model where x gets an extra column of ones and M is 2x3.
 %%
 MaxIter = 100;
-nD = 2;
+nD = 3;
 
 %centre anchor channel spots
 x = cell(nTiles,1);
 for t=1:nTiles
     if o.EmptyTiles(t); continue; end
-    x(t) = {x0{t} - [o.TileSz/2,o.TileSz/2]};
+    %Center and scale z direction.
+    x(t) = {(x0{t} - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize]};
 end
 
 
@@ -77,7 +78,7 @@ fprintf('\nPCR - Making kd trees');
 k = cell(nTiles,o.nBP,o.nRounds);
 for t=1:nTiles
     if o.EmptyTiles(t); continue; end
-    for r=o.UseRounds
+    for r=o.UseRounds 
         for b=o.UseChannels
             k(t,b,r) = {KDTreeSearcher(y{t,b,r})};
         end
@@ -112,7 +113,7 @@ for i=1:MaxIter
     
     for t=1:nTiles
         if o.EmptyTiles(t); continue; end
-        for r=o.UseRounds
+        for r=o.UseRounds 
             for b=o.UseChannels
                 xM(t,b,r) = {(A(:,:,b)*(x{t} + D(t,:,r))')'};   
             end
@@ -125,7 +126,7 @@ for i=1:MaxIter
         yA = [];
         for t=1:nTiles
             if o.EmptyTiles(t); continue; end
-            for r=o.UseRounds        
+            for r=o.UseRounds          
                 Neighbor(t,b,r) = {k{t,b,r}.knnsearch(xM{t,b,r})};
                 [~,Dist] = k{t,b,r}.knnsearch(xM{t,b,r});
                 UseMe(t,b,r) = {Dist<o.PcDist};                
@@ -140,6 +141,8 @@ for i=1:MaxIter
             end
         end
         A(:,:,b) = xA\yA;
+        %A_2D = xA(:,1:2)\yA(:,1:2);
+        %A(1:2,1:2,b) = A_2D;
     end
     
     %This part finds new estimates for D
@@ -169,10 +172,14 @@ for i=1:MaxIter
         figure(29387648);
         fprintf('\nIteration %d: %d matches, mean error %f', i, nMatches(t,b,r), Error(t,b,r));
         clf; hold on
-        plot(y{t,b,r}(:,2), y{t,b,r}(:,1), 'g+');
-        plot(xM{t,b,r}(:,2), xM{t,b,r}(:,1), 'r+');
-        plot([xM{t,b,r}(UseMe{t,b,r}>0,2) y{t,b,r}(MyNeighb{t,b,r},2)]',...
-            [xM{t,b,r}(UseMe{t,b,r}>0,1) y{t,b,r}(MyNeighb{t,b,r},1)]', 'k-', 'linewidth', 1);
+        InZPlaney = y{t,b,r}(:,3)==(o.ZPlane-1-(o.nZ-1)/2)*o.Zpixelsize/o.XYpixelsize;
+        plot(y{t,b,r}(InZPlaney,2), y{t,b,r}(InZPlaney,1), 'g+');
+        InZPlanex = xM{t,b,r}(:,3)==(o.ZPlane-1-(o.nZ-1)/2)*o.Zpixelsize/o.XYpixelsize;
+        Neighboury = y{t,b,r}(MyNeighb{t,b,r},:);
+        InZPlaneNeighboury = Neighboury(:,3)==(o.ZPlane-1-(o.nZ-1)/2)*o.Zpixelsize/o.XYpixelsize;
+        plot(xM{t,b,r}(InZPlanex,2), xM{t,b,r}(InZPlanex,1), 'r+');
+        plot([xM{t,b,r}(UseMe{t,b,r}>0&InZPlanex,2) Neighboury(InZPlaneNeighboury,2)]',...
+            [xM{t,b,r}(UseMe{t,b,r}>0&InZPlanex,1) Neighboury(InZPlaneNeighboury,1)]', 'k-', 'linewidth', 1);
 
         drawnow;
     end
@@ -183,7 +190,7 @@ end
 fprintf('\n')
 %%
 o.A = A;
-o.D = D;
+o.D = D.*[1,1,o.XYpixelsize/o.Zpixelsize];
 o.nMatches = nMatches;
 o.Error = Error;
 

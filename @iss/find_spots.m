@@ -39,67 +39,66 @@ Tiles = find(~o.EmptyTiles)';
 nTiles = nY*nX;
 
 %% loop through all tiles, finding spots in anchor channel on ref round
-RawLocalYX = cell(nTiles,1);  % cell array, giving spots in local coordinates
+RawLocalYXZ = cell(nTiles,1);  % cell array, giving spots in local coordinates
 RawIsolated = cell(nTiles,1);
+%SE = fspecial3('ellipsoid',[o.SmoothSize*o.Zpixelsize/o.XYpixelsize, o.SmoothSize*o.Zpixelsize/o.XYpixelsize, o.SmoothSize]);
+SE = fspecial3('ellipsoid',o.SmoothSize);
 for t=Tiles
     if mod(t,10)==0; fprintf('Detecting reference spots in tile %d\n', t); end
     [y,x] = ind2sub([nY nX], t);
-    AnchorIm = imread(o.TileFiles{rr,y,x}, o.AnchorChannel);
+    AnchorIm = o.load_3D(rr,y,x,o.AnchorChannel);
     if o.SmoothSize
-        AnchorImSm = imfilter(AnchorIm, fspecial('disk', o.SmoothSize));
+        %NOT SURE HOW TO DO THIS SMOOTHING YET        
+        AnchorImSm = imfilter(AnchorIm, SE);
     else
         AnchorImSm = AnchorIm;
     end
-    [RawLocalYX{t}, RawIsolated{t}] = o.detect_spots(AnchorImSm);
+    [RawLocalYXZ{t}, RawIsolated{t}] = o.detect_spots(AnchorImSm);
 end
     
 %% now make array of global coordinates
 AllIsolated = logical(vertcat(RawIsolated{:})); % I HATE MATLAB - for converting logical to doubles for no reason
 nAll = length(AllIsolated);
 
-AllGlobalYX = zeros(nAll,2);
-AllLocalYX = zeros(nAll,2);
+AllGlobalYXZ = zeros(nAll,3);
+AllLocalYXZ = zeros(nAll,3);
+OriginalTile = zeros(nAll,1);
 
 ind = 1;
 for t=Tiles
-    MySpots = RawLocalYX{t};
+    MySpots = RawLocalYXZ{t};
     nMySpots = size(MySpots, 1);
-    AllGlobalYX(ind:ind+nMySpots-1,:) = bsxfun(@plus, MySpots, o.TileOrigin(t,:,rr));
-    AllLocalYX(ind:ind+nMySpots-1,:) = MySpots;
+    AllGlobalYXZ(ind:ind+nMySpots-1,:) = bsxfun(@plus, MySpots, o.TileOrigin(t,:,rr));
+    AllLocalYXZ(ind:ind+nMySpots-1,:) = MySpots;
     OriginalTile(ind:ind+nMySpots-1) = t;
     ind = ind+nMySpots;
 end
 if o.Graphics
-    figure(1001)
-    plot(AllGlobalYX(:,2), AllGlobalYX(:,1), '.', 'markersize', 1);
-    title('All global coords including duplicates');
-    %set(gca, 'YDir', 'reverse');
+    plotAnchorSpotsGlobal(AllGlobalYXZ,o.nZ,'All global coords including duplicates')
 end
 
 %% now remove duplicates by keeping only spots detected on their home tile
 
-[AllLocalTile, ~] = which_tile(AllGlobalYX, o.TileOrigin(:,:,rr), o.TileSz);
-NotDuplicate = (AllLocalTile==OriginalTile');
-ndGlobalYX = AllGlobalYX(NotDuplicate,:);
-ndLocalYX = AllLocalYX(NotDuplicate,:);
+[AllLocalTile, ~] = which_tile(AllGlobalYXZ, o.TileOrigin(:,:,rr), o.TileSz);
+NotDuplicate = (AllLocalTile==OriginalTile);
+ndGlobalYXZ = AllGlobalYXZ(NotDuplicate,:);
+ndLocalYXZ = AllLocalYXZ(NotDuplicate,:);
 ndIsolated = AllIsolated(NotDuplicate,:);
 ndLocalTile = AllLocalTile(NotDuplicate,:);
 
 nnd = sum(NotDuplicate);
 
 if o.Graphics
-    figure(1002); clf
-    plot(ndGlobalYX(:,2), ndGlobalYX(:,1), '.', 'markersize', 1);
-    title('Global coords without duplicates');
-    drawnow;
-    %set(gca, 'YDir', 'reverse');
+    plotAnchorSpotsGlobal(ndGlobalYXZ,o.nZ,'Global coords without duplicates')
 end
 
 
 
 
 %% get spot local coordinates in all colour channels and run PCR
-AllBaseLocalYX = cell(nTiles,o.nBP, o.nRounds);
+AllBaseLocalYXZ = cell(nTiles,o.nBP, o.nRounds);
+
+
 
 %Specify which rounds/colour channels to use (default is all)
 if isempty(o.UseChannels)
@@ -112,6 +111,10 @@ end
 
 % loop through all tiles, finding PCR outputs
 fprintf('\nLocating spots in each colour channel of tile   ');
+
+%For scaling need to be centered about 0 hence subtract this
+o.CentreCorrection = [1+(o.TileSz-1)/2,1+(o.TileSz-1)/2,1+(o.nZ-1)/2];
+
 for t=1:nTiles
     if o.EmptyTiles(t); continue; end
     
@@ -122,37 +125,56 @@ for t=1:nTiles
     end 
     
     [y, x] = ind2sub([nY nX], t);
+    %Reload AnchorIm to do ImRegFFT3
+    AnchorIm = o.load_3D(rr,y,x,o.AnchorChannel);
+    if o.SmoothSize
+        AnchorImSm = imfilter(AnchorIm, SE);
+    else
+        AnchorImSm = AnchorIm;
+    end
 
-    for r=o.UseRounds
+    for r = o.UseRounds
         % find spots whose home tile on round r is t      
-        % open file for this tile/round
-        FileName = o.TileFiles{r,t};
-        TifObj = Tiff(FileName);
-                
+        % open file for this tile/round       
         % now read in images for each base
-        for b=o.UseChannels             
+        
+        FinalBaseIm = zeros(o.TileSz,o.TileSz,o.nZ);        %Max projected image of round to find initial shift
+        for b = o.UseChannels              
 
-            TifObj.setDirectory(o.FirstBaseChannel + b - 1);            
-            BaseIm = TifObj.read();
-            
+            BaseIm = o.load_3D(r,y,x,o.FirstBaseChannel + b - 1);
+            %SE = fspecial3('ellipsoid',[o.SmoothSize*o.Zpixelsize/o.XYpixelsize, o.SmoothSize*o.Zpixelsize/o.XYpixelsize, o.SmoothSize]);
+            BaseIm = imfilter(BaseIm, SE);
+            %o.MinThresh = max(mean(mean(BaseIm)));
+            %o.DetectionThresh = 1.5*max(mean(mean(BaseIm)));
             % find spots for base b on tile t - we will use this for point
             % cloud registration only, we don't use these detections to
             % detect colors, we read the colors off the
             % pointcloud-corrected positions of the spots detected in the reference round home tiles  
-            CenteredSpots = o.detect_spots(BaseIm) - [o.TileSz/2,o.TileSz/2];
-            AllBaseLocalYX(t,b,r) = {CenteredSpots};
+            CenteredSpots = o.detect_spots(BaseIm) - o.CentreCorrection;
+            %Scale so all in terms of XY pixel size. Import for PCR as find
+            %nearest neighbours
+            AllBaseLocalYXZ(t,b,r) = {CenteredSpots.*[1,1,o.Zpixelsize/o.XYpixelsize]};
+            FinalBaseIm = max(FinalBaseIm,BaseIm);
         end
-        TifObj.close();
+        %[o.D0(t,:,r), ~] = ImRegFft3D(FinalBaseIm,AnchorImSm, 0, o.RegMinSize*100000);  
     end      
 end
 fprintf('\n');
 
 %PCR initial shifts
-o = o.get_initial_shift(AllBaseLocalYX, RawLocalYX, nTiles, o.RegMinSize*300000);
+o.D0 = o.D0.*[1,1,o.Zpixelsize/o.XYpixelsize];       %Convert shift so units are XY pixels. 
+o = o.get_initial_shift(AllBaseLocalYXZ, RawLocalYXZ, nTiles, o.RegMinSize*1000);
+%A=o.D0(:,:,1);
+%A(:,3)=0;
+%o.D0(:,:,1)=A;
+%A=o.D0(:,:,2);
+%A(:,3)=0;
+%o.D0(:,:,2)=A;
 %o.D0(7,:,1) = o.TileOrigin(1,:,rr)-o.TileOrigin(1,:,7);
-o.D0(14,:,3) = [10,45];
+%o.D0(14,:,3) = [10,45]; %This makes sense as there is a major artifact in
+%this tile/round
 
-o = o.PointCloudRegister(AllBaseLocalYX, RawLocalYX, eye(2), nTiles);
+o = o.PointCloudRegister_NoAnchor3D(AllBaseLocalYXZ, RawLocalYXZ, eye(3), nTiles);
 
 
 %% decide which tile to read each spot off in each round. 
@@ -165,7 +187,7 @@ o = o.PointCloudRegister(AllBaseLocalYX, RawLocalYX, eye(2), nTiles);
 o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - o.D;
 
 ndRoundTile = nan(nnd,o.nRounds);
-ndRoundYX = nan(nnd,2,o.nRounds);
+ndRoundYXZ = nan(nnd,3,o.nRounds);
 
 PossNeighbs = [-1 -nY 1 nY 0]; % NWSE then same tile - same will have priority by being last
 
@@ -176,13 +198,13 @@ for r=o.UseRounds
         % find origins of each tile's neighbor, NaN if not there
         NeighbTile = (1:nTiles)+n;
         NeighbOK = (NeighbTile>=1 & NeighbTile<=nTiles);
-        NeighbOrigins = nan(nTiles,2);
+        NeighbOrigins = nan(nTiles,3);
         NeighbOrigins(NeighbOK,:) = round(o.TileOrigin(NeighbTile(NeighbOK),:,r));
         
         % now for each spot see if it is inside neighbor's tile area
         SpotsNeighbOrigin = NeighbOrigins(ndLocalTile,:);
-        SpotsInNeighbTile = all(ndGlobalYX>=SpotsNeighbOrigin+1+o.ExpectedAberration...
-            & ndGlobalYX<=SpotsNeighbOrigin+o.TileSz-o.ExpectedAberration, 2);
+        SpotsInNeighbTile = all(ndGlobalYXZ>=SpotsNeighbOrigin+1+o.ExpectedAberration...
+            & ndGlobalYXZ<=SpotsNeighbOrigin+o.TileSz-o.ExpectedAberration, 2);
         
         % for those that were in set this to be its neighbor
         ndRoundTile(SpotsInNeighbTile,r) = NeighbTile(ndLocalTile(SpotsInNeighbTile));    
@@ -190,27 +212,23 @@ for r=o.UseRounds
     
     % compute YX coord
     HasTile = isfinite(ndRoundTile(:,r));
-    ndRoundYX(HasTile,:,r) = ndGlobalYX(HasTile,:) - round(o.TileOrigin(ndRoundTile(HasTile,r),:,r));
+    ndRoundYXZ(HasTile,:,r) = ndGlobalYXZ(HasTile,:) - round(o.TileOrigin(ndRoundTile(HasTile,r),:,r));
     
 end
 
 %% loop through all tiles, finding spot colors
 
 ndSpotColors = nan(nnd, o.nBP, o.nRounds);
-ndPointCorrectedLocalYX = nan(nnd, 2, o.nRounds, o.nBP);
+ndPointCorrectedLocalYXZ = nan(nnd, 3, o.nRounds, o.nBP);
 
 for t=1:nTiles
     if o.EmptyTiles(t); continue; end
     [y, x] = ind2sub([nY nX], t);
    
-    for r=o.UseRounds       
+    for r=o.UseRounds      
         % find spots whose home tile on round r is t
         MySpots = (ndRoundTile(:,r)==t);
         if ~any(MySpots); continue; end
-        
-        % open file for this tile/round
-        FileName = o.TileFiles{r,t};
-        TifObj = Tiff(FileName);
         
         % find the home tile for all current spots in the ref round
         RefRoundHomeTiles = ndLocalTile(ndRoundTile(:,r)==t);
@@ -223,47 +241,46 @@ for t=1:nTiles
         
         
         % now read in images for each base
-        for b=o.UseChannels                %No 0 as trying without using anchor
+        for b=o.UseChannels              %No 0 as trying without using anchor
 
             
-            TifObj.setDirectory(o.FirstBaseChannel + b - 1);
-            BaseIm = TifObj.read();
+            BaseIm = o.load_3D(r,y,x,o.FirstBaseChannel + b - 1);
             
             if o.SmoothSize
-                BaseImSm = imfilter(double(BaseIm), fspecial('disk', o.SmoothSize));
+                %BaseImSm = imfilter(double(BaseIm), fspecial('disk', o.SmoothSize));
+                BaseImSm = imfilter(BaseIm, SE);
             else
                 BaseImSm = BaseIm;
             end
             
             for t2 = MyRefTiles(:)'
                 MyBaseSpots = (ndRoundTile(:,r)==t & ndLocalTile==t2);
-                CenteredMyLocalYX = ndLocalYX(MyBaseSpots,:) - [o.TileSz/2,o.TileSz/2];
+                CenteredScaledMyLocalYXZ = (ndLocalYXZ(MyBaseSpots,:) - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize];
                 
                 if t == t2
                     fprintf('Point cloud: ref round tile %d -> tile %d round %d base %d, %d/%d matches, error %f\n', ...
-                        t, t2, r, b,  o.nMatches(t,b,r), size(RawLocalYX{t2},1), o.Error(t,b,r));
+                        t, t2, r, b,  o.nMatches(t,b,r), size(RawLocalYXZ{t2},1), o.Error(t,b,r));
                     if o.nMatches(t,b,r)<o.MinPCMatches || isempty(o.nMatches(t,b,r))
                         continue;
                     end
-                    CenteredMyPointCorrectedYX = (o.A(:,:,b)*(CenteredMyLocalYX + o.D(t,:,r))')';
-                    MyPointCorrectedYX = round(CenteredMyPointCorrectedYX + [o.TileSz/2,o.TileSz/2]);
-                    ndPointCorrectedLocalYX(MyBaseSpots,:,r,b) = MyPointCorrectedYX;
-                    ndSpotColors(MyBaseSpots,b,r) = IndexArrayNan(BaseImSm, MyPointCorrectedYX');
+                    CenteredMyPointCorrectedYXZ = (o.A(:,:,b)*(CenteredScaledMyLocalYXZ + o.D(t,:,r))')';
+                    MyPointCorrectedYXZ = round(CenteredMyPointCorrectedYXZ.*[1,1,o.XYpixelsize/o.Zpixelsize] + o.CentreCorrection);
+                    ndPointCorrectedLocalYXZ(MyBaseSpots,:,r,b) = MyPointCorrectedYXZ;
+                    ndSpotColors(MyBaseSpots,b,r) = IndexArrayNan(BaseImSm, MyPointCorrectedYXZ');
                 else
-                    [MyPointCorrectedYX, error, nMatches] = o.different_tile_transform(AllBaseLocalYX,RawLocalYX, ...
-                        CenteredMyLocalYX,t,t2,r,b);
+                    [MyPointCorrectedYXZ, error, nMatches] = o.different_tile_transform(AllBaseLocalYXZ,RawLocalYXZ, ...
+                        CenteredScaledMyLocalYXZ,t,t2,r,b);
                     fprintf('Point cloud: ref round tile %d -> tile %d round %d base %d, %d/%d matches, error %f\n', ...
-                        t, t2, r, b,  nMatches, size(RawLocalYX{t2},1), error);
+                        t, t2, r, b,  nMatches, size(RawLocalYXZ{t2},1), error);
                     if nMatches<o.MinPCMatches || isempty(nMatches)
                         continue;
                     end
-                    ndPointCorrectedLocalYX(MyBaseSpots,:,r,b) = MyPointCorrectedYX;
-                    ndSpotColors(MyBaseSpots,b,r) = IndexArrayNan(BaseImSm, MyPointCorrectedYX');
+                    ndPointCorrectedLocalYXZ(MyBaseSpots,:,r,b) = MyPointCorrectedYXZ;
+                    ndSpotColors(MyBaseSpots,b,r) = IndexArrayNan(BaseImSm, MyPointCorrectedYXZ');
                 end
                
             end    
-        end
-        TifObj.close();       
+        end      
     end
 end
 fprintf('\n');
@@ -271,67 +288,39 @@ fprintf('\n');
 %% now find those that were detected in all tiles
 ndSpotColorsToUse = ndSpotColors(:,o.UseChannels,o.UseRounds);
 Good = all(isfinite(ndSpotColorsToUse(:,:)),2);
-GoodGlobalYX = ndGlobalYX(Good,:);
+GoodGlobalYXZ = ndGlobalYXZ(Good,:);
 GoodSpotColors = ndSpotColors(Good,:,:);
 GoodLocalTile = ndLocalTile(Good);
 GoodIsolated = ndIsolated(Good);
 
-save(fullfile(o.OutputDirectory, 'Intensities_NoAnchor.mat'), 'Good', 'ndGlobalYX', 'ndSpotColors', 'ndLocalTile');
+save(fullfile(o.OutputDirectory, 'Intensities_NoAnchor.mat'), 'Good', 'ndGlobalYXZ', 'ndSpotColors', 'ndLocalTile');
 
 %% plot those that were found and those that weren't
 if o.Graphics
-    PlotScale = 1;
-    figure(10032); clf; hold on; set(gca, 'color', 'k');
-    plot(ndGlobalYX(Good,2), ndGlobalYX(Good,1), 'b.', 'markersize', 1);
-    plot(ndGlobalYX(~Good,2), ndGlobalYX(~Good,1), 'r.', 'markersize', 1);
-    legend({'resolved', 'unresolved'}, 'color', [.6 .6 .6]);
-    % now put on edges
-    SquareX1 = [0, 0, o.TileSz];
-    SquareY1 = [o.TileSz, 0, 0];
-    SquareX2 = [o.TileSz, o.TileSz, 0];
-    SquareY2 = [0, o.TileSz, o.TileSz];
-
-    SquareColors = hsv2rgb([(1:o.nRounds)'/o.nRounds, [.5, .6] .*ones(o.nRounds,1)]);
-    SquareColors(o.ReferenceRound,:)=1.0;
-    for r=o.UseRounds
-        for t=Tiles
-            MyOrigin = o.TileOrigin(t,:,r);
-            plot(SquareX1 + MyOrigin(2), SquareY1 + MyOrigin(1),...
-                '--', 'Color', SquareColors(r,:));
-            plot(SquareX2 + MyOrigin(2), SquareY2 + MyOrigin(1),...
-                ':', 'Color', SquareColors(r,:));
-
-            text(MyOrigin(2), MyOrigin(1),...
-                sprintf('T%d r%d', t, r), 'color', SquareColors(r,:)); 
-        end
-    end
-    
-    
-    %set(gca, 'YDir', 'reverse');
+    plotSpotsResolved(o,ndGlobalYXZ,Good,Tiles,'Resolved Spots')
 end
        
-
 
 %% sanity check
 plsz = 7;
 if o.Graphics ==2
-    
-    GoodRoundYX = ndRoundYX(Good,:,:);
+    GoodRoundYXZ = ndRoundYXZ(Good,:,:);
     GoodRoundTile = ndRoundTile(Good,:);
-    GoodCorrectedYX = ndPointCorrectedLocalYX(Good,:,:,:);
+    GoodCorrectedYXZ = ndPointCorrectedLocalYXZ(Good,:,:,:);
 
     roi = o.FindSpotsRoi;
-    PlotSpots = find(GoodGlobalYX(:,1)>roi(1) & GoodGlobalYX(:,1)<roi(2) & GoodGlobalYX(:,2)>roi(3) & GoodGlobalYX(:,2)<roi(4));
+    PlotSpots = find(GoodGlobalYXZ(:,1)>roi(1) & GoodGlobalYXZ(:,1)<roi(2) & GoodGlobalYXZ(:,2)>roi(3) & GoodGlobalYXZ(:,2)<roi(4)...
+        & round(GoodGlobalYXZ(:,3))>roi(5)& round(GoodGlobalYXZ(:,3))<roi(6));
     
     for s=(PlotSpots(:))' %PlotSpots(randperm(length(PlotSpots)))'
-        figure(91); clf
-        for r=1:o.nRounds
+        figure(s); clf
+        for r=o.UseRounds
             t=GoodRoundTile(s,r);
+            [yTile,xTile] = ind2sub([nY nX], t);
+            fprintf('Spot %d, round %d, tile %d: y=%d, x=%d, z=%d\n', s, r, t, GoodRoundYXZ(s,1,r), GoodRoundYXZ(s,2,r), GoodRoundYXZ(s,3,r));
 
-            fprintf('Spot %d, round %d, tile %d: y=%d, x=%d\n', s, r, t, GoodRoundYX(s,1,r), GoodRoundYX(s,2,r));
-
-            Ylegends = {'Anchor', o.bpLabels{:}};
-            for b=0:o.nBP
+            Ylegends = {o.bpLabels{:}};
+            for b=o.UseChannels
                 
                       
 %                 if b==0                    
@@ -341,8 +330,9 @@ if o.Graphics ==2
 %                     y0 = GoodCorrectedYX(s,1,r,b);
 %                     x0 = GoodCorrectedYX(s,2,r,b);
 %                 end
-                y0 = GoodCorrectedYX(s,1,r,b+1);
-                x0 = GoodCorrectedYX(s,2,r,b+1);
+                y0 = GoodCorrectedYXZ(s,1,r,b);
+                x0 = GoodCorrectedYXZ(s,2,r,b);
+                z = round(GoodCorrectedYXZ(s,3,r,b));
                 if ~isfinite(x0) || ~isfinite(y0)
                     continue;
                 end
@@ -351,15 +341,15 @@ if o.Graphics ==2
                 x1 = max(1,x0 - plsz);
                 x2 = min(o.TileSz,x0 + plsz);
            
-                
-                BaseIm = imread(o.TileFiles{r,t}, o.AnchorChannel + b, 'PixelRegion', {[y1 y2], [x1 x2]});
+                BaseIm = imread(o.TileFiles{r,yTile,xTile,z}, o.FirstBaseChannel + b - 1, 'PixelRegion', {[y1 y2], [x1 x2]});
                 if o.SmoothSize
-                    BaseImSm = imfilter(double(BaseIm), fspecial('disk', o.SmoothSize));
+                    %BaseImSm = imfilter(double(BaseIm), fspecial('disk', o.SmoothSize));
+                    BaseImSm = BaseIm;
                 else
                     BaseImSm = BaseIm;
                 end
 
-                subplot(o.nBP+1, o.nRounds, (b)*o.nRounds + r)
+                subplot(size(o.UseChannels,2), size(o.UseRounds,2), (b-1)*size(o.UseRounds,2) + r)
                 imagesc([x1 x2], [y1 y2], BaseImSm); hold on
                 axis([x0-plsz, x0+plsz, y0-plsz, y0+plsz]);
                 plot(xlim, [y0 y0], 'w'); plot([x0 x0], ylim, 'w');
@@ -372,25 +362,25 @@ if o.Graphics ==2
             end
         end
         fprintf('\n');
-        figure(92); clf
-        imagesc(sq(GoodSpotColors(s,:,:)));
-        set(gca, 'ytick', 1:5); set(gca, 'yticklabel', {'Anchor', o.bpLabels{:}});
+        %figure(92); clf
+        %imagesc(sq(GoodSpotColors(s,:,:)));
+        %set(gca, 'ytick', 1:5); set(gca, 'yticklabel', {'Anchor', o.bpLabels{:}});
         %caxis([0 o.DetectionThresh*2]);
 %         fprintf('local YX = (%f, %f) screen YX = (%f, %f) Called as %s, %s, quality %f\n', ...
 %             GoodRoundYX(s,1), GoodRoundYX(s,2), GoodGlobalYX(s,1)/4, GoodGlobalYX(s,2)/4, ...
 %             GoodCodes{s}, GoodGenes{s}, GoodMaxScore(s));
-        figure(1003); hold on
-        squarex = [-1 1 1 -1 -1]*plsz; squarey = [-1 -1 1 1 -1]*plsz;
-        h = plot(GoodGlobalYX(s,2)+squarex, GoodGlobalYX(s,1)+squarey, 'g');
-        pause;
-        delete(h);
+        %figure(1003); hold on
+        %squarex = [-1 1 1 -1 -1]*plsz; squarey = [-1 -1 1 1 -1]*plsz;
+        %h = plot(GoodGlobalYXZ(s,2)+squarex, GoodGlobalYXZ(s,1)+squarey, 'g');
+        %pause;
+        %delete(h);
     end
 end
 
 
 
 %%
-o.SpotGlobalYX = GoodGlobalYX;
+o.SpotGlobalYXZ = GoodGlobalYXZ;
 o.cSpotColors = GoodSpotColors;          
 %o.cAnchorIntensities = squeeze(GoodSpotColors(:,1,:));
 o.cSpotIsolated = GoodIsolated;

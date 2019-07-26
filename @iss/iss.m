@@ -72,7 +72,11 @@ classdef iss
         
         % ToPlot: [r,c,t], plot of round r, colour channel c, tile t
         % is shown for debugging
-        ToPlot
+        ToPlot;
+        
+        %ZPlane is the Z plane used to make the background/anchor stitched
+        %images and also for general visualisation
+        ZPlane = 1;
         
         
         %% parameters: spot detection
@@ -110,7 +114,12 @@ classdef iss
         % it is this close to the edge, because of aberrations
         ExpectedAberration = 3;
         
-
+        %Centre Correction is the value to be subtracted from spot
+        %positions so they are centered about 0
+        CentreCorrection;
+        
+        %MinThresh is the smallest value DectionThresh can get to       
+        MinThresh;
         
         
         %% parameters: spot calling
@@ -242,12 +251,19 @@ classdef iss
         % UseRounds (Array of numbers in range 1 to o.nRounds)
         UseRounds;
         
+        %nZ is the number of Z planes per tile
+        nZ;
+        
+        %pixel sizes are different in the 2 directions, need to consider
+        %when filtering.
+        XYpixelsize;
+        Zpixelsize;
         
 
         
         %% variables: filenames
         
-        % TileFiles{r, y, x} is full pathname of tile (y,x) on round r
+        % TileFiles{r, y, x, z} is full pathname of tile (y,x,z) on round r
         % (mutlicolor tiff file). Empty if no file there
         TileFiles; 
         
@@ -266,10 +282,11 @@ classdef iss
         
         %% variables: registration
         
-        % TilePosYX(t,:): grid position of tile t in integers. t is what you
+        % TilePosYXZ(t,:): grid position of tile t in integers. t is what you
         % find in the file name - so it only counts non-empty tiles. This
-        % is confusing and ought to be refactored. Manana.
-        TilePosYX;
+        % is confusing and ought to be refactored. Manana. YX and Colour
+        % channel position of Tiff
+        TilePosYXC;
         
         % TileOriginYX(t,:,r): YX coordinate of origin of tile t on round
         % r. To get the global coordinate of a point, add this to the local
@@ -315,7 +332,7 @@ classdef iss
         
         % SpotGlobalYX(Spot,1:2) contains y,x coordinates of every spot in
         % global coordiate system. Both combinatorial and extra spots
-        SpotGlobalYX;
+        SpotGlobalYXZ;
         
         % SpotCodeNo(Spot): code number for each spot (uint16). Both combinatorial and extra spots
         SpotCodeNo;
@@ -348,7 +365,6 @@ classdef iss
         %Normalised Spot Scores
         NormBledCodes;
         cNormSpotColors;
-
 		
         %% variables: cell calling outputs
         % pCellClass(cell, class); % prob each cell goes to each class: last class is zero expression
