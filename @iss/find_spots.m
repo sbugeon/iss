@@ -126,12 +126,13 @@ for t=1:nTiles
     
     [y, x] = ind2sub([nY nX], t);
     %Reload AnchorIm to do ImRegFFT3
-    AnchorIm = o.load_3D(rr,y,x,o.AnchorChannel);
-    if o.SmoothSize
-        AnchorImSm = imfilter(AnchorIm, SE);
-    else
-        AnchorImSm = AnchorIm;
-    end
+    %AnchorIm = o.load_3D(rr,y,x,o.AnchorChannel);
+    %if o.SmoothSize
+    %    AnchorImSm = single(imfilter(AnchorIm, SE));
+    %    clear AnchorIm
+    %else
+    %    AnchorImSm = AnchorIm;
+    %end
 
     for r = o.UseRounds
         % find spots whose home tile on round r is t      
@@ -154,16 +155,17 @@ for t=1:nTiles
             %Scale so all in terms of XY pixel size. Import for PCR as find
             %nearest neighbours
             AllBaseLocalYXZ(t,b,r) = {CenteredSpots.*[1,1,o.Zpixelsize/o.XYpixelsize]};
-            FinalBaseIm = max(FinalBaseIm,BaseIm);
+            FinalBaseIm = max(FinalBaseIm,BaseIm); %INSTEAD OF THIS, JUST USE IMAGE WITH MOST SPOTS
         end
-        %[o.D0(t,:,r), ~] = ImRegFft3D(FinalBaseIm,AnchorImSm, 0, o.RegMinSize*100000);  
+        [o.D0(t,:,r), cc] = o.ImRegFFt3D_FindSpots(FinalBaseIm,AnchorImSm, 0, o.RegMinSize); 
+        %cc
     end      
 end
 fprintf('\n');
 
 %PCR initial shifts
 o.D0 = o.D0.*[1,1,o.Zpixelsize/o.XYpixelsize];       %Convert shift so units are XY pixels. 
-o = o.get_initial_shift(AllBaseLocalYXZ, RawLocalYXZ, nTiles, o.RegMinSize*1000);
+%o = o.get_initial_shift(AllBaseLocalYXZ, RawLocalYXZ, nTiles, o.RegMinSize*1000);
 %A=o.D0(:,:,1);
 %A(:,3)=0;
 %o.D0(:,:,1)=A;
@@ -174,7 +176,7 @@ o = o.get_initial_shift(AllBaseLocalYXZ, RawLocalYXZ, nTiles, o.RegMinSize*1000)
 %o.D0(14,:,3) = [10,45]; %This makes sense as there is a major artifact in
 %this tile/round
 
-o = o.PointCloudRegister_NoAnchor3D(AllBaseLocalYXZ, RawLocalYXZ, eye(3), nTiles);
+o = o.PointCloudRegister_NoAnchor3DNoCA(AllBaseLocalYXZ, RawLocalYXZ, nTiles);
 
 
 %% decide which tile to read each spot off in each round. 
@@ -184,7 +186,10 @@ o = o.PointCloudRegister_NoAnchor3D(AllBaseLocalYXZ, RawLocalYXZ, eye(3), nTiles
 % ndRoundTile(s,r) stores appropriate tile for spot s on round r
 % ndRoundYX(s,:,r) stores YX coord on this tile
 
-o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - o.D;
+%Compute approx new shifts in XY pixels, by taking the bottom row of the
+%transform R. Then convert z shift back to units of z pixels for origin
+XYPixelShifts = permute(squeeze(o.R(4,:,:,1:o.nRounds).*[1,1,o.XYpixelsize/o.Zpixelsize]),[2 1 3]);
+o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - XYPixelShifts(:,:,1:o.nRounds);     
 
 ndRoundTile = nan(nnd,o.nRounds);
 ndRoundYXZ = nan(nnd,3,o.nRounds);
@@ -210,7 +215,7 @@ for r=o.UseRounds
         ndRoundTile(SpotsInNeighbTile,r) = NeighbTile(ndLocalTile(SpotsInNeighbTile));    
     end
     
-    % compute YX coord
+    % compute YXZ coord
     HasTile = isfinite(ndRoundTile(:,r));
     ndRoundYXZ(HasTile,:,r) = ndGlobalYXZ(HasTile,:) - round(o.TileOrigin(ndRoundTile(HasTile,r),:,r));
     
@@ -255,7 +260,8 @@ for t=1:nTiles
             
             for t2 = MyRefTiles(:)'
                 MyBaseSpots = (ndRoundTile(:,r)==t & ndLocalTile==t2);
-                CenteredScaledMyLocalYXZ = (ndLocalYXZ(MyBaseSpots,:) - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize];
+                CenteredScaledMyLocalYXZ = [(ndLocalYXZ(MyBaseSpots,:) - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize],...
+                    ones(size(ndLocalYXZ(MyBaseSpots,:),1),1)];
                 
                 if t == t2
                     fprintf('Point cloud: ref round tile %d -> tile %d round %d base %d, %d/%d matches, error %f\n', ...
@@ -263,7 +269,7 @@ for t=1:nTiles
                     if o.nMatches(t,b,r)<o.MinPCMatches || isempty(o.nMatches(t,b,r))
                         continue;
                     end
-                    CenteredMyPointCorrectedYXZ = (o.A(:,:,b)*(CenteredScaledMyLocalYXZ + o.D(t,:,r))')';
+                    CenteredMyPointCorrectedYXZ = (CenteredScaledMyLocalYXZ*o.R(:,:,t,r));
                     MyPointCorrectedYXZ = round(CenteredMyPointCorrectedYXZ.*[1,1,o.XYpixelsize/o.Zpixelsize] + o.CentreCorrection);
                     ndPointCorrectedLocalYXZ(MyBaseSpots,:,r,b) = MyPointCorrectedYXZ;
                     ndSpotColors(MyBaseSpots,b,r) = IndexArrayNan(BaseImSm, MyPointCorrectedYXZ');
@@ -341,15 +347,15 @@ if o.Graphics ==2
                 x1 = max(1,x0 - plsz);
                 x2 = min(o.TileSz,x0 + plsz);
            
-                BaseIm = imread(o.TileFiles{r,yTile,xTile,z}, o.FirstBaseChannel + b - 1, 'PixelRegion', {[y1 y2], [x1 x2]});
+                BaseIm = imread(o.TileFiles{r,yTile,xTile,o.FirstBaseChannel + b - 1}, z, 'PixelRegion', {[y1 y2], [x1 x2]});
                 if o.SmoothSize
                     %BaseImSm = imfilter(double(BaseIm), fspecial('disk', o.SmoothSize));
-                    BaseImSm = BaseIm;
+                    BaseImSm = imfilter(BaseIm, SE);
                 else
                     BaseImSm = BaseIm;
                 end
 
-                subplot(size(o.UseChannels,2), size(o.UseRounds,2), (b-1)*size(o.UseRounds,2) + r)
+                subplot(o.nBP, o.nRounds, (b-1)*o.nRounds + r)
                 imagesc([x1 x2], [y1 y2], BaseImSm); hold on
                 axis([x0-plsz, x0+plsz, y0-plsz, y0+plsz]);
                 plot(xlim, [y0 y0], 'w'); plot([x0 x0], ylim, 'w');

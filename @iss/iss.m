@@ -78,6 +78,20 @@ classdef iss
         %images and also for general visualisation
         ZPlane = 1;
         
+        %Below are parameters for ImRegFFt3D_Register. They shouldn't need
+        %changing.
+        
+        %Registration is forced to find an overlap smaller than MaxOverlapFract*TileSz
+        %between neighbouring Tiles
+        MaxOverlapFract = 0.2;
+        
+        %MaxRegShift is the maximum shift of a tile in the non overlapping
+        %direction i.e. South/North if looking at its east neighbour.
+        MaxRegShift = 20;
+        
+        %ToTest is the fraction of shifts to look at before returning a NaN shift
+        ToTest = 0.25;
+        
         
         %% parameters: spot detection
         
@@ -307,6 +321,10 @@ classdef iss
         % D(t,2,r): stores the final shift found by point cloud registration
         % on round r tile t.
         D;
+        
+        %R(4,3,t,r) stores the final transformation found by point cloud
+        %registration on rounf r tile t.
+        R;
         
         % nMatches(t,c,r): stores number of matches found by point cloud
         % registration for tile t, color channel c, round r

@@ -133,23 +133,28 @@ end
 % %     end
 % end
 
-BledCodes = zeros(nCodes, nChans*nRounds);
-UnbledCodes = zeros(nCodes, nChans*nRounds);
+BledCodes = zeros(nCodes, o.nBP*o.nRounds);
+UnbledCodes = zeros(nCodes, o.nBP*o.nRounds);
 % make starting point using bleed vectors (means for each base on each day)
 for i=1:nCodes
     for r=1:nRounds
         if any(o.UseChannels == NumericalCode(i,o.UseRounds(r))) == 0 continue; end
-        BledCodes(i,(1:nChans) + (r-1)*nChans) = BleedMatrix(:, find(o.UseChannels == NumericalCode(i,o.UseRounds(r))), r);
-        UnbledCodes(i,find(o.UseChannels == NumericalCode(i,o.UseRounds(r))) + (r-1)*nChans) = 1;
+        BledCodes(i,o.UseChannels*r) = BleedMatrix(:, find(o.UseChannels == NumericalCode(i,o.UseRounds(r))), r);
+        UnbledCodes(i,o.UseChannels(find(o.UseChannels == NumericalCode(i,o.UseRounds(r))))*r) = 1;
     end
 end
 
 if 1 % 0 to just use original codes
     NormBledCodes = bsxfun(@rdivide, BledCodes, sqrt(sum(BledCodes.^2,2)));
     FlatSpotColors = SpotColors(:,:);
-    o.SpotIntensity = sqrt(sum(FlatSpotColors.^2,2));
+    o.SpotIntensity = sqrt(nansum(FlatSpotColors.^2,2));
     NormFlatSpotColors = bsxfun(@rdivide, FlatSpotColors, o.SpotIntensity);
+    
+    %Get rid of NaN values
+    NormFlatSpotColors(isnan(NormFlatSpotColors)) = 0;
+    NormBledCodes(isnan(NormBledCodes)) = 0;    
     SpotScores = NormFlatSpotColors * NormBledCodes';
+    
 else
     % HACK ALERT
     NormBledCodes = bsxfun(@rdivide, BledCodes(:,1:20), sqrt(sum(BledCodes(:,1:20).^2,2)));

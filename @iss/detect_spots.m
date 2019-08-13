@@ -63,6 +63,8 @@ while nPeaks < o.minPeaks
         DetectionThresh = DetectionThresh - o.ThreshParam;          
     end
     if DetectionThresh <= o.MinThresh
+        %MAYBE MAKE MINTHRESH THE MEAN OF THE IMAGE OR SOMETHING - UNIQUE
+        %TO EACH TILE
         DetectionThresh = o.MinThresh;
         MaxPixels = find(Image + Small >= Dilate & Image>DetectionThresh);
         break 

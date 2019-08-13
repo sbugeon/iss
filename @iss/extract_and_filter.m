@@ -93,11 +93,11 @@ function o = extract_and_filter(o)
                 tic
                 I = padarray(I,(size(SE)-1)/2,'replicate','both');
                 IFS = convn(I,SE,'valid');
-                Offset = 20;                %To remove some of the negative numbers
+                Offset = 0;                %To remove some of the negative numbers
                                             %Not set to min(IFS) as some images have 
                                             %much lower so can't have universal threshold
                                           
-                IFS = (IFS+Offset)*10;      %scale so get more info when rounded to int
+                IFS = (IFS+Offset)*100;      %scale so get more info when rounded to int
                 toc
                 
                 %tic
@@ -124,7 +124,7 @@ function o = extract_and_filter(o)
         end
         
     
-    o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:,1)));
+    o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:,1)))*0;
 
     end
 end

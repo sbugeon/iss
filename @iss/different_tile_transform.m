@@ -17,7 +17,7 @@ function [MyPointCorrectedYXZ, error, nMatches] = different_tile_transform(o, y0
 % and tile t2 on the reference (Anchor) round
 
 y = y0{t,b,r};
-x = (x0{t2} - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize];
+x = [(x0{t2} - o.CentreCorrection).*[1,1,o.Zpixelsize/o.XYpixelsize],ones(size(x0{t2},1),1)];
 
 if isempty(o.PcDist)
     o.PcDist = inf;
@@ -32,15 +32,21 @@ end
 
 %Make kd trees out of these well isolated points
 k = KDTreeSearcher(y);
-MyShift = o.TileOrigin(t2,:,o.ReferenceRound)-o.TileOrigin(t,:,r);
-xM = (o.A(:,:,b)*(x + MyShift)')';
+%Not sure about this but think its correct i.e. when transforming anchor, subtract its origin and add origin of new tile.
 
-[~,Dist] = k.knnsearch(xM);
+xR = x*o.R(:,:,t2,r);        %Shift from anchor to round r
+%Then shift from tile t2 to tile t
+t2_to_t_shift = (o.TileOrigin(t,:,r) - o.TileOrigin(t2,:,r)).*[1,1,o.Zpixelsize/o.XYpixelsize];
+Final_x = xR + t2_to_t_shift;
+
+
+                
+[~,Dist] = k.knnsearch(Final_x);
 UseMe = Dist<o.PcDist;               
 nMatches = sum(UseMe);
 error = sqrt(mean(Dist(UseMe>0).^2));
 
-CenteredMyPointCorrectedYXZ = (o.A(:,:,b)*(CenteredMyLocalYXZ + MyShift)')';
+CenteredMyPointCorrectedYXZ = CenteredMyLocalYXZ*o.R(:,:,t2,r) + t2_to_t_shift;
 MyPointCorrectedYXZ = round(CenteredMyPointCorrectedYXZ.*[1,1,o.XYpixelsize/o.Zpixelsize] + o.CentreCorrection);
 
 return

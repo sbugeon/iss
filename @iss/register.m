@@ -35,13 +35,16 @@ for t=NonemptyTiles(:)'
     
     if o.RegSmooth
         %Smoothing required else multiple pixels identified as local maxima
-        FE = fspecial3('ellipsoid',[2, 2, 2]);
+        FE = fspecial3('ellipsoid',[2, 2, 2]);      %GET RID OF HARD CODING HERE
+        %max(max(max(Im3D)))
         RefImages(:,:,:,t) = imfilter(Im3D, FE);
+        %max(max(max(RefImages(:,:,:,t))))
     else
         RefImages(:,:,:,t) = Im3D;
     
     end
 end
+clear Im3D
 %% get arrays ready
 
 
@@ -66,7 +69,9 @@ for t=NonemptyTiles
     
     % can I align ref round to south neighbor?
     if y<nY && ~o.EmptyTiles(t+1)
-        [shift, cc] = ImRegFft3D_LowMem(RefImages(:,:,:,t), RefImages(:,:,:,t+1), o.RegCorrThresh, o.RegMinSize);
+        tic
+        [shift, cc] = o.ImRegFFt3D_Register(RefImages(:,:,:,t), RefImages(:,:,:,t+1), o.RegCorrThresh, o.RegMinSize,'South');
+        toc
         if all(isfinite(shift))
             VerticalPairs = [VerticalPairs; t, t+1];
             vShifts = [vShifts; shift];
@@ -79,7 +84,9 @@ for t=NonemptyTiles
     
     % can I align to east neighbor
     if x<nX && ~o.EmptyTiles(t+nY)
-        [shift, cc] = ImRegFft3D_LowMem(RefImages(:,:,:,t), RefImages(:,:,:,t+nY), o.RegCorrThresh, o.RegMinSize);
+        tic
+        [shift, cc] = o.ImRegFFt3D_Register(RefImages(:,:,:,t), RefImages(:,:,:,t+nY), o.RegCorrThresh, o.RegMinSize,'East');
+        toc
         if all(isfinite(shift))
             HorizontalPairs = [HorizontalPairs; t, t+nY];
             hShifts = [hShifts; shift];
@@ -93,7 +100,7 @@ for t=NonemptyTiles
     
     
 end
-%save(fullfile(o.OutputDirectory, 'o2.mat'), 'o');
+save(fullfile(o.OutputDirectory, 'o2.mat'), 'o');
 
 %% now we need to solve a set of linear equations for each shift,
 % This will be of the form M*x = c, where x and c are both of length 
@@ -163,29 +170,40 @@ o.TileOrigin(:,:,rr) =  RefPos;
 AnchorOrigin = round(o.TileOrigin(:,1:2,rr));           %Only consider YX coordinates
 ZOrigin = round(o.TileOrigin(:,3,rr));                  %To align between Z planes if necessary
 MaxTileLoc = max(AnchorOrigin);
-BigDapiIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
-BigAnchorIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
+MaxZ = ceil((max(ZOrigin) + o.nZ));
+o.BigDapiFile = fullfile(o.OutputDirectory, 'background_image.tif');
+AnchorFile = fullfile(o.OutputDirectory, 'anchor_image.tif');
 
-for t=NonemptyTiles
-    [y,x] = ind2sub([nY nX], t);
-    MyOrigin = AnchorOrigin(t,:);
-    MyZOrigin = ZOrigin(t);
-    if mod(t,10)==0; fprintf('Loading tile %d DAPI image\n', t); end
-    if ~isfinite(MyOrigin(1)); continue; end
-    LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.DapiChannel}, MyZOrigin+o.ZPlane-1);
-    BigDapiIm(floor(MyOrigin(1))+(1:o.TileSz), ...
-        floor(MyOrigin(2))+(1:o.TileSz)) ...
-        = imresize(LocalDapiIm, 1);
-    LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.AnchorChannel}, MyZOrigin+o.ZPlane-1);
-    BigAnchorIm(floor(MyOrigin(1))+(1:o.TileSz), ...
-        floor(MyOrigin(2))+(1:o.TileSz)) ...
-        = LocalAnchorIm;
+for z = 1:MaxZ
+    BigDapiIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
+    BigAnchorIm = zeros(ceil((MaxTileLoc + o.TileSz)), 'uint16');
+    for t=NonemptyTiles
+        [y,x] = ind2sub([nY nX], t);
+        MyOrigin = AnchorOrigin(t,:);
+        FileZ = z-ZOrigin(t)+1;
+        if mod(t,10)==0; fprintf('Loading tile %d DAPI image\n', t); end
+        if ~isfinite(MyOrigin(1)); continue; end
+        if FileZ < 1 || FileZ > o.nZ
+            %Set tile to 0 if currently outside its area
+            LocalDapiIm = zeros(o.TileSz,o.TileSz);
+            LocalAnchorIm = zeros(o.TileSz,o.TileSz);
+        else
+            LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.DapiChannel},FileZ);
+            LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,y,x,o.AnchorChannel}, FileZ);
+        end
+        BigDapiIm(floor(MyOrigin(1))+(1:o.TileSz), ...
+            floor(MyOrigin(2))+(1:o.TileSz)) ...
+            = imresize(LocalDapiIm, 1);        
+        BigAnchorIm(floor(MyOrigin(1))+(1:o.TileSz), ...
+            floor(MyOrigin(2))+(1:o.TileSz)) ...
+            = LocalAnchorIm;
+    end
+    imwrite(uint16(BigDapiIm),o.BigDapiFile,'tiff', 'writemode', 'append');
+    imwrite(uint16(BigAnchorIm), AnchorFile,'tiff', 'writemode', 'append');    
 end
 
-o.BigDapiFile = fullfile(o.OutputDirectory, 'background_image.tif');
 
-imwrite(BigDapiIm, o.BigDapiFile);
-imwrite(BigAnchorIm, fullfile(o.OutputDirectory, 'anchor_image.tif'));
+
 
 return
 end
