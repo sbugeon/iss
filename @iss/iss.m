@@ -78,6 +78,11 @@ classdef iss
         %images and also for general visualisation
         ZPlane = 1;
         
+        % MaxRoundShift(1) and MaxRoundShift(2) are the maximum absolute
+        % shifts in the XY and Z directions respectively
+        % of a tile in any round relative to the anchor round.
+        MaxRoundShift = [250,10];
+        
         %Below are parameters for ImRegFFt3D_Register. They shouldn't need
         %changing.
         

@@ -56,8 +56,8 @@ S.Image = Image3D;
 S.Background = imagesc(S.Image(:,:,1)); hold on; colormap bone;
 %set(S.Background, 'XData', [Roi(3), Roi(4)]);
 %set(S.Background, 'YData', [Roi(1), Roi(2)]);
-xlim([Roi(3) Roi(4)]);
-ylim([Roi(1) Roi(2)]);
+xlim([Roi(1) Roi(2)]);
+ylim([Roi(3) Roi(4)]);
 
 title(['Z Plane ' num2str(Roi(5))],'Color','w');
 
@@ -71,7 +71,7 @@ S.uGenes = unique(S.SpotGeneName);
 S.QualOK = o.quality_threshold;
 S.SpotYXZ = o.SpotGlobalYXZ;
 S.Roi = Roi;
-InRoi = round(S.SpotYXZ(:,3)) == S.Roi(5) & all(S.SpotYXZ(:,1:2)>=S.Roi([1 3]) & S.SpotYXZ(:,1:2)<=S.Roi([2 4]),2);
+InRoi = round(S.SpotYXZ(:,3)) == S.Roi(5) & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) & S.SpotYXZ(:,1:2)<=S.Roi([4 2]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
@@ -113,14 +113,14 @@ ZPlane = round(get(h,'value'))+S.Roi(5)-1;
 S.Background = imagesc(S.Image(:,:,ZPlane-S.Roi(5)+1)); hold on; colormap bone;
 %set(S.Background, 'XData', [S.Roi(3), S.Roi(4)]);
 %set(S.Background, 'YData', [S.Roi(1), S.Roi(2)]);
-xlim([S.Roi(3) S.Roi(4)]);
-ylim([S.Roi(1) S.Roi(2)]);
+xlim([S.Roi(1) S.Roi(2)]);
+ylim([S.Roi(3) S.Roi(4)]);
 
 hold on;
 set(gca, 'YDir', 'normal');
 axis on
 title(['Z Plane ' num2str(ZPlane)],'Color','w');
-InRoi = round(S.SpotYXZ(:,3)) == ZPlane & all(S.SpotYXZ(:,1:2)>=S.Roi([1 3]) & S.SpotYXZ(:,1:2)<=S.Roi([2 4]),2);
+InRoi = round(S.SpotYXZ(:,3)) == ZPlane & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) & S.SpotYXZ(:,1:2)<=S.Roi([4 2]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));

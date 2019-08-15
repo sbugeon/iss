@@ -159,8 +159,8 @@ ShiftTry = mod([dy0, dx0, dz0] +sz, sz*2) - sz - 1;
 
 
 %Use known constrains of overlap to find shift
-
-if abs(ShiftTry(1))<sz(1)/4 && abs(ShiftTry(2))<sz(2)/4 && abs(ShiftTry(3))<sz(3)/4
+%NEED TO PUT THE DIVIDING VALUES INTO ISS OBJECT
+if abs(ShiftTry(1))<o.MaxRoundShift(1) && abs(ShiftTry(2))<o.MaxRoundShift(1) && abs(ShiftTry(3))<o.MaxRoundShift(2)
     shift = ShiftTry;
 else
     shift = [NaN, NaN, NaN];
@@ -169,7 +169,7 @@ else
     while i<=floor(o.ToTest*size(sorted,1))
         [dy0, dx0,dz0] = ind2sub(size(Conv), order(i));
         ShiftTry = mod([dy0, dx0, dz0] +sz, sz*2) - sz - 1;
-        if abs(ShiftTry(1))<sz(1)/4 && abs(ShiftTry(2))<sz(2)/4 && abs(ShiftTry(3))<sz(3)/4
+        if abs(ShiftTry(1))<o.MaxRoundShift(1) && abs(ShiftTry(2))<o.MaxRoundShift(1) && abs(ShiftTry(3))<o.MaxRoundShift(2)
             cc = sorted(i);
             if cc>CorrThresh(1)
                 shift = ShiftTry;
