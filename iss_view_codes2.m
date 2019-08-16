@@ -1,18 +1,14 @@
-function debug_code(o, FigNo, ~)
+function debug_code(o,zPlane, FigNo, ~)
 
 
-    if nargin>=2
+    if nargin>=3
         figure(FigNo);
     end
     
-    %If 3 or more arguments, use normed SpotColors that are actually used
+    %If 4 or more arguments, use normed SpotColors that are actually used
     %to determine spot scores
-    if nargin>=3
-        SpotColors = bsxfun(@rdivide, o.cSpotColors, prctile(o.cSpotColors, o.SpotNormPrctile));
-        FlatSpotColors = SpotColors(:,:);
-        o.SpotIntensity = sqrt(sum(FlatSpotColors.^2,2));
-        NormFlatSpotColors = bsxfun(@rdivide, FlatSpotColors, o.SpotIntensity);
-        cSpotColors = reshape(NormFlatSpotColors,size(o.cSpotColors));
+    if nargin>=4
+        cSpotColors = o.cNormSpotColors;
     else
         cSpotColors = o.cSpotColors;
     end
@@ -22,7 +18,12 @@ function debug_code(o, FigNo, ~)
      xy = ginput(1);
      set(gca, 'color', 'k');
 %    x = 5832; y = 7936;
-    [~,SpotNo] = min(sum(abs(o.SpotGlobalYX-[xy(2),xy(1)]),2));
+    %If specify z plane, find spots closest to (y,x,ZPlane)
+    if nargin>=2
+        [~,SpotNo] = min(sum(abs(o.SpotGlobalYXZ-[xy(2),xy(1),zPlane]),2));
+    else
+        [~,SpotNo] = min(sum(abs(o.SpotGlobalYXZ(:,1:2)-[xy(2),xy(1)]),2));
+    end
     CodeNo = o.SpotCodeNo(SpotNo);
     
     MeasuredCode = squeeze(cSpotColors(SpotNo,:,:));
@@ -48,8 +49,8 @@ function debug_code(o, FigNo, ~)
     set(gca, 'ytick', 1:4);
     set(gca, 'YTickLabel', o.bpLabels);
 
-    fprintf('Spot %d at yx=(%d,%d): code %d, %s\n', ...
-        SpotNo, o.SpotGlobalYX(SpotNo,1),o.SpotGlobalYX(SpotNo,2), CodeNo, o.GeneNames{CodeNo});
+    fprintf('Spot %d at yxz=(%d,%d,%d): code %d, %s\n', ...
+        SpotNo, o.SpotGlobalYXZ(SpotNo,1),o.SpotGlobalYXZ(SpotNo,2),o.SpotGlobalYXZ(SpotNo,3), CodeNo, o.GeneNames{CodeNo});
 
     
 end
