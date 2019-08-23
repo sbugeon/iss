@@ -1,4 +1,4 @@
-function [] = plotAnchorSpotsGlobal(GlobalYXZ,nZ,name)
+function [] = plotAnchorSpotsGlobal(GlobalYXZ,name)
 % Given the global coordinates GlobalYXZ, this plots the positions of all
 % the spots found
 % Plot different plots according to slider location.
@@ -14,6 +14,7 @@ XLim = max(S.Data(:,2))-mod(max(S.Data(:,2)),500)+500;
 YLim = max(S.Data(:,1))-mod(max(S.Data(:,1)),500)+500;
 xlim([0 XLim]);
 ylim([0 YLim]);
+nZ = round(max(GlobalYXZ(:,3)));
 S.sl = uicontrol('style','slide',...
                  'unit','pix',...
                  'position',[60 8 693 18],...
