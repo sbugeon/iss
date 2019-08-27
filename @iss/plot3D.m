@@ -28,24 +28,36 @@ if nargin<3 || isempty(Roi)
     min(o.SpotGlobalYXZ(:,3)), max(o.SpotGlobalYXZ(:,3))]);
 end
 
-if (nargin<2 || isempty(BackgroundImageFile)) && ~isempty(o.BigDapiFile)
-    BackgroundImageFile = o.BigDapiFile;
-elseif isempty(o.BigDapiFile)
-    warning('not sure what to do with BackgroundImage, setting to off');
-end
-
 if Roi(1) ~= 1 || Roi(3) ~= 1
     warning('Set min Roi to 1');
     Roi(1) = 1;
     Roi(3) = 1;
 end
 
-
-%Load in Dapi image
-Image3D = zeros(Roi(4),Roi(2),Roi(6)-Roi(5)+1,'uint16');
-for z = Roi(5):Roi(6)
-    Image3D(:,:,z-Roi(5)+1) = imread(BackgroundImageFile, z,'PixelRegion', {Roi(3:4), Roi(1:2)});
+if (nargin<2 || isempty(BackgroundImageFile)) && ~isempty(o.BigDapiFile) && ...
+        ~isnumeric(o.BigDapiFile)
+    BackgroundImageFile = o.BigDapiFile;
+    %Load in Dapi image
+    Image3D = zeros(Roi(4),Roi(2),Roi(6)-Roi(5)+1,'uint16');
+    for z = Roi(5):Roi(6)
+        Image3D(:,:,z-Roi(5)+1) = imread(BackgroundImageFile, z,'PixelRegion', {Roi(3:4), Roi(1:2)});
+    end
+    
+elseif ~isempty(BackgroundImageFile) && ~isnumeric(BackgroundImageFile)
+    %Load in Dapi image
+    Image3D = zeros(Roi(4),Roi(2),Roi(6)-Roi(5)+1,'uint16');
+    for z = Roi(5):Roi(6)
+        Image3D(:,:,z-Roi(5)+1) = imread(BackgroundImageFile, z,'PixelRegion', {Roi(3:4), Roi(1:2)});
+    end
+    
+elseif isnumeric(BackgroundImageFile)
+    Image3D = BackgroundImageFile;
+    
+elseif isempty(o.BigDapiFile)
+    warning('not sure what to do with BackgroundImage, setting to off');
 end
+
+
 
 
 S.fh = figure('units','pixels','position',[500 200 800 600],'name',name,'numbertitle','off');  %Left, Bottom, Width, Height
