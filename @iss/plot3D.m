@@ -29,6 +29,7 @@ if nargin<3 || isempty(Roi)
 end
 
 if Roi(1) ~= 1 || Roi(3) ~= 1
+    %Causes bugs if doesn't start at 1
     warning('Set min Roi to 1');
     Roi(1) = 1;
     Roi(3) = 1;
@@ -73,9 +74,9 @@ ylim([Roi(3) Roi(4)]);
 
 title(['Z Plane ' num2str(Roi(5))],'Color','w');
 
-hold on;
+
 set(gca, 'YDir', 'normal');
-axis on
+%axis on
 
 S.SpotGeneName = o.GeneNames(o.SpotCodeNo);
 S.uGenes = unique(S.SpotGeneName);
@@ -87,12 +88,16 @@ InRoi = round(S.SpotYXZ(:,3)) == S.Roi(5) & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) &
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
+
+%hold on; GET RID OF HOLD AND JUST DELETE PLOTS USING DELETE MEANS THAT THE
+%ZOOM IS KEPT BETWEEN Z PLANES
 for i=1:length(S.uGenes)
     MySpots = PlotSpots(S.GeneNo==i);
     if any(MySpots)
         S.h(i) = plot(S.SpotYXZ(MySpots,2), S.SpotYXZ(MySpots,1), '.');
     end
 end 
+%hold off
 
 legend(S.h(S.h~=0), S.uGenes(S.h~=0));
 legend off;
@@ -105,7 +110,6 @@ else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    
 end
-
 
 
 S.sl = uicontrol('style','slide',...
@@ -115,7 +119,9 @@ S.sl = uicontrol('style','slide',...
                  'sliderstep',[1/(Roi(6)-Roi(5)) 1/(Roi(6)-Roi(5))],...
                  'callback',{@sl_call,S});  
 set( findall( S.fh, '-property', 'Units' ), 'Units', 'Normalized' )
-hold off
+
+
+
 
 
 function [] = sl_call(varargin)
@@ -125,23 +131,27 @@ ZPlane = round(get(h,'value'))+S.Roi(5)-1;
 S.Background = imagesc(S.Image(:,:,ZPlane-S.Roi(5)+1)); hold on; colormap bone;
 %set(S.Background, 'XData', [S.Roi(3), S.Roi(4)]);
 %set(S.Background, 'YData', [S.Roi(1), S.Roi(2)]);
-xlim([S.Roi(1) S.Roi(2)]);
-ylim([S.Roi(3) S.Roi(4)]);
+%xlim([S.Roi(1) S.Roi(2)]);
+%ylim([S.Roi(3) S.Roi(4)]);
 
-hold on;
+h = findobj('type','line'); %KEY LINES: DELETE EXISTING SCATTER PLOTS SO CHANGE_SYMBOLS WORKS
+delete(h)
+
 set(gca, 'YDir', 'normal');
-axis on
+%axis on
 title(['Z Plane ' num2str(ZPlane)],'Color','w');
 InRoi = round(S.SpotYXZ(:,3)) == ZPlane & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) & S.SpotYXZ(:,1:2)<=S.Roi([4 2]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
+%hold on;
 for i=1:length(S.uGenes)
     MySpots = PlotSpots(S.GeneNo==i);
     if any(MySpots)
         S.h(i) = plot(S.SpotYXZ(MySpots,2), S.SpotYXZ(MySpots,1), '.');
     end
 end 
+%hold off
 
 legend(S.h(S.h~=0), S.uGenes(S.h~=0));
 legend off;
@@ -158,5 +168,7 @@ end
 
 
 
-hold off
+
+
+
 
