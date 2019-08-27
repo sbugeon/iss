@@ -1,4 +1,4 @@
-function plot3D(o, BackgroundImageFile, Roi,name)
+function plot3D(o, BackgroundImageFile, ZThick, Roi)
 % o.plot(BackgroundImage, Roi)
 %
 % plot the results of in situ sequencing spot detection. 
@@ -12,17 +12,22 @@ function plot3D(o, BackgroundImageFile, Roi,name)
 % Roi = [xmin xmax ymin ymax zmin zmax] shows only this part. Whole thing
 % shown if empty or missing. Must be integers, xmin and ymin must be 1
 %
+% All spots within +/- ZThick of the current Z plane will be shown on that
+% Z plane. Default is 0
+%
 % sizes can be a vector or a scalar - only used for scatter, which isn't
 % called anyway.
 % 
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
 
-if nargin < 4 || isempty(name)
-    name = 'Gene Positions';
+if nargin<3 || isempty(ZThick)
+    S.ZThick = 0;
+else
+    S.ZThick = ZThick;
 end
 
-if nargin<3 || isempty(Roi)
+if nargin<4 || isempty(Roi)
     Roi = round([1, max(o.SpotGlobalYXZ(:,2)), ...
     1, max(o.SpotGlobalYXZ(:,1)),...
     min(o.SpotGlobalYXZ(:,3)), max(o.SpotGlobalYXZ(:,3))]);
@@ -61,7 +66,7 @@ end
 
 
 
-S.fh = figure('units','pixels','position',[500 200 800 600],'name',name,'numbertitle','off');  %Left, Bottom, Width, Height
+S.fh = figure(93754);set(S.fh,'units','pixels','position',[500 200 800 600]);  %Left, Bottom, Width, Height
 set(gcf, 'color', 'k');
 set(gca, 'color', 'k');
 
@@ -71,8 +76,9 @@ S.Background = imagesc(S.Image(:,:,1)); hold on; colormap bone;
 %set(S.Background, 'YData', [Roi(1), Roi(2)]);
 xlim([Roi(1) Roi(2)]);
 ylim([Roi(3) Roi(4)]);
+S.MinZ = Roi(5);
 
-title(['Z Plane ' num2str(Roi(5))],'Color','w');
+title(['Z Plane ' num2str(S.MinZ)],'Color','w');
 
 
 set(gca, 'YDir', 'normal');
@@ -83,8 +89,9 @@ S.uGenes = unique(S.SpotGeneName);
 % which ones pass quality threshold (combi first)
 S.QualOK = o.quality_threshold;
 S.SpotYXZ = o.SpotGlobalYXZ;
-S.Roi = Roi;
-InRoi = round(S.SpotYXZ(:,3)) == S.Roi(5) & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) & S.SpotYXZ(:,1:2)<=S.Roi([4 2]),2);
+%S.Roi is the Roi for the current Z plane
+S.Roi = [Roi(1:4),S.MinZ-S.ZThick,S.MinZ+S.ZThick];
+InRoi = all(S.SpotYXZ>=S.Roi([3 1 5]) & S.SpotYXZ<=S.Roi([4 2 6]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
@@ -127,8 +134,8 @@ set( findall( S.fh, '-property', 'Units' ), 'Units', 'Normalized' )
 function [] = sl_call(varargin)
 % Callback for the slider.
 [h,S] = varargin{[1,3]};  % calling handle and data structure.
-ZPlane = round(get(h,'value'))+S.Roi(5)-1;
-S.Background = imagesc(S.Image(:,:,ZPlane-S.Roi(5)+1)); hold on; colormap bone;
+ZPlane = round(get(h,'value'))+S.MinZ-1;
+S.Background = imagesc(S.Image(:,:,ZPlane-S.MinZ+1)); hold on; colormap bone;
 %set(S.Background, 'XData', [S.Roi(3), S.Roi(4)]);
 %set(S.Background, 'YData', [S.Roi(1), S.Roi(2)]);
 %xlim([S.Roi(1) S.Roi(2)]);
@@ -140,7 +147,8 @@ delete(h)
 set(gca, 'YDir', 'normal');
 %axis on
 title(['Z Plane ' num2str(ZPlane)],'Color','w');
-InRoi = round(S.SpotYXZ(:,3)) == ZPlane & all(S.SpotYXZ(:,1:2)>=S.Roi([3 1]) & S.SpotYXZ(:,1:2)<=S.Roi([4 2]),2);
+S.Roi(5:6) = [ZPlane-S.ZThick,ZPlane+S.ZThick];
+InRoi = all(S.SpotYXZ>=S.Roi([3 1 5]) & S.SpotYXZ<=S.Roi([4 2 6]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
