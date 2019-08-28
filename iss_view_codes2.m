@@ -1,13 +1,13 @@
-function debug_code(o,zPlane, FigNo, ~)
+function debug_code(o, FigNo, ~)
 
 
-    if nargin>=3
+    if nargin>=2
         figure(FigNo);
     end
     
     %If 4 or more arguments, use normed SpotColors that are actually used
     %to determine spot scores
-    if nargin>=4
+    if nargin>=3
         cSpotColors = o.cNormSpotColors;
     else
         cSpotColors = o.cSpotColors;
@@ -18,10 +18,11 @@ function debug_code(o,zPlane, FigNo, ~)
      xy = ginput(1);
      set(gca, 'color', 'k');
 %    x = 5832; y = 7936;
-    %If specify z plane, find spots closest to (y,x,ZPlane)
-    if nargin>=2
+    %If specify z plane in workspace as should be from plot3D, find spots closest to (y,x,ZPlane)
+    try
+        zPlane = evalin('base', 'issPlot3DZPlane');     
         [~,SpotNo] = min(sum(abs(o.SpotGlobalYXZ-[xy(2),xy(1),zPlane]),2));
-    else
+    catch
         [~,SpotNo] = min(sum(abs(o.SpotGlobalYXZ(:,1:2)-[xy(2),xy(1)]),2));
     end
     CodeNo = o.SpotCodeNo(SpotNo);
@@ -50,7 +51,7 @@ function debug_code(o,zPlane, FigNo, ~)
     set(gca, 'YTickLabel', o.bpLabels);
 
     fprintf('Spot %d at yxz=(%d,%d,%d): code %d, %s\n', ...
-        SpotNo, o.SpotGlobalYXZ(SpotNo,1),o.SpotGlobalYXZ(SpotNo,2),o.SpotGlobalYXZ(SpotNo,3), CodeNo, o.GeneNames{CodeNo});
+        SpotNo, o.SpotGlobalYXZ(SpotNo,1),o.SpotGlobalYXZ(SpotNo,2),round(o.SpotGlobalYXZ(SpotNo,3)), CodeNo, o.GeneNames{CodeNo});
 
     
 end

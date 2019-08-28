@@ -91,7 +91,7 @@ S.QualOK = o.quality_threshold;
 S.SpotYXZ = o.SpotGlobalYXZ;
 %S.Roi is the Roi for the current Z plane
 S.Roi = [Roi(1:4),S.MinZ-S.ZThick,S.MinZ+S.ZThick];
-InRoi = all(S.SpotYXZ>=S.Roi([3 1 5]) & S.SpotYXZ<=S.Roi([4 2 6]),2);
+InRoi = all(int64(round(S.SpotYXZ))>=S.Roi([3 1 5]) & round(S.SpotYXZ)<=S.Roi([4 2 6]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
@@ -118,6 +118,7 @@ else
     set(gcf, 'InvertHardcopy', 'off');    
 end
 
+assignin('base','issPlot3DZPlane',S.MinZ)
 
 S.sl = uicontrol('style','slide',...
                  'unit','pix',...
@@ -148,7 +149,7 @@ set(gca, 'YDir', 'normal');
 %axis on
 title(['Z Plane ' num2str(ZPlane)],'Color','w');
 S.Roi(5:6) = [ZPlane-S.ZThick,ZPlane+S.ZThick];
-InRoi = all(S.SpotYXZ>=S.Roi([3 1 5]) & S.SpotYXZ<=S.Roi([4 2 6]),2);
+InRoi = all(round(S.SpotYXZ)>=S.Roi([3 1 5]) & round(S.SpotYXZ)<=S.Roi([4 2 6]),2);
 PlotSpots = find(InRoi & S.QualOK);
 [~, S.GeneNo] = ismember(S.SpotGeneName(PlotSpots), S.uGenes);
 S.h = zeros(size(S.uGenes));
@@ -165,6 +166,7 @@ legend(S.h(S.h~=0), S.uGenes(S.h~=0));
 legend off;
 
 
+
 set(gca, 'Clipping', 'off');
 
 if ~isempty(PlotSpots)
@@ -173,6 +175,9 @@ else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    
 end
+
+%Update current Z position in woprkspace so can use for iss_view_codes
+assignin('base','issPlot3DZPlane',ZPlane)
 
 
 
