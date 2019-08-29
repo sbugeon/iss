@@ -50,6 +50,33 @@ classdef iss
         % BasePair labels
         bpLabels = {'A', 'C', 'G', 'T'};
         
+        %% parameters: extract and filter
+        
+        % To extract spots, a filter is used with inner radius ExtractR1 within 
+        % which it is positive and outer radius ExtractR2 so the annulus between 
+        % R1 and R2 is negative. Overall sums up to 0. R1 should be the
+        % approximate radius of spot. R2 should be such that between 
+        % R1 and R2 there is a dark region - good guess is double R1.
+        % RYX has units of YX pixels, RZ has units of Z pixels.
+        ExtractR1YX = 5;
+        ExtractR1Z = 5;
+        ExtractR2YX = 10;
+        ExtractR2Z = 10;
+        
+        % DapiR is the same as above but is applied to the Dapi image so
+        % should be the size of the Dapi spots. HAVN'T CHECKED THE FILTER
+        % FOR THE DAPI IMAGE YET
+        DapiR1YX = 20;
+        DapiR1Z = 9;
+        DapiR2YX = 40;
+        DapiR2Z = 18;      
+        
+        % Each filtered image is multiplied by ExtractScale. This is
+        % because the image is saved as uint16 so to gain information from
+        % the decimal points, should multiply image so max pixel number is
+        % in the 10,000s (less than 65,536).
+        ExtractScale = 5*10^7;
+        
         %% parameters: registration and alignment
         
         % correlation threshold for image alignment. Can be low since 
