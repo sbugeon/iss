@@ -147,6 +147,18 @@ for b = o.UseChannels
 end
 [~, BestChannel] = max(MeanSize);
 
+
+%Should have a initial search range for each round. If only provided one,
+%set all other rounds to the same range.
+if size(o.FindSpotsSearch,1) == 1
+    FindSpotsSearch = cell(o.nRounds,1);
+    for r = o.UseRounds
+        FindSpotsSearch{r} = o.FindSpotsSearch;
+    end
+    o.FindSpotsSearch = FindSpotsSearch;
+    clear FindSpotsSearch
+end
+
 for t=1:nTiles
     if o.EmptyTiles(t); continue; end
     for r = o.UseRounds

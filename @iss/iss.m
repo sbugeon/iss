@@ -179,7 +179,8 @@ classdef iss
         %FindSpotsSearch.Y,FindSpotsSearch.X,FindSpotsSearch.Z 
         %(.Z in Z pixel units) are the ranges values of
         %shifts to check when looking for the initial shifts between rounds
-        %for each tile
+        %for each tile. Can also set to cell(o.nRounds,1) and give a
+        %different search range for each round.
         FindSpotsSearch;
         
         
