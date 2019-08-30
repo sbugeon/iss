@@ -117,11 +117,11 @@ for t=1:nTiles
         % now read in images for each base
         
         for b = o.UseChannels              
-            if b == 5 || b ==6
-                o.DetectionThresh = 500;
-            else
-                o.DetectionThresh = 900;
-            end
+            %if b == 5 || b ==6 %Only for specific case
+            %    o.DetectionThresh = 500;
+            %else
+            %    o.DetectionThresh = 900;
+            %end
             BaseIm = o.load_3D(r,y,x,o.FirstBaseChannel + b - 1);
             BaseIm = imfilter(BaseIm, SE);
             %o.MinThresh = max(mean(mean(BaseIm)));
@@ -171,6 +171,7 @@ o = o.PointCloudRegister_NoAnchor3DNoCA(AllBaseLocalYXZ, o.RawLocalYXZ, nTiles);
 
 %Compute approx new shifts in XY pixels, by taking the bottom row of the
 %transform R. Then convert z shift back to units of z pixels for origin
+%THIS PART NEEDS WORK - NOT SURE IT IS THAT CRUCIAL THOUGH
 XYPixelShifts = permute(squeeze(o.R(4,:,:,1:o.nRounds).*[1,1,o.XYpixelsize/o.Zpixelsize]),[2 1 3]);
 o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - XYPixelShifts(:,:,1:o.nRounds);     
 
