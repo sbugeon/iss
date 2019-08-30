@@ -101,9 +101,9 @@ classdef iss
         % is shown for debugging
         ToPlot;
         
-        %ZPlane is the Z plane used to make the background/anchor stitched
-        %images and also for general visualisation
-        ZPlane = 1;
+        % InitialShiftChannel is the chosen channel to use to register all
+        % rounds to the anchor. Choose the one with clear spots, recommend 5,6 or 7.
+        InitialShiftChannel = 5;
         
         % MaxRoundShift(1) and MaxRoundShift(2) are the maximum absolute
         % shifts in the XY and Z directions respectively

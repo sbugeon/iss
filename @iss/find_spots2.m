@@ -139,14 +139,6 @@ for t=1:nTiles
 end
 fprintf('\n');
 
-%PCR initial shifts using colour channel with largest mean number of spots
-Sizes = cellfun('size',AllBaseLocalYXZ,1);
-MeanSize = zeros(o.nBP,1);
-for b = o.UseChannels
-    MeanSize(b) = mean(mean(Sizes(:,b,:)));
-end
-[~, BestChannel] = max(MeanSize);
-
 
 %Should have a initial search range for each round. If only provided one,
 %set all other rounds to the same range.
@@ -163,7 +155,7 @@ for t=1:nTiles
     if o.EmptyTiles(t); continue; end
     for r = o.UseRounds
         tic
-        [o.D0(t,:,r), o.InitialShiftScores(t,r)] = o.get_initial_shift2(AllBaseLocalYXZ{t,BestChannel,r},...
+        [o.D0(t,:,r), o.InitialShiftScores(t,r)] = o.get_initial_shift2(AllBaseLocalYXZ{t,o.InitialShiftChannel,r},...
             o.RawLocalYXZ{t}, o.FindSpotsSearch{r},'FindSpots');
         toc
         fprintf('Tile %d, shift from anchor round to round %d: [%d %d %d], score %f\n', t, r, o.D0(t,:,r),...
