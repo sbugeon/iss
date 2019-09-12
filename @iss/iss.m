@@ -74,8 +74,10 @@ classdef iss
         % Each filtered image is multiplied by ExtractScale. This is
         % because the image is saved as uint16 so to gain information from
         % the decimal points, should multiply image so max pixel number is
-        % in the 10,000s (less than 65,536).
-        ExtractScale = 5*10^7;
+        % in the 10,000s (less than 65,536). If 'auto', it sets to
+        % 10,000/max(Tile 1 round 1 colour channel 1).
+        ExtractScale = 'auto';
+        %ExtractScale = 5*10^7;
         
         %% parameters: registration and alignment
         

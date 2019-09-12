@@ -103,6 +103,11 @@ function o = extract_and_filter(o)
                 I = ifftn(Norm_FT);
                 I = padarray(I,(size(SE)-1)/2,'replicate','both');
                 IFS = convn(I,SE,'valid');
+                
+                if strcmpi(o.ExtractScale, 'auto')
+                    o.ExtractScale = 10000/max(max(max(IFS)));
+                end
+                
                 IFS = IFS*o.ExtractScale;
                 toc
 
