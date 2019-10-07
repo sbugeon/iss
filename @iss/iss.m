@@ -79,6 +79,9 @@ classdef iss
         ExtractScale = 'auto';
         %ExtractScale = 5*10^7;
         
+        % Dapi has different scaling as different filter used.
+        DapiScale = 'auto';
+        
         %% parameters: registration and alignment
         
         % correlation threshold for image alignment. Can be low since 

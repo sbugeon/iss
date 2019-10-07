@@ -102,13 +102,22 @@ function o = extract_and_filter(o)
                 
                 I = ifftn(Norm_FT);
                 I = padarray(I,(size(SE)-1)/2,'replicate','both');
-                IFS = convn(I,SE,'valid');
+                IFS = convn(I,SE,'valid');                
                 
-                if strcmpi(o.ExtractScale, 'auto')
-                    o.ExtractScale = 10000/max(max(max(IFS)));
+                %Scaling so fills uint16 range.
+                if c == o.DapiChannel && r == o.ReferenceRound  
+                    if strcmpi(o.DapiScale, 'auto')
+                        o.DapiScale = 10000/max(max(max(IFS)));
+                    end
+                    IFS = IFS*o.DapiScale;
+                else
+                    %Finds o.ExtractScale from first image and uses this
+                    %value for the rest
+                    if strcmpi(o.ExtractScale, 'auto')
+                        o.ExtractScale = 10000/max(max(max(IFS)));
+                    end
+                    IFS = IFS*o.ExtractScale;
                 end
-                
-                IFS = IFS*o.ExtractScale;
                 toc
 
                 % tophat the 3D image
