@@ -43,13 +43,29 @@ SpotColors = bsxfun(@rdivide, o.cSpotColors, prctile(o.cSpotColors, o.SpotNormPr
 
 % now we cluster the intensity vectors to estimate the Bleed Matrix
 BleedMatrix = zeros(nChans,nChans,nRounds); % (Measured, Real, Round)
-for r =o.UseRounds
-    m = squeeze(SpotColors(o.cSpotIsolated,o.UseChannels,r)); % data: nCodes by nBases
+if strcmpi(o.BleedMatrixType,'Separate')
+    for r=o.UseRounds
+        m = squeeze(SpotColors(o.cSpotIsolated,o.UseChannels,r)); % data: nCodes by nBases
     
+        [Cluster, v, s2] = ScaledKMeans(m, eye(nChans));
+        for i=1:nChans
+            BleedMatrix(:,i,find(o.UseRounds==r)) = v(i,:) * sqrt(s2(i));
+        end
+    end
+    
+elseif strcmpi(o.BleedMatrixType,'Single')
+    m = permute(squeeze(squeeze(SpotColors(o.cSpotIsolated,o.UseChannels,o.UseRounds))),[1 3 2]);
+    m = squeeze(reshape(m,[],size(m,1)*nRounds,nChans));
     [Cluster, v, s2] = ScaledKMeans(m, eye(nChans));
     for i=1:nChans
-        BleedMatrix(:,i,r) = v(i,:) * sqrt(s2(i));
+        BleedMatrix(:,i,1) = v(i,:) * sqrt(s2(i));
     end
+    for r=2:nRounds
+        BleedMatrix(:,:,r) = BleedMatrix(:,:,1);
+    end
+    
+else
+    warning('Wrong o.BleedMatrixType entry, should be either Separate or Single')
 end
 
 if o.Graphics
