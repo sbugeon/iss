@@ -6,6 +6,7 @@
 % o = iss; % create structure, default parameters
 % % change any parameters you want, and set o.FileN
 % o = o.extract_and_filter; % create top-hat filtered tiffs for each tile
+%  o = o.register;
 % o = o.find_spots; % find spot positions in global coordinates
 % o = o.call_spots; % allocate each spot to a gene
 % o = o.call_cells; % identify cells
@@ -116,6 +117,10 @@ classdef iss
         %sum(exp(-Dist.^2/(2*o.ShiftScoreThresh^2)))
         ShiftScoreThresh = 2;
         
+        % whether or not the ref round for spot detection and calling is
+        % different from Reference Round used for point cloud registration
+        NewRefRound = 8;
+        TileOriginNewRef;
         
         %% parameters: spot detection
         
@@ -158,9 +163,7 @@ classdef iss
         %different search range for each round.
         FindSpotsSearch;
         
-
-        
-        
+    
         %% parameters: spot calling
         % normalizes spot fluorescence so this percentile = 1
         SpotNormPrctile = 98;
@@ -262,7 +265,7 @@ classdef iss
         %% parameters: stuff that should be the same between experiments
         
         % for dapi images: scale is downsampling factor for final .fig file
-        DapiChannel = 1;  
+        DapiChannel = 1;
         
         % which channel of each file is anchor images
         AnchorChannel = 2;
@@ -298,6 +301,9 @@ classdef iss
         
         
 
+         
+        % which channel is Gad in the last round (ReferenceRound)
+        GadChannel = 6;
         
         %% variables: filenames
         
@@ -417,13 +423,15 @@ classdef iss
         % crosstalk
         BledCodes;
         
-        % Normalised Spot Scores
         NormBledCodes;
         cNormSpotColors;
         
         % BleedMatrix used to estimate BledCodes
         BleedMatrix;
 		
+
+		% On which channel this spot was detected? used for split anchor
+        ChannelDetect;
         %% variables: cell calling outputs
         % pCellClass(cell, class); % prob each cell goes to each class: last class is zero expression
         pCellClass;
