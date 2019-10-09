@@ -42,7 +42,7 @@ classdef iss
         
         %% parameters: stuff that might vary between experiments
         
-        % one more round after the main rounds for Anchor
+        % one more round after the main rounds for Sst and Npy
         nExtraRounds = 1; 
         
         % For single-gene rounds, a n by 3 structure array of {GeneName, round, channel, threshold}
@@ -50,19 +50,6 @@ classdef iss
         
         % BasePair labels
         bpLabels = {'A', 'C', 'G', 'T'};
-        
-        %% parameters: extract_and_filter
-        %Tophat filtering is done to each tile in all but the Dapi channel
-        %with a filter of radius ExtractR. If set to 'auto', ExtractR =
-        %round(1/pixelsize). R should be about radius of object of
-        %interest.
-        ExtractR = 'auto';
-        
-        %Tophat filtering is done to each tile in the Dapi channel
-        %with a filter of radius DapiR. If set to 'auto', DapiR =
-        %round(8/pixelsize). R should be about radius of object of
-        %interest.
-        DapiR = 'auto';
         
         %% parameters: registration and alignment
         
@@ -84,6 +71,7 @@ classdef iss
         % number of point cloud matches needed to count an overlap
         MinPCMatches = 50; 
         
+
         % ToPlot: [r,c,t], plot of round r, colour channel c, tile t
         % is shown for debugging
         ToPlot;
@@ -117,6 +105,7 @@ classdef iss
         %sum(exp(-Dist.^2/(2*o.ShiftScoreThresh^2)))
         ShiftScoreThresh = 2;
         
+
         % whether or not the ref round for spot detection and calling is
         % different from Reference Round used for point cloud registration
         NewRefRound = 8;
@@ -148,7 +137,7 @@ classdef iss
         IsolationRadius2 = 7;
         
         % annular filtered value needs to be less than this:
-        IsolationThresh = 'auto';
+        IsolationThresh = 60;
         
         % for visualization during spot detection
         FindSpotsRoi = [1742 1755 213 227];
@@ -162,17 +151,10 @@ classdef iss
         %for each tile. Can also set to cell(o.nRounds,1) and give a
         %different search range for each round.
         FindSpotsSearch;
-        
-    
+
         %% parameters: spot calling
         % normalizes spot fluorescence so this percentile = 1
         SpotNormPrctile = 98;
-        
-        % if BleedMatrixType == 'Separate', then a bleed matrix will be
-        % computed for each round. If BleedMatrixType == 'Single', a single
-        % bleed matrix will be computed, combining spot colours from all
-        % rounds.
-        BleedMatrixType = 'Separate';
         
         % score and intensity thresholds to plot a spot (combi codes)
         CombiQualThresh = .8;         
@@ -276,7 +258,7 @@ classdef iss
         % which sequencing round to align all others to
         ReferenceRound = 2;
         
-        % how many combinatorial sequencing rounds excluding anchor round
+        % how many combinatorial sequencing rounds 
         nRounds = 5;
         
         % Number of possible basepairs (always 4 for life as we know it but
@@ -290,7 +272,7 @@ classdef iss
         MicroscopeStepSize = 2048;
         
         RawFileExtension = '.czi';
-        
+
         % when decoding spots, will use all colour channels in
         % UseChannels (Array of numbers in range 1 to o.nBP)
         UseChannels;
@@ -298,9 +280,9 @@ classdef iss
         % when decoding spots, will use all rounds in
         % UseRounds (Array of numbers in range 1 to o.nRounds)
         UseRounds;
-        
-        
 
+        % which channel is Gad in the last round (ReferenceRound)
+        GadChannel = 6;
          
         % which channel is Gad in the last round (ReferenceRound)
         GadChannel = 6;
@@ -338,50 +320,17 @@ classdef iss
         
         % TileInitialPosXY(t,:): coordinate of tile t in integers.
         TileInitialPosXY;
-        
-        %RawLocalYX{t} stores the YX coordinates of spots found in the
-        %anchor round of tile t
-        RawLocalYX;
-        
-        %RawIsolated{t} labels each spot in the anchor round as isolated or not
-        RawIsolated;
-        
-        %RegInfo saves debugging information for the registration section
-        RegInfo;
-        
-        % D0(t,2,r) stores the initial shift to use as a starting point for
-        % the PCR on round r tile t.
-        D0;
-                        
-        %InitialShiftScores(t,r) gives the score for the initial shift
-        %found for tile t between the anchor round and round r
-        InitialShiftScores;
-        
-        % A(2,2,c): stores the scaling correction for chromatic aberration
-        % found by point cloud registration for color channel c
-        A;
-        
-        % D(t,2,r): stores the final shift found by point cloud registration
-        % on round r tile t.
-        D;
-        
-        % cc(t,1,r) stores the correlation coefficient for the initial
-        % shift D0(t,:,r) found between tile t round r and the anchor
-        cc;
-        
-        % nMatches(t,c,r): stores number of matches found by point cloud
-        % registration for tile t, color channel c, round r
-        nMatches;
-        
-        % error(t,c,r): stores error found by point cloud registration
-        % for tile t, color channel c, round r
-        Error;
 
         %% variables: spot calling outputs
        
         % cSpotColors(Spot, Base, Round) contains spot color on each base
         % and round. only for combinatorial splots
-        cSpotColors;             
+        cSpotColors;
+        
+        % cAnchorIntensities(Spot, Round) contains anchor intensity on each
+        % round. only for combinatorial splots
+        cAnchorIntensities;
+     
         
         % cSpotIsolated(Spot) is a binary array saying if the spot is well isolated
         % again for combinatorial spots only
@@ -425,13 +374,13 @@ classdef iss
         
         NormBledCodes;
         cNormSpotColors;
-        
+
         % BleedMatrix used to estimate BledCodes
         BleedMatrix;
 		
-
-		% On which channel this spot was detected? used for split anchor
+		    % On which channel this spot was detected? used for split anchor
         ChannelDetect;
+
         %% variables: cell calling outputs
         % pCellClass(cell, class); % prob each cell goes to each class: last class is zero expression
         pCellClass;
