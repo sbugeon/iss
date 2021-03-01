@@ -51,19 +51,19 @@ caxis([0,3*o.gtColorTruePositiveThresh(r,b)]);
 hold on
 %Found ground truth
 scatter(o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==1,2),...
-    o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==1,1),30,'go','LineWidth',2);
+    o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==1,1),3,'go','LineWidth',2);
 %Missed ground truth
 scatter(o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==2,2),...
-    o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==2,1),30,'gx','LineWidth',2);
+    o.gtSpotGlobalYX{r,b}(o.([pf,'_gtFound']){r,b}==2,1),30,'bx','LineWidth',2);
 %pf method true positives
 QualOK = quality_threshold(o,S.Method);
 pfTP = o.([pf,'_gtIdentity']){r,b}==1 & o.([pf,'SpotCodeNo']) == o.gtGeneNo(r,b);
 %Found
 scatter(o.([pf,'SpotGlobalYX'])(pfTP&QualOK,2),o.([pf,'SpotGlobalYX'])(pfTP&QualOK,1),...
-    20,[0 0.5 0],'o','LineWidth',1);
+    3,[0 0.5 0],'o','LineWidth',1);
 %Missed
 scatter(o.([pf,'SpotGlobalYX'])(pfTP&~QualOK,2),o.([pf,'SpotGlobalYX'])(pfTP&~QualOK,1),...
-    20,[0 0.5 0],'x','LineWidth',1);
+    30,'yx','LineWidth',1);
 %pf method false positives
 pfFP = o.([pf,'_gtIdentity']){r,b}==2 & o.([pf,'SpotCodeNo']) == o.gtGeneNo(r,b) & QualOK;
 scatter(o.([pf,'SpotGlobalYX'])(pfFP,2),o.([pf,'SpotGlobalYX'])(pfFP,1),...
