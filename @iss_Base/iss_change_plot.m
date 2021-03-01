@@ -12,6 +12,8 @@ function iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 % GeneType: Neuron or Non-Neuron
 % GenesToShow: cell of gene names that you want to see e.g.
 % [{'Npy'},{'Pvalb'}]. It is case sensitive.
+% If GenesToShow is 'Neuron' or 'NonNeuron', then all neurons/ non-neurons
+% will be selected
 % UseSpots: if you want to use your own thresholding, not
 % o.quality_threshold. Logical array e.g. o.pSpotScore>0 or
 % get_gene_clusters(o)
@@ -43,6 +45,13 @@ if nargin<4 || isempty(GenesToShow)
         S.GeneNoToShow = find(ismember(o.GeneNames,GenesToShow));
     end
 else
+    if strcmpi(GenesToShow,'Neuron')
+        GeneNames = change_gene_symbols(0);
+        GenesToShow = GeneNames(:,1);
+    elseif strcmpi(GenesToShow,'NonNeuron')
+        GeneNames = change_gene_symbols_NonNeuron(0);
+        GenesToShow = GeneNames(:,1);
+    end
     S.GeneNoToShow = find(ismember(o.GeneNames,GenesToShow));
 end
 

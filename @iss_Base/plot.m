@@ -93,6 +93,13 @@ S.Background = imagesc(S.Image); hold on; colormap bone;
 %set(S.Background, 'YData', [Roi(1), Roi(2)]);
 xlim([Roi(1) Roi(2)]);
 ylim([Roi(3) Roi(4)]);
+if min(S.Image(:))==0 && max(S.Image(:))==0
+    %If no background, set to black
+    caxis([10,12]);
+elseif abs(int32(median(S.Image(:)))-o.TilePixelValueShift)<o.TilePixelValueShift/100
+    %If anchor image, want black
+    caxis([o.TilePixelValueShift,o.TilePixelValueShift+o.TilePixelValueShift/5]);
+end
 
 %title(['Z Plane ' num2str(S.MinZ)],'Color','w');
 
