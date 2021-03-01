@@ -120,12 +120,12 @@ classdef iss_PixelBased < iss_Base
         pDevThresh = 6;
         
         %Values used in quality_threshold for prob method
-        pQualThresh1 = -220; %Optimized using PyTorch
-        pQualParam1 = 1.5;    %Optimized using PyTorch
-        pQualThresh2 = 15.634; %Optimized using PyTorch
-        pQualParam2 = 0;    %Optimized using PyTorch
-        pQualThresh3 = 0;
-        pQualThresh4 = 0;
+        pQualThresh1 = -210; %Optimized using ground truth
+        pQualParam1 = 0.3;   %Optimized using ground truth
+        pQualThresh2 = 20;   %Optimized using ground truth
+        pQualParam2 = 0;     %Optimized using ground truth
+        pQualThresh3 = 95;
+        pQualThresh4 = -20;
         
         %% variables: spot calling outputs - prob method
         % pSpotGlobalYX(Spot,1:2) contains y,x coordinates of every spot in
