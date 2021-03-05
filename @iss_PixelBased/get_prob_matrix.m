@@ -14,16 +14,18 @@ ProbMatrix = nan(o.nBP,o.nRounds);
 for b=o.UseChannels
     for r=o.UseRounds
         f = SpotCode(b,r);
-        LogConvDist = log(conv(o.LambdaDist(:,GeneNo,b,r),o.HistProbs(:,b,r),'same'));
+        LogConvDist = log(conv(o.LambdaDist(:,GeneNo,b,r),o.HistProbs(:,b,r)));
         %Need to relate it to something that is the same for all genes i.e.
         %probability spot explained by background alone
-        ProbMatrix(b,r) = LogConvDist(o.ZeroIndex-1+f)-log(o.BackgroundProb(o.ZeroIndex-1+f,b,r));
+        ProbMatrix(b,r) = LogConvDist(o.ZeroIndex+o.HistZeroIndex-1+f)-log(o.BackgroundProb(o.ZeroIndex+o.HistZeroIndex-1+f,b,r));
         
-        %x2 = x(x<HistZeroIndex+f);      %So ensure indices>0
-        %hIndices = HistZeroIndex+f-x2;
-        %Use = hIndices<length(o.SymmHistValues);
-        %HistDist = o.HistProbs(hIndices(Use),b,r);
-        %LambdaIndices = find(x<HistZeroIndex+f);
-        %ProbMatrix(b,r) = log(sum(HistDist.*o.LambdaDist(LambdaIndices(Use),GeneNo,b,r)));
+%         Above method should match this method:        
+%         HistZeroIndex = find(o.SymmHistValues == 0);
+%         x2 = x(x<HistZeroIndex+f);      %So ensure indices>0
+%         hIndices = HistZeroIndex+f-x2;
+%         Use = hIndices<length(o.SymmHistValues);
+%         HistDist = o.HistProbs(hIndices(Use),b,r);
+%         LambdaIndices = find(x<HistZeroIndex+f);
+%         ProbMatrix(b,r) = log(sum(HistDist.*o.LambdaDist(LambdaIndices(Use),GeneNo,b,r)));
     end
 end

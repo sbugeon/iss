@@ -100,7 +100,14 @@ end
 MeasuredCode = squeeze(cSpotColor);
 CodeShape = size(MeasuredCode);
 BledCode = cBledCodes(CodeNo,:);
-ProbMatrix = get_prob_matrix(o,squeeze(SpotColor),CodeNo);
+if isempty(o.HistZeroIndex)
+    warning('foo:bar',['5/3/2021 update changed the way LookupTable calculated for Prob and PixelBased methods.\n',...
+        'Delete LookupTable%.0f.mat in:\n%s\n'...
+        'Rerun [o,LookupTable]=o.call_spots_prob;'],o.ProbMethod,o.OutputDirectory);
+    ProbMatrix = zeros(o.nBP,o.nRounds);
+else
+    ProbMatrix = get_prob_matrix(o,squeeze(SpotColor),CodeNo);
+end
 caxis_lims = [min(min(BledCode(:)),min(MeasuredCode(:))),...
     max(max(BledCode(:)),max(MeasuredCode(:)))];
 
@@ -230,20 +237,27 @@ function getCoord(aH,evnt,o,SpotNo,CodeNo,SpotColor)
 %intensity when a left click is applied on a square in the LogProb plot.
 %When a right click is applied, a plot showing the individual distributions
 %contributing to the LogProb(r,b) in the LogProb plot appears.
+if isempty(o.HistZeroIndex)
+    error('foo:bar',['5/3/2021 update changed the way LookupTable calculated for Prob and PixelBased methods.\n',...
+        'Delete LookupTable%.0f.mat in:\n%s\n'...
+        'Rerun [o,LookupTable]=o.call_spots_prob;'],o.ProbMethod,o.OutputDirectory);
+end
 drawnow
 fig = ancestor(aH,'figure');
 click_type = get(fig,'SelectionType');
 ClickLoc = evnt.IntersectionPoint(1:2);
 r = round(ClickLoc(1));
 b = round(ClickLoc(2));
-f = SpotColor(:,b,r);
-x = min(f,min(o.pSpotColors(:))-1):max(f,max(o.pSpotColors(:))-1);
+f = double(SpotColor(:,b,r));
+x = -(o.ZeroIndex+o.HistZeroIndex-2):...
+    -(o.ZeroIndex+o.HistZeroIndex-2)+length(o.BackgroundProb(:,b,r))-1;
 XLim = [min(x)-2000,max(x)+2000];
+%x = min(f,min(o.pSpotColors(:))-1):max(f,max(o.pSpotColors(:))-1);
 NormYLim = [round(min(log(o.HistProbs(:)))-4),0];
 AltYLim = [0,max([max(o.LambdaDist(:)),max(o.HistProbs(:))])+0.05];
 
 if strcmp(click_type,'normal')
-    LogProbPlot = log(conv(o.LambdaDist(:,CodeNo,b,r),o.HistProbs(:,b,r),'same'));
+    LogProbPlot = log(conv(o.LambdaDist(:,CodeNo,b,r),o.HistProbs(:,b,r)));
     %Get background too
     BackgroundProb = log(o.BackgroundProb(:,b,r));   
     figure(35428);
@@ -264,17 +278,18 @@ if strcmp(click_type,'normal')
     ylim(NormYLim);
     
 elseif strcmp(click_type,'alt')
-    HistZeroIndex = find(o.SymmHistValues == 0);
-    x2 = x(x<HistZeroIndex+f);      %So ensure indices>0
-    hIndices = HistZeroIndex+f-x2;
-    Use = hIndices<length(o.SymmHistValues);
+    xPlot2 = -o.ZeroIndex+1:o.ZeroIndex+length(o.LambdaDist(:,CodeNo,b,r))-2;
+    xPlotHist = min(o.HistValues+f):max(xPlot2);
+    x2 = xPlotHist(xPlotHist<o.HistZeroIndex+f);      %So ensure indices>0
+    hIndices = o.HistZeroIndex+f-x2;
+    Use = hIndices<length(o.HistValues);
     HistDist = o.HistProbs(hIndices(Use),b,r);
-    LambdaIndices = find(x<HistZeroIndex+f);
+    LambdaIndices = find(xPlotHist<o.HistZeroIndex+f);
     figure(9264892);
-    plot(x(LambdaIndices(Use)),o.LambdaDist(LambdaIndices(Use),CodeNo,b,r),'Color',[0, 0.4470, 0.7410]);
+    plot(xPlot2,o.LambdaDist(:,CodeNo,b,r),'Color',[0, 0.4470, 0.7410]);
     hold on
-    plot(x(LambdaIndices(Use)),HistDist,'Color','red');
-    plot(x(LambdaIndices(Use)),o.BackgroundLambdaDist(LambdaIndices(Use)),'Color',[0.25, 0.25, 0.25]);
+    plot(xPlotHist(LambdaIndices(Use)),HistDist,'Color','red');
+    plot(xPlot2,o.BackgroundLambdaDist,'Color',[0.25, 0.25, 0.25]);
     hold off
     title({'For spot s, gene g and background distribution $$P_b$$; given $$x=\lambda g$$:',...
         '$$P(s\mid g) = \int P(\lambda)P_b(s-\lambda g)d\lambda = \frac{1}{g}\sum_{x} P\left(\frac{x}{g}\right)P_b(s-x)$$'},...

@@ -24,7 +24,8 @@ elseif strcmpi('Pixel',Method)
     %o.pIntensityThresh2 = 50;
 end
 QualOK = quality_threshold(o,Method);
-QualOK = o.pxNotDuplicate  & (o.pxSpotScore>=0|o.pxLogProbOverBackground>-5);
+%QualOK = o.pxNotDuplicate  & (o.pxSpotScore>=0|o.pxLogProbOverBackground>-5);
+%QualOK = o.pxNotDuplicate & QualOK;
 fprintf('Total Primary Spots: \t\t\t\t%d\n',sum(QualOK&PrimarySet));
 fprintf('Total Primary or Secondary Spots: \t\t%d\n',sum(QualOK&(PrimarySet|SecondarySet)));
 fprintf('Total Spots: \t\t\t\t\t%d\n',sum(QualOK));
@@ -106,9 +107,9 @@ end
 
 i = size(TruePosData.Summary,1)+1;      %INDEX OF DATA TO BE ADDED
 TruePosData.Summary(i,'FileLocation') = ...
-    {fullfile(o.OutputDirectory, 'oCall_spots_SingleBMSmooth')};
-Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
-%Method = 'Pixel: pQualThresh, ProbMethod = 1, nBledCodeSets=5, pQualThresh3=180, pQualThresh4=-15';
+    {fullfile(o.OutputDirectory, 'oCall_spots_pixel_GammaShape=3_NewGT_pxNotDuplicate_NoBackground')};
+%Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
+Method = 'Pixel: pQualThresh, ProbMethod = 1, pQualThresh3=155, pQualThresh4=-30, JustSignifBleedThroughInBleedMatrix';
 %Method = 'OMP: BledCodes';
 %Method = 'OMP: UnBledCodes';
 %Method = 'Spatial';
@@ -139,6 +140,7 @@ elseif contains(Method,'Pixel: pQualThresh')
     if o.ProbMethod==1
         TruePosData.Summary(i,'ScoreScale') = {o.ScoreScale};
     end
+    TruePosData.Summary(i,'pIntensityThresh') = {o.pIntensityThresh};
     TruePosData.Summary(i,'pQualThresh1') = {o.pQualThresh1};
     TruePosData.Summary(i,'pQualParam1') = {o.pQualParam1};
     TruePosData.Summary(i,'pQualThresh2') = {o.pQualThresh2};
@@ -199,24 +201,24 @@ TruePosData.Summary(i,'Combined_nFP') = {Combined_nFP};
 %save(fullfile(o.OutputDirectory, 'GroundTruth_Data'), 'TruePosData', '-v7.3');
 %% Find Best Params - PixelBased
 %QualThresh method
-% QualThresh1 = -300:50:100;
+% QualThresh1 = -250:50:150;
 % QualParam1 =  0:0.5:4;
 % QualThresh2 = -150:50:150;
-% % QualParam2 = 0:0.5:3;   %Doesn't affect it at all
-% QualParam2 = 0;
-% QualThresh1 = -40:10:30;
-% QualParam1 =  2.7:0.1:3.4;
-% QualThresh2 = 70:10:130;
-% % QualParam2 = 0.5:0.1:1;
-% ScoreImage = zeros(length(QualThresh1),length(QualParam1),length(QualThresh2),length(QualParam2));
+% %IntensityThresh = 0:0.5:3;   %Doesn't affect it at all
+% IntensityThresh = 100;
+% QualThresh1 = -140:10:-60;
+% QualParam1 =  0:0.1:0.3;
+% QualThresh2 = 20:10:80;
+% %IntensityThresh = -100:200:700;
+% ScoreImage = zeros(length(QualThresh1),length(QualParam1),length(QualThresh2),length(IntensityThresh));
 % for i=1:length(QualThresh1)
 %     o.pQualThresh1 = QualThresh1(i);
 %     for j=1:length(QualParam1)
 %         o.pQualParam1 = QualParam1(j);
 %         for k=1:length(QualThresh2)
 %             o.pQualThresh2 = QualThresh2(k);
-%             for k2=1:length(QualParam2)
-%                 o.pQualParam2 = QualParam2(k2);
+%             for k2=1:length(IntensityThresh)
+%                 o.pIntensityThresh = IntensityThresh(k2);
 %                 QualOK = quality_threshold(o,'Pixel');
 %                 for r=o.gtRounds
 %                     for b=o.UseChannels
@@ -239,16 +241,17 @@ TruePosData.Summary(i,'Combined_nFP') = {Combined_nFP};
 % o.pQualThresh1=QualThresh1(a);
 % o.pQualParam1=QualParam1(b);
 % o.pQualThresh2=QualThresh2(c);
-% o.pQualParam2=QualParam2(d);
+% o.pIntensityThresh=IntensityThresh(d);
 % QualThresh1(a)
 % QualParam1(b)
 % QualThresh2(c)
-% QualParam2(d)
+% IntensityThresh(d)
 
-QualThresh3 = 0:25:300;
-QualThresh4 = -300:25:0;
-% QualThresh3 = 170:5:230;
-% QualThresh4 = -50:5:0;
+% QualThresh3 = 0:25:500;
+% QualThresh4 = -500:25:0;
+QualThresh3 = 125:5:175;
+QualThresh4 = -50:5:0;
+%QualThresh4 = -inf;
 ScoreImage = zeros(length(QualThresh3),length(QualThresh4));
 for i=1:length(QualThresh3)
     o.pQualThresh3 = QualThresh3(i);

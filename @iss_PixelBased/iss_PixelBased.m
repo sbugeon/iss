@@ -28,14 +28,13 @@ classdef iss_PixelBased < iss_Base
         %The HistCount is smoothed according to
         %SmoothHistCountLimit*exp(SmoothHistCountParam*x);
         %SmoothHistCountParamGuess is the start point to find SmoothHistCountParam.
-        SmoothHistCountParamGuess = -0.003;
+        SmoothHistCountParamGuess = -0.003;        
         
-        %SymmHistValues is -max(HistValues(HistCount>0)):max(HistValues(HistCount>0)).
-        %Required as needs to be symmetric for the convolution
-        SymmHistValues;
+        %HistZeroIndex is index where HistValues==0
+        HistZeroIndex;
         
         %HistProbs(:,b,r) is the probability corresponding to each value
-        %in SymmHistValues for channel b, round r.
+        %in HistValues for channel b, round r.
         %(HistCounts/nPixels+o.alpha)./(1+nBins*o.alpha);
         HistProbs;
         

@@ -12,6 +12,11 @@ function [LogProbOverBackground,LogProbOverBackgroundMatrix] = get_LogProbOverBa
 % channel/round indicated by i for gene g. This does not take account of
 % ScoreScale. 
 %Variables needed for summing LogProbabilities from lookup table
+if isempty(o.HistZeroIndex)
+    error('foo:bar',['5/3/2021 update changed the way LookupTable calculated for Prob and PixelBased methods.\n',...
+        'Delete LookupTable%.0f.mat in:\n%s\n'...
+        'Rerun [o,LookupTable]=o.call_spots_prob;'],o.ProbMethod,o.OutputDirectory);
+end
 nCodes = length(o.CharCodes);
 nChans = size(o.UseChannels,2);
 nRounds = size(o.UseRounds,2);
@@ -49,12 +54,12 @@ if Verbose
 end
 for s=1:nSpots
     sSpotColor = SpotColors(s,sub2ind([o.nBP,o.nRounds],gChannelIndex,gRoundIndex));
-    SpotIndex = repmat(o.ZeroIndex-1+sSpotColor,1,nCodes); %-1 due to matlab indexing I think
+    SpotIndex = repmat(o.HistZeroIndex+o.ZeroIndex-1+sSpotColor,1,nCodes); %-1 due to matlab indexing I think
     %Indices = sub2ind(size(LookupTable),SpotIndex,GeneIndex,ChannelIndex,RoundIndex);
     Indices = SpotIndex + (GeneIndex-1)*size(LookupTable,1) +...
          (ChannelIndex-1)*size(LookupTable,1)*size(LookupTable,2)+...
          (RoundIndex-1)*size(LookupTable,1)*size(LookupTable,2)*size(LookupTable,3);
-    BackgroundSpotIndex = o.ZeroIndex-1+sSpotColor;
+    BackgroundSpotIndex = o.HistZeroIndex+o.ZeroIndex-1+sSpotColor;
     BackgroundIndices = BackgroundSpotIndex+...
         (gChannelIndex-1)*size(o.BackgroundProb,1)+...
         (gRoundIndex-1)*size(o.BackgroundProb,1)*size(o.BackgroundProb,2);
