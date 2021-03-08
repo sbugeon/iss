@@ -145,6 +145,11 @@ classdef iss_GroundTruth < iss_PixelBased
         omp_gtFound;
         sp_gtIdentity;
         sp_gtFound;
+        
+        %% Keep duplicates if ground truth
+        %pxNotDuplicate(s)=1 if spot s is not removed when comparing overlap
+        %of tiles
+        pxNotDuplicate;
     end
 end
 

@@ -20,10 +20,15 @@ if strcmpi('Prob',Method) || strcmpi('Pixel',Method) || strcmpi('GroundTruth',Me
 %     o.([pf,'SpotIntensity'])>o.pIntensityThresh); 
 %     QualOK = QualOK & o.([pf,'SpotScore'])>=0;       %3rd best spots do more harm than good.
     %QualOK = QualOK & o.pSpotIntensity2 > o.pIntensity2Thresh;
-    QualOK = o.([pf,'SpotScore'])>0 & o.([pf,'LogProbOverBackground'])+o.pQualParam1*o.([pf,'SpotScore'])>o.pQualThresh1 | ...
-       o.([pf,'SpotScore'])==0 & o.([pf,'LogProbOverBackground'])+o.pQualParam2*o.([pf,'SpotScore'])>o.pQualThresh2 | ...
-       o.([pf,'SpotScore'])<0 & o.([pf,'LogProbOverBackground'])>o.pQualThresh3 & o.([pf,'SpotScore'])>o.pQualThresh4;
-    QualOK = QualOK & o.([pf,'SpotIntensity'])>o.pIntensityThresh;
+    QualOK1 = o.([pf,'SpotScore'])>0 & o.([pf,'LogProbOverBackground'])+o.pQualParam1*o.([pf,'SpotScore'])>o.pQualThresh1;
+    if strcmpi('Prob',Method) || strcmpi('GroundTruth',Method) || (strcmpi('Pixel',Method)&&isempty(o.([pf,'SpotScore2'])))
+        QualOK2 = o.([pf,'SpotScore'])==0 & o.([pf,'LogProbOverBackground'])+o.pQualParam2*o.([pf,'SpotScore'])>o.pQualThresh2;
+        QualOK3 = o.([pf,'SpotScore'])<0 & o.([pf,'LogProbOverBackground'])>o.pQualThresh3 & o.([pf,'SpotScore'])>o.pQualThresh4;
+    elseif strcmpi('Pixel',Method) && ~isempty(o.([pf,'SpotScore2']))
+        QualOK2 = o.([pf,'SpotScore2'])>0 & o.([pf,'LogProbOverBackground2'])+o.pQualParam2*o.([pf,'SpotScore2'])>o.pQualThresh2;
+        QualOK3 = o.([pf,'SpotScore2'])==0 & o.([pf,'LogProbOverBackground2'])>o.pQualThresh3;
+    end
+    QualOK = (QualOK1 | QualOK2 | QualOK3) & o.([pf,'SpotIntensity'])>o.pIntensityThresh;
 elseif strcmpi('DotProduct',Method)
     QualOK = o.([pf,'SpotCombi']) & o.([pf,'SpotScore'])>o.CombiQualThresh &...
         o.([pf,'SpotIntensity'])>o.CombiIntensityThresh & o.([pf,'SpotScoreDev'])>o.CombiDevThresh;

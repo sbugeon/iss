@@ -119,11 +119,11 @@ classdef iss_PixelBased < iss_Base
         pDevThresh = 6;
         
         %Values used in quality_threshold for prob method
-        pQualThresh1 = -210; %Optimized using ground truth
-        pQualParam1 = 0.3;   %Optimized using ground truth
-        pQualThresh2 = 20;   %Optimized using ground truth
-        pQualParam2 = 0;     %Optimized using ground truth
-        pQualThresh3 = 95;
+        pQualThresh1 = -90;     %Optimized using ground truth
+        pQualParam1 = 0.5;      %Optimized using ground truth
+        pQualThresh2 = -50;     %Optimized using ground truth
+        pQualParam2 = 2.0;      %Optimized using ground truth
+        pQualThresh3 = 62;
         pQualThresh4 = -20;
         
         %% variables: spot calling outputs - prob method
@@ -188,6 +188,17 @@ classdef iss_PixelBased < iss_Base
         pxInitialScoreThresh = 0;   %I.e. only want spots that are at least 2nd best at their position
         pxInitialProbThresh = -5;
         
+        %When finding probability for second best gene, remove best gene
+        %first in all rounds/channels where gene should be present or
+        %bleedthrough is more than pLogProb2RemoveGeneThresh.
+        pLogProb2RemoveGeneThresh = 0.25;
+        
+        %When finding probability for second best gene, remove
+        %(1-DistScore) fraction of pxSpotBestGene(s) code from
+        %pxSpotColor(s,:) where DistScore = exp(-Dist.^2/pLogProb2DistParam^2);
+        %Dist being the distance to the nearest pxSpotBestGene(s) spot.
+        pLogProb2DistParam = 25;
+        
         %% PixelBased method outputs
         
         % pxSpotGlobalYX(Spot,1:2) contains y,x coordinates of every spot in
@@ -208,7 +219,7 @@ classdef iss_PixelBased < iss_Base
         %probability it can be explained by background alone.
         pxLogProbOverBackground;        
         
-        %pxSpotScore is pLogProb -max(pLogProb(SpotCodeNo~=pSpotCodeNo))
+        %pxSpotScore is pLogProb -max(pxLogProb(SpotCodeNo~=pSpotCodeNo))
         pxSpotScore;
         
         %pxSpotScoreDev(s) is the standard deviation of the log prob of spot s
@@ -221,6 +232,15 @@ classdef iss_PixelBased < iss_Base
         %pxLocalTile(s) is the tile spot s was found on
         pxLocalTile;
         
+        %pxBestGene(s) is gene number of best gene at location of spot s.
+        pxSpotBestGene;
+        
+        %pxLogProbOverBackground2(s) is LogProbOverBackground for spot s
+        %after pxBestGene(s) has been removed.
+        pxLogProbOverBackground2;
+        
+        %pxSpotScore2(s) is pxLogProb2 -max(pxLogProb2(SpotCodeNo~=pSpotCodeNo))
+        pxSpotScore2;
         
     end
 end

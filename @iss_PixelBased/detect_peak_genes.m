@@ -1,5 +1,5 @@
 function [PeakLocalYX,PeakSpotColors,PeakLogProbOverBackground,...
-    Peak2ndBestLogProb,PeakScoreDev,OriginalTile] = ...
+    Peak2ndBestLogProb,PeakScoreDev,OriginalTile,PeakBestGene] = ...
     detect_peak_genes(o,LookupTable,GoodSpotColors,GoodLocalYX,t)
 %% [PeakLocalYX,PeakSpotColors,PeakLogProbOverBackground,...
 %    Peak2ndBestLogProb,PeakScoreDev,OriginalTile] = ...
@@ -26,6 +26,8 @@ function [PeakLocalYX,PeakSpotColors,PeakLogProbOverBackground,...
 % PeakScoreDev{G} is the standard deviation of log probability across all
 % genes at that location.
 % OriginalTile{G} = t
+% PeakBestGene{G} contains the best gene at the location of local maxima of
+% gene G. I.e. most will be G but few will be overlapping. 
 
 %% Get log probs for each spot 
 AllLogProbOverBackground = o.get_LogProbOverBackground(GoodSpotColors,LookupTable);
@@ -38,6 +40,7 @@ PeakLogProbOverBackground = cell(nCodes,1);
 Peak2ndBestLogProb = cell(nCodes,1);
 PeakScoreDev = cell(nCodes,1);
 OriginalTile = cell(nCodes,1);
+PeakBestGene = cell(nCodes,1);
 
 GeneIm = zeros(max(GoodLocalYX));     %Y index is first in zeros
 Ind = sub2ind(size(GeneIm),GoodLocalYX(:,1),GoodLocalYX(:,2));
@@ -65,8 +68,8 @@ for GeneNo = 1:nCodes
     PeakScoreDev{GeneNo} = std(peakPoverB,[],2);
     
     %Find 2nd best gene so can give score relative to it
-    [~,gInd] = max(peakPoverB,[],2);
-    peakPoverB(sub2ind(size(peakPoverB),(1:nPeaks)',gInd))=-inf;
+    [~,PeakBestGene{GeneNo}] = max(peakPoverB,[],2);
+    peakPoverB(sub2ind(size(peakPoverB),(1:nPeaks)',PeakBestGene{GeneNo}))=-inf;
     Peak2ndBestLogProb{GeneNo} = max(peakPoverB,[],2);
     %SortProb = sort(peakPoverB,2,'descend');
     %Peak2ndBestLogProb{GeneNo} = SortProb(PeakInd,2);
