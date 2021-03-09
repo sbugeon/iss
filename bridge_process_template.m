@@ -138,6 +138,7 @@ save(fullfile(o.OutputDirectory, 'oCall_spots'), 'o', '-v7.3');
 
 %Pixel based
 o = o.call_spots_pixel(LookupTable);
+o = o.get_secondary_gene_prob(LookupTable);
 save(fullfile(o.OutputDirectory, 'oCall_spots_pixel'), 'o', '-v7.3');
 %% plot results
 
