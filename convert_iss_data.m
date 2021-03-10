@@ -21,6 +21,9 @@ end
 % Extract variables
 o.StripHack = false;           %Did not account for strips of zeros in raw data 
                                %with old method.
+o.ScoreBleedThroughContribution = false;
+o.BleedMatrixEigMethod = 'Mean';
+o.BleedThroughThresh = -inf;   %Kept all bleed through with old method. 
 %% FindSpots output
 %Change form of transform
 if ~isempty(o.D) && ~isempty(o.A)

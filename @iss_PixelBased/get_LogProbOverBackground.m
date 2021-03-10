@@ -32,12 +32,26 @@ SpotColors = int32(SpotColors); %For indexing everything needs to be int32
 LogProbOverBackground = zeros(nSpots,nCodes);
 
 LogProbMultiplier = zeros(nRounds*nChans,nCodes);
-if nChans == o.nBP && nRounds == o.nRounds
+if nChans == o.nBP
     for g=1:nCodes
-        LogProbMultiplier(:,g) = o.UnbledCodes(g,:);
+        if o.ScoreBleedThroughContribution
+            %Normalised bleed matrix gives relative contribution of each
+            %channel in each round. Sum of NormBledCode is 1 in each round.
+            %I.e. this takes account of bleed through.
+            BledCode = reshape(o.BledCodes(g,:),[o.nBP,o.nRounds]);
+            NormBledCode = BledCode./sum(BledCode,1);
+            LogProbMultiplier(:,g) = NormBledCode(:);
+            if o.ScoreScale~=0
+                warning(['Using o.ScoreScale=0 to find LogProbOverBackground as',...
+                    'o.ScoreBleedThroughContribution=True']);
+            end
+            o.ScoreScale=0;
+        else
+            LogProbMultiplier(:,g) = o.UnbledCodes(g,:);
+        end
     end
     %How many squares that contribute:
-    NormFactor = double(o.nBP*o.nRounds)/double(o.nRounds+o.ScoreScale*(o.nBP*o.nRounds-o.nRounds));
+    NormFactor = double(o.nBP*nRounds)/double(nRounds+o.ScoreScale*(o.nBP*nRounds-nRounds));
     %Normalise by this to allow valid comparison
     LogProbMultiplier(LogProbMultiplier==0) = o.ScoreScale;
     LogProbMultiplier = LogProbMultiplier*NormFactor;

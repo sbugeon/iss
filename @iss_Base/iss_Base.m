@@ -347,7 +347,19 @@ classdef iss_Base
         % computed for each round. If BleedMatrixType == 'Single', a single
         % bleed matrix will be computed, combining spot colours from all
         % rounds.
-        BleedMatrixType = 'Single';
+        BleedMatrixType = 'Separate';
+        
+        % BleedMatrixEigMethod == 'Mean': ScaledKMeans used to compute each
+        % column of bleed matrix.
+        % BleedMatrixEigMethod == 'Median': ScaledKMedians used to compute
+        % each column of bleed matrix - just take median of all spots
+        % assigned to each cluster. 
+        BleedMatrixEigMethod = 'Median';
+        
+        %Bleed through in bleed matrix is only kept if it is greater than
+        %BleedThroughThresh*DiagonalElement.
+        %BleedThroughThresh = 0.25;
+        BleedThroughThresh = 1e-3;
         
         % This controls how to normalise the spot and bled codes in o.call_spots.
         % If CallSpotsCodeNorm == 'Round', each round of code will have
@@ -698,6 +710,10 @@ classdef iss_Base
         % Normalised Spot Scores
         NormBledCodes;
         dpNormSpotColors;
+        
+        % BleedMatrixAllBleedThrough is the bleed matrix without removing
+        % any weaker bleed through rounds/channels.
+        BleedMatrixAllBleedThrough;
         
         % BleedMatrix used to estimate BledCodes
         BleedMatrix;

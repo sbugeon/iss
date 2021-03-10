@@ -61,8 +61,12 @@ DiagMeasure = 0;
 nTries = 1;
 while DiagMeasure<nChans && nTries<nChans
     SpotColors = bsxfun(@rdivide, o.dpSpotColors, p);
-    [BleedMatrix,DiagMeasure] = get_bleed_matrix(o,SpotColors,o.dpSpotIsolated,nTries);
-    
+    if strcmpi(o.BleedMatrixEigMethod,'Mean')
+        [BleedMatrix,DiagMeasure] = get_bleed_matrix(o,SpotColors,o.dpSpotIsolated,nTries);
+    elseif strcmpi(o.BleedMatrixEigMethod,'Median')
+        %Use all spots if taking median as robust to outliers. 
+        [BleedMatrix,DiagMeasure] = get_bleed_matrix(o,SpotColors,true(size(o.dpSpotIsolated)),nTries);
+    end
     %If bleed matrix not diagonal, try modifying percentiles of weakest
     %channels
     pFinal = p;

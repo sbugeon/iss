@@ -198,7 +198,9 @@ else
     x = 0:Max_x;
 end
 o.ZeroIndex = find(x==0);     %need when looking up conv values
-LambdaDistAll = zeros(length(x),nCodes,o.nBP,o.nRounds);
+xSz = length(x);
+LambdaDistAll = zeros(xSz,nCodes,o.nBP,o.nRounds);
+
 
 fprintf('\nGetting probability distributions for gene   ');
 for GeneNo = 1:nCodes
@@ -214,7 +216,6 @@ for GeneNo = 1:nCodes
         for r=1:o.nRounds
             g = BledCode(b,r);
             if g<1
-                warning('Predicted bled code is less than 1, setting to 1');
                 g=1;
             end
             if o.ProbMethod == 1
@@ -234,29 +235,12 @@ for GeneNo = 1:nCodes
             %Normalise as for small g might not be normalised due to
             %discrete distribution.
             LambdaDistAll(:,GeneNo,b,r) = LambdaDist/sum(LambdaDist);
+            %Ensure no zero values as log(0)=-inf.
+            LambdaDistAll(:,GeneNo,b,r) = (LambdaDistAll(:,GeneNo,b,r)+o.alpha)./(1+xSz*o.alpha);
         end
     end
 end
 o.LambdaDist = LambdaDistAll;
-
-%Store convolution results as look up table
-if nargin<2 || isempty(LookupTableInput)    
-    LookupTable = nan(length(x)+length(o.HistCounts)-1,nCodes,o.nBP,o.nRounds);
-    fprintf('\nDoing convolutions for Channel  ');
-    for b=1:o.nBP
-        fprintf('\b%d',b);
-        if ismember(b,o.UseChannels)
-            for r=1:o.nRounds
-                LookupTable(:,:,b,r)=log(conv2(LambdaDistAll(:,:,b,r),o.HistProbs(:,b,r)));
-            end
-        end
-    end
-else
-    LookupTable = LookupTableInput;
-end
-fprintf('\n');
-%Only keep LookupTable values within spot range.
-LookupTable = LookupTable(1:o.HistZeroIndex+o.ZeroIndex-1+max(o.HistValues),:,:,:);
 
 if o.ProbMethod == 1
     %Get background Prob using gamma with g=1 i.e. very small prediction of
@@ -269,13 +253,38 @@ elseif o.ProbMethod == 2
     BackgroundGamma = dirac(x);
     BackgroundGamma(BackgroundGamma==inf)=1;
 end
+%Ensure no zero values as log(0)=-inf.
+BackgroundGamma = (BackgroundGamma+o.alpha)./(1+xSz*o.alpha);
 o.BackgroundLambdaDist = BackgroundGamma;
-o.BackgroundProb = zeros(length(x)+length(o.HistCounts)-1,o.nBP,o.nRounds);
+o.BackgroundProb = zeros(xSz+length(o.HistCounts)-1,o.nBP,o.nRounds);
 for b=1:o.nBP
     for r=1:o.nRounds
         o.BackgroundProb(:,b,r) = conv(BackgroundGamma,o.HistProbs(:,b,r));
     end
 end
+
+%Store convolution results as look up table
+BledCodes = reshape(o.BledCodes,[nCodes,o.nBP,o.nRounds]);
+if nargin<2 || isempty(LookupTableInput)    
+    LookupTable = nan(xSz+length(o.HistCounts)-1,nCodes,o.nBP,o.nRounds);
+    fprintf('\nDoing convolutions for Channel  ');
+    for b=1:o.nBP
+        fprintf('\b%d',b);
+        if ismember(b,o.UseChannels)
+            for r=1:o.nRounds
+                NonZeroGenes = BledCodes(:,b,r)>0;
+                LookupTable(:,NonZeroGenes,b,r)=log(conv2(LambdaDistAll(:,NonZeroGenes,b,r),o.HistProbs(:,b,r)));
+                %If bled code is 0, just set to background distribution.
+                LookupTable(:,~NonZeroGenes,b,r)=log(repmat(o.BackgroundProb(:,b,r),[1,sum(~NonZeroGenes)]));
+            end
+        end
+    end
+else
+    LookupTable = LookupTableInput;
+end
+fprintf('\n');
+%Only keep LookupTable values within spot range.
+LookupTable = LookupTable(1:o.HistZeroIndex+o.ZeroIndex-1+max(o.HistValues),:,:,:);
 
 %Get log probs for each spot 
 LogProbOverBackground = o.get_LogProbOverBackground(o.pSpotColors,LookupTable);

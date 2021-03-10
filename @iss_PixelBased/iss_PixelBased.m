@@ -93,6 +93,14 @@ classdef iss_PixelBased < iss_Base
         %If ProbMethod=2, this is 1. 
         ScoreScale = 0;
         
+        %If ScoreBledThroughContribution is true, then ScoreScale will be
+        %set to 0 and e.g. if for round r, gene g, o.BledCodes = 
+        %[0.001,    0.05,   0.4,    0.09,   0.001,  0,  0].
+        %The contribution of each channel to LogProb for this round will be:
+        %[0.0018,   0.092,  0.738,  0.166,  0.0018, 0,  0].
+        %I.e. bleed through contributes but in proportion to its intensity.
+        ScoreBleedThroughContribution = true;
+        
         %pIntensityThresh is the value pSpotIntensity(s) needs to exceed for spot s
         %to count
         pIntensityThresh = 100;
@@ -120,10 +128,10 @@ classdef iss_PixelBased < iss_Base
         
         %Values used in quality_threshold for prob method
         pQualThresh1 = -90;     %Optimized using ground truth
-        pQualParam1 = 0.5;      %Optimized using ground truth
-        pQualThresh2 = -50;     %Optimized using ground truth
-        pQualParam2 = 2.0;      %Optimized using ground truth
-        pQualThresh3 = 62;
+        pQualParam1 = 0.4;      %Optimized using ground truth
+        pQualThresh2 = -5;     %Optimized using ground truth
+        pQualParam2 = 3.1;      %Optimized using ground truth
+        pQualThresh3 = 71;
         pQualThresh4 = -20;
         
         %% variables: spot calling outputs - prob method
