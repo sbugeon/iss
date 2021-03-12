@@ -1,4 +1,4 @@
-function [BleedMatrix,DiagMeasure] = get_bleed_matrix(o,SpotColors,SpotIsolated,nTries)
+function [BleedMatrix,DiagMeasure,BleedMatrixAllBleedThrough] = get_bleed_matrix(o,SpotColors,SpotIsolated,nTries)
 %% [BleedMatrix,DiagMeasure] = o.get_bleed_matrix(SpotColors,nTries)
 %Gets bleed matrix for SpotColors.
 %SpotColors: o.dpSpotColors normalised in some way to equalise channels
@@ -76,9 +76,8 @@ end
 %Find max channel for each column to see if diagonal. 
 [~,CurrentBleedMatrixMaxChannel] = max(BleedMatrix(:,:,1));
 DiagMeasure = sum(CurrentBleedMatrixMaxChannel==1:nChans);      %In column i, max square should be in row i if diagonal
-
+BleedMatrixAllBleedThrough = BleedMatrix;
 if DiagMeasure==nChans
-    o.BleedMatrixAllBleedThrough = BleedMatrix;
     %Only keep significant bleedthrough.
     for r=1:nRounds
         for b=1:nChans
