@@ -65,6 +65,7 @@ o.MaxWaitTime1 = 60;      %Less time for round 1 incase name is wrong
 o.MaxWaitTime = 21600;  
 
 %run code
+save(fullfile(o.OutputDirectory, 'oExtract'), 'o', '-v7.3');
 try
     o = o.extract_and_filter;
 catch
