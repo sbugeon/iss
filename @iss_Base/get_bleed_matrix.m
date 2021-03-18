@@ -73,9 +73,14 @@ if o.Graphics
     % %     colorbar
 end
 
-%Find max channel for each column to see if diagonal. 
-[~,CurrentBleedMatrixMaxChannel] = max(BleedMatrix(:,:,1));
-DiagMeasure = sum(CurrentBleedMatrixMaxChannel==1:nChans);      %In column i, max square should be in row i if diagonal
+%Find max channel for each column to see if diagonal.  
+DiagMeasure = zeros(o.nRounds,1);
+for r=1:o.nRounds
+    %In column i, max square should be in row i if diagonal
+    [~,CurrentBleedMatrixMaxChannel] = max(BleedMatrix(:,:,r));
+    DiagMeasure(r) = sum(CurrentBleedMatrixMaxChannel==1:nChans); 
+end
+DiagMeasure = min(DiagMeasure);
 BleedMatrixAllBleedThrough = BleedMatrix;
 if DiagMeasure==nChans
     %Only keep significant bleedthrough.
