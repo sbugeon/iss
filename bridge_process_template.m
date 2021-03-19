@@ -143,7 +143,7 @@ o = o.get_secondary_gene_prob(LookupTable);
 save(fullfile(o.OutputDirectory, 'oCall_spots_pixel'), 'o', '-v7.3');
 %% plot results
 
-o.dpCombiQualThresh = 0.7;
+o.CombiQualThresh = 0.7;
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
 o.plot(o.BigAnchorFile,Roi,'Prob');
@@ -154,4 +154,5 @@ o.plot(o.BigAnchorFile,Roi,'Prob');
 %iss_change_plot(o,'Prob');
 %iss_view_prob(o,234321,1);
 %iss_change_plot(o,'DotProduct');
+%iss_change_plot(o,'Pixel');
 
