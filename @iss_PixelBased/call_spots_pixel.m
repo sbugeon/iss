@@ -147,11 +147,6 @@ for f = 1:nFiles
     %memory issues. Only take gene which are 1st or second best at thier location
     %unless probability relative to background is good.
     QualOK = cellfun(@(x1,x2) x1-x2>=o.pxInitialScoreThresh | x1>o.pxInitialProbThresh,PeakLogProbOverBackground,Peak2ndBestLogProb,'UniformOutput',false);
-    gtGenes = o.gtGeneNo(o.gtGeneNo>0)';
-    for g=gtGenes
-        %Accept all ground truth genes
-        QualOK{g}(:) = true;
-    end
     PeakSpotColors = cellfun(@(x1,x2) x1(x2,:,:),PeakSpotColors,QualOK,'UniformOutput',false);
     PeakGlobalYX = cellfun(@(x1,x2) x1(x2,:),PeakGlobalYX,QualOK,'UniformOutput',false);
     PeakLogProbOverBackground = cellfun(@(x1,x2) x1(x2),PeakLogProbOverBackground,QualOK,'UniformOutput',false);
