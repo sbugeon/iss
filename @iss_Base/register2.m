@@ -237,7 +237,7 @@ if strcmpi(o.RegInfo.Method, 'Fft')
     o.FindSpotsMethod = o.RegInfo.Method;   
 end
 
-if (isempty(hShifts) && nX>1) || (isempty(vShifts) && nY>1)
+if ((isempty(hShifts) && nX>1) || (isempty(vShifts) && nY>1)) && nTiles==length(NonemptyTiles)
     error('No shifts found');
 end
 
