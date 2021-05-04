@@ -1,4 +1,4 @@
-function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t)
+function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_index,t)
 %% o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t)
 % 
 % This finds the scale by which to multiply each filtered image. This is
@@ -12,7 +12,8 @@ function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t)
 % SE: filter for non Dapi image.
 % DapiSE: filter for Dapi image.
 % r: round
-% t: tile
+% t_index: tile index in nd2 file
+% t: tile number as saved in o object.
 
 %%
 fName = fullfile(o.TileDirectory, ...
@@ -31,7 +32,7 @@ else
     % use the memo file cached before
     bfreader.setId(imfile);
     
-    bfreader.setSeries(scene*t-1);
+    bfreader.setSeries(scene*t_index-1);
     
     if r~=o.AnchorRound; fprintf('Obtaining ExtractScale for imaging rounds from tile %d... '...
             ,o.ExtractScaleTile);

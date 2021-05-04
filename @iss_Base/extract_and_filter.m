@@ -21,7 +21,7 @@ if o.ReferenceRound == o.AnchorRound && o.ReferenceChannel ~=o.AnchorChannel
 end
 
 o.TileFiles = cell(o.nRounds+o.nExtraRounds,1,1); % 1,1 because we don't yet know how many tiles
-
+UsedEmptyTiles = false;   %If running for only a few tiles, this will change to true.
 
 for r = 1:o.nRounds+o.nExtraRounds
     if r == o.AnchorRound; ExtractScale = o.ExtractScaleAnchor;
@@ -157,25 +157,40 @@ for r = 1:o.nRounds+o.nExtraRounds
     end
     DapiSE = strel('disk', o.DapiR);
     
+    %Tile index in nd2 file different to index in o.EmptyTiles
+    t_save_value = sub2ind([max(o.TilePosYX(:,1)),max(o.TilePosYX(:,2))],...
+        o.TilePosYX(:,1),o.TilePosYX(:,2));
+    if min(size(o.EmptyTiles))==1 && max(ismember(1:nSerieswPos,o.EmptyTiles))
+        UsedEmptyTiles = true;
+        EmptyTilesOrig = o.EmptyTiles;
+    end
+    
     
     %Get auto value for extract scale
     if strcmpi(o.ExtractScaleTile, 'auto')
         %Work out extract scale from middle tile by default
-        [~, TileIdx]=ismember(round(mean(o.TilePosYX)),o.TilePosYX,'rows');
-        o.ExtractScaleTile = TileIdx;
+        if UsedEmptyTiles
+            o.ExtractScaleTile = o.EmptyTiles(1);
+            ExtractTileIdx = find(t_save_value == o.ExtractScaleTile);
+        else
+            [~, ExtractTileIdx]=ismember(round(mean(o.TilePosYX)),o.TilePosYX,'rows');
+            o.ExtractScaleTile = t_save_value(ExtractTileIdx);
+        end
+    else
+        ExtractTileIdx = find(t_save_value == o.ExtractScaleTile);
     end
     if (r==min(setdiff(1:o.nRounds+o.nExtraRounds,o.AnchorRound)) && strcmpi(o.ExtractScale, 'auto')) ||...
             (r==o.AnchorRound && strcmpi(o.ExtractScaleAnchor, 'auto'))
         
-        o = o.get_extract_scale(nChannels,nZstacks,imfile,scene,gather(SE),DapiSE,r,o.ExtractScaleTile);
+        o = o.get_extract_scale(nChannels,nZstacks,imfile,scene,gather(SE),DapiSE,r,ExtractTileIdx,o.ExtractScaleTile);
         if r==o.AnchorRound; ExtractScale = o.ExtractScaleAnchor;
         else; ExtractScale = o.ExtractScale; end
     end
     
     
     %parfor t = 1:nSerieswPos
-    for t = 1:nSerieswPos
-        
+    for t_index = 1:nSerieswPos
+        t = t_save_value(t_index);
         fName{t} = fullfile(o.TileDirectory, ...
             [o.FileBase{r}, '_t', num2str(t), '.tif']);
         
@@ -200,6 +215,10 @@ for r = 1:o.nRounds+o.nExtraRounds
                 end
             end
             continue;
+        elseif min(size(o.EmptyTiles))==1 && ~ismember(t,o.EmptyTiles)
+            UsedEmptyTiles = true;
+            EmptyTilesOrig = o.EmptyTiles;
+            continue;
         end
         
         
@@ -208,7 +227,7 @@ for r = 1:o.nRounds+o.nExtraRounds
         % use the memo file cached before
         bfreader.setId(imfile);
         
-        bfreader.setSeries(scene*t-1);
+        bfreader.setSeries(scene*t_index-1);
         if strcmpi(ExtractScale, 'auto')
             if r==o.AnchorRound
                 error(['Some tiles in imaging rounds already exist, but o.ExtractScaleAnchor = auto.'...
@@ -328,8 +347,8 @@ for r = 1:o.nRounds+o.nExtraRounds
         
     end
     
-    for t=1:nSerieswPos
-        o.TileFiles{r,o.TilePosYX(t,1), o.TilePosYX(t,2)} = fName{t};
+    for t_index=1:nSerieswPos
+        o.TileFiles{r,o.TilePosYX(t_index,1), o.TilePosYX(t_index,2)} = fName{t_save_value(t_index)};
     end
 end
 
@@ -337,6 +356,10 @@ o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:)));
 %Get a bug here if one dimension is only 1.
 if sum(size(o.TileFiles(o.ReferenceRound,:,:),2:3)==size(o.EmptyTiles))==0
     o.EmptyTiles = o.EmptyTiles';
+end
+if UsedEmptyTiles
+    o.EmptyTiles(:) = true;
+    o.EmptyTiles(EmptyTilesOrig) = false;
 end
 
 %Plot boxplots showing distribution af AutoThresholds
