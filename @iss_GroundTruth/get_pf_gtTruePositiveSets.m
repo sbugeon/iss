@@ -89,7 +89,7 @@ for r=o.gtRounds
         FOUNDTruePositive = Dist_TP<o.gtTruePosMaxSep;
         MISSEDTruePositive = Dist_TP>=o.gtTruePosMaxSep;
         TruePositiveSetIndex = find(o.gtTruePositiveSet{r,b});
-        o.([pf,'_gtFound']){r,b} = zeros(size(o.gtTruePositiveSet{b}));
+        o.([pf,'_gtFound']){r,b} = zeros(size(o.gtTruePositiveSet{r,b}));
         o.([pf,'_gtFound']){r,b}(TruePositiveSetIndex(FOUNDTruePositive))=1;
         o.([pf,'_gtFound']){r,b}(TruePositiveSetIndex(MISSEDTruePositive))=2;
     end
