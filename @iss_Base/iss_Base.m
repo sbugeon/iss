@@ -354,12 +354,12 @@ classdef iss_Base
         % BleedMatrixEigMethod == 'Median': ScaledKMedians used to compute
         % each column of bleed matrix - just take median of all spots
         % assigned to each cluster. 
-        BleedMatrixEigMethod = 'Median';
+        BleedMatrixEigMethod = 'Mean';
         
         %Bleed through in bleed matrix is only kept if it is greater than
         %BleedThroughThresh*DiagonalElement.
-        %BleedThroughThresh = 0.25;
-        BleedThroughThresh = 1e-3;
+        %BleedThroughThresh = 1e-3;
+        BleedThroughThresh = 0;
         
         % This controls how to normalise the spot and bled codes in o.call_spots.
         % If CallSpotsCodeNorm == 'Round', each round of code will have
