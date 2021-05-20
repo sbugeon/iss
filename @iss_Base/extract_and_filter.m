@@ -69,7 +69,7 @@ for r = 1:o.nRounds+o.nExtraRounds
     % get some basic image metadata
     [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] = ...
         get_ome_tilepos(bfreader);
-    if isempty(xypos) || size(xypos, 1)==1
+    if isempty(xypos) || (nSeries>1 && size(xypos, 1)==1)
         if r == 1
             warning('first round xypos empty - using values from initial manual input')
             assert(~isempty(o.TileInitialPosYX), 'xypos unavailable')
@@ -173,7 +173,7 @@ for r = 1:o.nRounds+o.nExtraRounds
             o.ExtractScaleTile = o.EmptyTiles(1);
             ExtractTileIdx = find(t_save_value == o.ExtractScaleTile);
         else
-            [~, ExtractTileIdx]=ismember(round(mean(o.TilePosYX)),o.TilePosYX,'rows');
+            [~, ExtractTileIdx]=ismember(round(mean(o.TilePosYX,1)),o.TilePosYX,'rows');
             o.ExtractScaleTile = t_save_value(ExtractTileIdx);
         end
     else

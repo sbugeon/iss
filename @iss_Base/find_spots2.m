@@ -56,7 +56,8 @@ nTiles = nY*nX;
 o.TileCentre = 0.5*[o.TileSz+1,o.TileSz+1];
 ImageRounds = setdiff(o.UseRounds,o.ReferenceRound);
 
-if nargin>1 && sum(size(AllBaseLocalYX) ~= [nTiles,o.nBP,o.nRounds])
+if nargin>1 && ((o.nRounds==1 && sum(size(AllBaseLocalYX) ~= [nTiles,o.nBP])) ||...
+        (o.nRounds>1 && sum(size(AllBaseLocalYX) ~= [nTiles,o.nBP,o.nRounds])))
     error('AllBaseLocalYX has shape [%d, %d, %d] when it should be [%d, %d, %d]',...
         size(AllBaseLocalYX,1), size(AllBaseLocalYX,2), size(AllBaseLocalYX,3),...
         nTiles,o.nBP,o.nRounds);
@@ -258,7 +259,8 @@ if nargin<3 || SkipRegistration == false
 end
 
 %% now make array of global coordinates
-nAll = sum(sum(cellfun(@numel, o.RawIsolated)));
+rSumSpots = cellfun(@numel, o.RawIsolated);
+nAll = sum(sum(rSumSpots(:,o.UseChannels)));
 
 AllGlobalYX = zeros(nAll,2);
 AllLocalYX = zeros(nAll,2);
@@ -269,10 +271,10 @@ AllOriginalChannel = zeros(nAll,1);     %Keep track of which channel each spot f
 ind = 1;
 for t=NonemptyTiles
     ChannelSizes = cellfun(@numel, o.RawIsolated(t,:));
-    nMySpots = sum(ChannelSizes);
-    AllGlobalYX(ind:ind+nMySpots-1,:) = vertcat(o.RawLocalYX{t,:})+o.TileOrigin(t,:,rr);
-    AllLocalYX(ind:ind+nMySpots-1,:) = vertcat(o.RawLocalYX{t,:});
-    AllIsolated(ind:ind+nMySpots-1) = vertcat(o.RawIsolated{t,:});
+    nMySpots = sum(ChannelSizes(o.UseChannels));
+    AllGlobalYX(ind:ind+nMySpots-1,:) = vertcat(o.RawLocalYX{t,o.UseChannels})+o.TileOrigin(t,:,rr);
+    AllLocalYX(ind:ind+nMySpots-1,:) = vertcat(o.RawLocalYX{t,o.UseChannels});
+    AllIsolated(ind:ind+nMySpots-1) = vertcat(o.RawIsolated{t,o.UseChannels});
     OriginalTile(ind:ind+nMySpots-1) = t;
     AllOriginalChannel(ind:ind+nMySpots-1) = repelem(o.UseChannels,ChannelSizes(o.UseChannels))';
     ind = ind+nMySpots;
@@ -287,7 +289,7 @@ if o.Graphics
         plot(AllGlobalYX(ToPlot,2), AllGlobalYX(ToPlot,1), '.', 'markersize', 4,'Color',colors(b,:));        
     end
     title('All global coords including duplicates');
-    leg = legend(o.bpLabels(o.ReferenceSpotChannels),'Location','northwest');
+    leg = legend(o.bpLabels(unique(AllOriginalChannel)),'Location','northwest');
     title(leg,'Color Channel');
     hold off
     %set(gca, 'YDir', 'reverse');
@@ -314,7 +316,7 @@ if o.Graphics
         plot(ndGlobalYX(ToPlot,2), ndGlobalYX(ToPlot,1), '.', 'markersize', 4,'Color',colors(b,:));        
     end
     title('Global coords without duplicates');
-    leg = legend(o.bpLabels(o.ReferenceSpotChannels),'Location','northwest');
+    leg = legend(o.bpLabels(unique(AllOriginalChannel)),'Location','northwest');
     title(leg,'Color Channel');
     hold off
     drawnow;
@@ -330,8 +332,10 @@ end
 % ndRoundYX(s,:,r) stores YX coord on this tile
 
 %Compute approx new shifts from D matrices
-YXRoundTileShifts = permute(squeeze(mean(o.D(3,:,:,1:o.nRounds,:),5)),[2,1,3]);
-o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - YXRoundTileShifts;  
+if o.nRounds>1
+    YXRoundTileShifts = permute(squeeze(mean(o.D(3,:,:,1:o.nRounds,:),5)),[2,1,3]);
+    o.TileOrigin(:,:,1:o.nRounds) =  o.TileOrigin(:,:,rr) - YXRoundTileShifts; 
+end
 
 [ndRoundTile,ndRoundYX] = o.get_SpotTileEachRound(ndGlobalYX,ndLocalTile);
 
