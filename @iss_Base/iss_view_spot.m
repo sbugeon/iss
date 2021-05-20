@@ -1,4 +1,4 @@
-function iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod, IncludeGT, Filter, SpotNum)
+function iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod, IncludeGT, Filter, Norm, SpotNum)
 %% iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod, IncludeGT, SpotNum)
 %
 % Check PCR by plotting location of spot in each round and color channel
@@ -38,11 +38,19 @@ if nargin<7 || isempty(Filter)
     Filter = true;
 end
 
+if nargin<8 || isempty(Norm)
+    Norm = false;
+end
+
+if ~Filter
+    Norm = false;
+end
+
 if nargin<4 || isempty(SpotLocation)
     SpotLocation = false;
 end
 
-if nargin>=8
+if nargin>=9
     if length(SpotNum)==2
         SpotLocation = false;
         xy = [SpotNum(2),SpotNum(1)];
@@ -112,7 +120,20 @@ end
 if ~Filter
     t_rawdata_round = zeros(max(o.UseRounds));
     for r=o.UseRounds
-        t_rawdata_round(r) = str2double(o.TileFiles{1,RoundTile(r)}(end-4));
+        t_rawdata_round(r) = str2double(cell2mat(extractBetween(o.TileFiles{r,RoundTile(r)},'_t','.tif')));
+    end
+end
+
+Clim = zeros(o.nBP,2);
+if Norm   
+    NormSpotColors = o.dpSpotColors./o.BledCodesPercentile;
+    Clim(:,1) = min(NormSpotColors(:));
+    Clim(:,2) = max(NormSpotColors(:));
+else   
+    for b=1:o.nBP
+        bSpotColors = o.dpSpotColors(:,b,:);
+        Clim(b,1) = min(bSpotColors(:));
+        Clim(b,2) = max(bSpotColors(:));
     end
 end
 
@@ -130,7 +151,7 @@ if IncludeGT
         Xlegends = [Xlegends,["gt"+string(i)]];
     end
 end
-for r=o.UseRounds  
+for r=1:o.nRounds 
     if ~Filter
         imfile = fullfile(o.InputDirectory, [o.FileBase{r}, o.RawFileExtension]);  %raw data file name for round r
         % construct a Bio-Formats reader with the Memoizer wrapper
@@ -148,6 +169,23 @@ for r=o.UseRounds
         bfreader.setSeries(scene*t_rawdata_round(r)-1);
     end
     for b=1:o.nBP
+        
+        h = subplot(o.nBP, nRounds, (b-1)*nRounds + r);
+        if r == 1 && b == 1
+            Pos1 = get(h,'position');
+        end
+        if r == 1 && b == o.nBP
+            Pos2 = get(h,'position');
+        end
+        if r == nRounds && b == o.nBP
+            Pos3 = get(h,'position');
+        end
+        
+        if ~ismember(b,o.UseChannels) || ~ismember(r,o.UseRounds)
+            xticks([]);
+            yticks([]);
+            continue;
+        end
         
         rbYX = round(PointCorrectedLocalYX(1,:,r,b));
         y0 = rbYX(1);
@@ -179,22 +217,17 @@ for r=o.UseRounds
             BaseImSm = o.fstack_modified(I(o.FirstZPlane:end));
             %BaseImSm = BaseImSm(y1:y2,x1:x2);
         end
-        
-        h = subplot(o.nBP, nRounds, (b-1)*nRounds + r);
-        if r == 1 && b == 1
-            Pos1 = get(h,'position');
-        elseif r == 1 && b == o.nBP
-            Pos2 = get(h,'position');
-        elseif r == nRounds && b == o.nBP
-            Pos3 = get(h,'position');
+        if Norm
+            BaseImSm = double(BaseImSm)/o.BledCodesPercentile(:,b,r);
         end
         imagesc([x1 x2], [y1 y2], BaseImSm); hold on
         %caxis([min(-150,min(BaseImSm(:))),max(150,max(BaseImSm(:)))]);
         if Filter
+            caxis(Clim(b,:));
             colormap(gca,bluewhitered);
         else
             try
-                caxis([min(BaseImSm(:)),5000]);
+                %caxis([0,max(BaseImSm(:))]);
             catch
             end
         end
