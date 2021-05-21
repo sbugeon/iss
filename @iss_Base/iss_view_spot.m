@@ -151,7 +151,7 @@ if IncludeGT
         Xlegends = [Xlegends,["gt"+string(i)]];
     end
 end
-for r=1:o.nRounds 
+for r=1:nRounds 
     if ~Filter
         imfile = fullfile(o.InputDirectory, [o.FileBase{r}, o.RawFileExtension]);  %raw data file name for round r
         % construct a Bio-Formats reader with the Memoizer wrapper
@@ -223,7 +223,9 @@ for r=1:o.nRounds
         imagesc([x1 x2], [y1 y2], BaseImSm); hold on
         %caxis([min(-150,min(BaseImSm(:))),max(150,max(BaseImSm(:)))]);
         if Filter
-            caxis(Clim(b,:));
+            if Norm
+                caxis(Clim(b,:));
+            end
             colormap(gca,bluewhitered);
         else
             try
