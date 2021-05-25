@@ -107,7 +107,11 @@ for r = 1:o.nRounds+o.nExtraRounds
             
             % find coordinates for each tile
             if isempty(o.TileInitialPosYX)
-                o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+                if nSeries==1
+                    o.TileInitialPosYX = [1,1];
+                else
+                    o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+                end
             end
             o.TilePosYX = o.TileInitialPosYX;
             %Below is a safeguard incase wrong positions found - can do
