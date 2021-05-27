@@ -1,9 +1,12 @@
-function [BleedMatrix,DiagMeasure,BleedMatrixAllBleedThrough] = get_bleed_matrix(o,SpotColors,SpotIsolated,nTries)
+function [BleedMatrix,DiagMeasure,BleedMatrixAllBleedThrough] = ...
+    get_bleed_matrix(o,SpotColors,SpotIsolated,ScoreThresh,nTries)
 %% [BleedMatrix,DiagMeasure] = o.get_bleed_matrix(SpotColors,nTries)
 %Gets bleed matrix for SpotColors.
 %SpotColors: o.dpSpotColors normalised in some way to equalise channels
 %SpotIsolated: which spots are well isolated so used to compute bleed matrix.
 %e.g. z-scoring or dividing by percentile in each channel. 
+%ScoreThresh: spot round codes have to have DotProduct greater than this
+%with a bleed matrix column to contribute to BleedMatrix. 
 %nTries: current iteration for finding bleed matrix. 
 %BleedMatrix: the bleed matrix that was found.
 %DiagMeasure: should equal nChans if bleed matrix diagonal. 
@@ -20,9 +23,9 @@ if strcmpi(o.BleedMatrixType,'Separate')
         m = squeeze(SpotColors(SpotIsolated,o.UseChannels,r)); % data: nCodes by nBases
         m = m(~any(isnan(m),2),:);
         if strcmpi(o.BleedMatrixEigMethod,'Mean')
-            [Cluster, v, s2] = ScaledKMeans(m, eye(nChans));
+            [Cluster, v, s2] = ScaledKMeans(m, eye(nChans),ScoreThresh);
         elseif strcmpi(o.BleedMatrixEigMethod,'Median')
-            [Cluster, v, s2] = ScaledKMedians(m, eye(nChans));
+            [Cluster, v, s2] = ScaledKMedians(m, eye(nChans),ScoreThresh);
         end
         for i=1:nChans
             BleedMatrix(:,i,find(o.UseRounds==r)) = v(i,:) * sqrt(s2(i));
@@ -34,9 +37,9 @@ elseif strcmpi(o.BleedMatrixType,'Single')
     m = squeeze(reshape(m,[],size(m,1)*nRounds,nChans));
     m = m(~any(isnan(m),2),:);
     if strcmpi(o.BleedMatrixEigMethod,'Mean')
-        [Cluster, v, s2] = ScaledKMeans(m, eye(nChans));
+        [Cluster, v, s2] = ScaledKMeans(m, eye(nChans),ScoreThresh);
     elseif strcmpi(o.BleedMatrixEigMethod,'Median')
-        [Cluster, v, s2] = ScaledKMedians(m, eye(nChans));
+        [Cluster, v, s2] = ScaledKMedians(m, eye(nChans),ScoreThresh);
     end
     for i=1:nChans
         BleedMatrix(:,i,1) = v(i,:) * sqrt(s2(i));

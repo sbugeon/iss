@@ -343,11 +343,25 @@ classdef iss_Base
         % normalizes spot fluorescence so this percentile = 1
         SpotNormPrctile = 98;
         
+        % BleedMatrix column for channel b is taking all single round codes
+        % that have a dot product that best matches that channel code and
+        % has DotProduct>BleedMatrixScoreThresh. The channel code is then
+        % updated by the average of all the assigned codes. Thus increasing
+        % BleedMatrixScoreThresh sets a tougher threshold for the spots
+        % that contribute to the BleedMatrix. 
+        BleedMatrixScoreThresh = 0;
+        
+        %If BleedMatrix is not diagonal, will try increasing
+        %BleedMatrixScoreThresh in steps of BleedMatrixScoreThreshStep
+        %until BleedMatrixScoreThreshMax is reached
+        BleedMatrixScoreThreshStep = 0.1;
+        BleedMatrixScoreThreshMax = 0.9;
+        
         % if BleedMatrixType == 'Separate', then a bleed matrix will be
         % computed for each round. If BleedMatrixType == 'Single', a single
         % bleed matrix will be computed, combining spot colours from all
         % rounds.
-        BleedMatrixType = 'Separate';
+        BleedMatrixType = 'Single';
         
         % BleedMatrixEigMethod == 'Mean': ScaledKMeans used to compute each
         % column of bleed matrix.

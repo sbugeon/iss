@@ -1,4 +1,4 @@
-function [k, v, s2] = ScaledKMeans(x, v0)
+function [k, v, s2] = ScaledKMeans(x, v0, ScoreThresh)
 % [k, v] = ScaledKMeans(x, v0);
 %
 % does a clustering that minimizes the norm of x_i - g_i * v_{k_i}, where:
@@ -7,10 +7,14 @@ function [k, v, s2] = ScaledKMeans(x, v0)
 % v_k is the k'th row of output v containing cluster means (nClusters by nDims)
 % k_i is the i'th entry of output k giving the cluster of each point (nPoints by 1)
 % s2_k is the first eigenval of the outer product matrix for cluster k
+% ScoreThresh: x_i will only contribute to v_k if dot product > ScoreThresh
 %
 % input v0 (nClusters by nDims) is the starting point. (Required.)
 
-ScoreThresh = 0; % only keep good matches 
+if nargin<3 || isempty(ScoreThresh)
+    %MAYBE SHOULD INCREASE THIS ITERITAVELY BELOW
+    ScoreThresh = 0; % only keep good matches
+end
 MinClusterSize = 10; % delete clusters with too few points
 ConvergenceCriterion = 0; % if this many or less changed, terminate
 

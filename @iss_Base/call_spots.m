@@ -54,47 +54,48 @@ else
     warning('Wrong o.BleedMatrixType entry, should be either Separate or Single')
 end
 
-pOriginal = p;
-HackNo=1;       %1 alters weakest channels, 2 alters most intense
-pScale = median(p(:))/10;
+
+if strcmpi(o.BleedMatrixEigMethod,'Mean')
+    SpotIsolated = o.dpSpotIsolated;
+elseif strcmpi(o.BleedMatrixEigMethod,'Median')
+    %Use all spots if taking median as robust to outliers.
+    SpotIsolated = true(size(o.dpSpotIsolated));
+end
 DiagMeasure = 0;
 nTries = 1;
-while DiagMeasure<nChans && nTries<nChans
+nIter = 100;
+while DiagMeasure<nChans && nTries<nIter
     SpotColors = bsxfun(@rdivide, o.dpSpotColors, p);
-    if strcmpi(o.BleedMatrixEigMethod,'Mean')
-        [BleedMatrix,DiagMeasure,o.BleedMatrixAllBleedThrough] = get_bleed_matrix(o,SpotColors,o.dpSpotIsolated,nTries);
-    elseif strcmpi(o.BleedMatrixEigMethod,'Median')
-        %Use all spots if taking median as robust to outliers. 
-        [BleedMatrix,DiagMeasure,o.BleedMatrixAllBleedThrough] = get_bleed_matrix(o,SpotColors,true(size(o.dpSpotIsolated)),nTries);
-    end
+    [BleedMatrix,DiagMeasure,o.BleedMatrixAllBleedThrough] = ...
+        get_bleed_matrix(o,SpotColors,SpotIsolated,o.BleedMatrixScoreThresh,nTries);
     %If bleed matrix not diagonal, try modifying percentiles of weakest
     %channels
-    pFinal = p;
-    if HackNo==1
-        [~,ChangeIntensityChannel] = min(mean(squeeze(p)'));
-        p(:,ChangeIntensityChannel,:) = p(:,ChangeIntensityChannel,:)*pScale;
-    elseif HackNo==2
-        [~,ChangeIntensityChannel] = max(mean(squeeze(p)'));
-        p(:,ChangeIntensityChannel,:) = p(:,ChangeIntensityChannel,:)*pScale;
-    end
     if DiagMeasure<nChans
-        warning('Bleed matrix not diagonal - modifying percentile of channel '+string(ChangeIntensityChannel-1))
+        o.BleedMatrixScoreThresh = o.BleedMatrixScoreThresh + o.BleedMatrixScoreThreshStep;
+        if o.BleedMatrixScoreThresh>o.BleedMatrixScoreThreshMax
+            if sum(SpotIsolated)~=size(SpotIsolated,1)
+                SpotIsolated = true(size(o.dpSpotIsolated));
+                o.BleedMatrixScoreThresh = 0;
+                warning('Bleed matrix not diagonal - Now using all spots, not just isolated');
+            elseif strcmpi(o.BleedMatrixEigMethod,'Median')
+                SpotIsolated = o.dpSpotIsolated;
+                o.BleedMatrixScoreThresh = 0;
+                o.BleedMatrixEigMethod = 'Mean';
+                warning('Bleed matrix not diagonal - Setting o.BleedMatrixEigMethod = Mean');
+            else
+                break;
+            end
+        end       
+        warning('Bleed matrix not diagonal - Setting o.BleedMatrixScoreThresh = %.1f',...
+            o.BleedMatrixScoreThresh);
     elseif DiagMeasure>=nChans && nTries>1
         fprintf('Bleed matrix now diagonal\n');
     end
     nTries = nTries+1;
-    if nTries==4
-        p = pOriginal;
-        pScale = 0.7;
-        HackNo = 2;
-        [~,ChangeIntensityChannel] = max(mean(squeeze(p)'));
-        p(:,ChangeIntensityChannel,:) = p(:,ChangeIntensityChannel,:)*pScale;
-    end
 end
 if DiagMeasure<nChans
     error('Bleed matrix not diagonal')
 end
-p = pFinal;
 o.BledCodesPercentile = p;
 o.BleedMatrix = BleedMatrix;
 
@@ -110,7 +111,8 @@ GeneName=tmp{1};
 CharCode=tmp{2};
 fclose(fp);
 
-nCodes = size(CharCode,1) - nnz(cellfun(@(v) strcmp(v(1:2),'SW'), CharCode)); % bit of a hack to get rid of Sst and Npy (assume always in the end)
+% bit of a hack to get rid of Sst and Npy (assume always in the end)
+nCodes = size(CharCode,1) - nnz(cellfun(@(v) strcmp(v(1:2),'SW'), CharCode)); 
 
 % put them into object o but without the extras
 o.CharCodes=CharCode(1:nCodes);
@@ -124,7 +126,8 @@ for r=1:o.nRounds
             try
                 [~, NumericalCode(c,r)] = ismember(CharCode{c}(r), o.bpLabels);
             catch
-                error('Code %s has no channel for round %.0f.\nCheck for missing leading zeros in CodeFile:\n%s.',GeneName{c},r,o.CodeFile);
+                error(['Code %s has no channel for round %.0f.\n',...
+                    'Check for missing leading zeros in CodeFile:\n%s.'],GeneName{c},r,o.CodeFile);
             end
         end
     else
@@ -160,7 +163,8 @@ UnbledCodes = zeros(nCodes, o.nBP*o.nRounds);
 for i=1:nCodes
     for r=1:nRounds
         if any(o.UseChannels == NumericalCode(i,o.UseRounds(r))) == 0 continue; end
-        BledCodes(i,o.UseChannels+o.nBP*(r-1)) = BleedMatrix(:, find(o.UseChannels == NumericalCode(i,o.UseRounds(r))), r);
+        BledCodes(i,o.UseChannels+o.nBP*(r-1)) = ...
+            BleedMatrix(:, find(o.UseChannels == NumericalCode(i,o.UseRounds(r))), r);
         UnbledCodes(i,o.UseChannels(find(o.UseChannels == NumericalCode(i,o.UseRounds(r))))+o.nBP*(r-1)) = 1;
     end
 end
