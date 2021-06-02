@@ -35,10 +35,10 @@ end
 if isempty(o.ompBledCodes)
     o = o.get_omp_bled_codes;
 end
-o.spBledCodes = o.ompBledCodes;
+%o.spBledCodes = o.ompBledCodes;
 
 %% Find shape of spots to fit to data
-o = o.get_spot_shape;
+%o = o.get_spot_shape;
 
 %% Get genes on each tile
 [nY, nX] = size(o.EmptyTiles);

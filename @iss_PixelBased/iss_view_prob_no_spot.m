@@ -314,7 +314,7 @@ if strcmp(click_type,'normal')
     ylim(NormYLim);
     
 elseif strcmp(click_type,'alt')
-    xPlot2 = -S.ZeroIndex+1:S.ZeroIndex+length(S.LambdaDist(:,S.CodeNo,b,r))-2;
+    xPlot2 = -S.ZeroIndex+1:-S.ZeroIndex+length(S.LambdaDist(:,CodeNo,b,r));
     xPlotHist = min(S.HistValues+f):max(xPlot2);
     x2 = xPlotHist(xPlotHist<S.HistZeroIndex+f);      %So ensure indices>0
     hIndices = S.HistZeroIndex+f-x2;

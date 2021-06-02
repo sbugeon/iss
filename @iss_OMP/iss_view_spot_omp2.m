@@ -1,5 +1,5 @@
-function iss_view_spot_omp2(o, FigNo, ImSz, SpotLocation,ScoreMethod, SpotNum)
-%% iss_view_spot_omp2(o, FigNo, ImSz, SpotLocation,ScoreMethod, SpotNum)
+function SpotNo = iss_view_spot_omp2(o, FigNo, ImSz, SpotLocation, ScoreMethod, Track, SpotNum)
+%% iss_view_spot_omp2(o, FigNo, ImSz, SpotLocation,ScoreMethod, Track, SpotNum)
 %
 % Gives the final OMP coefficients as produced by call_spots_omp about a
 % chosen location. 
@@ -9,6 +9,8 @@ function iss_view_spot_omp2(o, FigNo, ImSz, SpotLocation,ScoreMethod, SpotNum)
 % Default value is 7 pixels.
 % SpotLocation: logical,  if true, will use location of spot closest to
 % crosshair, otherwise will use actual position of crosshair. Default is false.
+% Track: gives plots of residual and gene coefficients at each stage of
+% iteration for central pixel. 
 % SpotNum: spot to look at is o.pfSpotGlobalYX(SpotNum,:) where pf
 % corresponds to ScoreMethod. Can also be yx location of interest.
 % You can change o.ResidualThreshParam, o.ResidualThreshMin and
@@ -28,7 +30,11 @@ if nargin<4 || isempty(SpotLocation)
     SpotLocation = false;
 end
 
-if nargin>=6
+if nargin<6 || isempty(Track)
+    Track = false;
+end
+
+if nargin>=7
     if length(SpotNum)==2
         SpotLocation = false;
         xy = [SpotNum(2),SpotNum(1)];
@@ -55,8 +61,9 @@ else
         S.SpotYX = o.([o.CallMethodPrefix(ScoreMethod),'SpotGlobalYX']);
         S.QualOK = 1;
     end
+    %Only consider spots that can be seen in current plot
     InRoi = all(int64(round(S.SpotYX))>=S.Roi([3 1]) & round(S.SpotYX)<=S.Roi([4 2]),2);
-    PlotSpots = find(InRoi & S.QualOK);         %Only consider spots that can be seen in current plot
+    PlotSpots = find(InRoi & S.QualOK);        
     [Dist,SpotIdx] = min(sum(abs(S.SpotYX(PlotSpots,:)-[xy(2),xy(1)]),2));
     SpotNo = PlotSpots(SpotIdx);
     if SpotLocation || round(Dist)==0
@@ -75,6 +82,7 @@ fprintf('loading channel/round images...');
 if SpotLocation == false
     %Find tile that the point is on and local centered coordinates in reference round
     t = o.get_local_tile([xy(2),xy(1)]);
+    SpotNo = [];
 else
     t = o.([pf,'LocalTile'])(SpotNo);
 end
@@ -107,7 +115,8 @@ for r=1:o.nRounds
         y2 = min(o.TileSz,y0 + ImSz);
         x1 = max(1,x0 - ImSz);
         x2 = min(o.TileSz,x0 + ImSz);
-        BaseIm = int32(imread(o.TileFiles{r,t}, b, 'PixelRegion', {[y1 y2], [x1 x2]}))-o.TilePixelValueShift;
+        BaseIm = int32(imread(o.TileFiles{r,t}, b, 'PixelRegion',...
+            {[y1 y2], [x1 x2]}))-o.TilePixelValueShift;
         if o.SmoothSize
             SE = fspecial3('ellipsoid',o.SmoothSize);
             BaseImSm = imfilter(BaseIm, SE);
@@ -122,8 +131,13 @@ end
 S.ImSz = ImSz;
 S.ImShape = [2*S.ImSz+1,2*S.ImSz+1];
 S.NormSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
-S.NormSpotColors = S.NormSpotColors(:,:);
+S.ResidualThresh = o.ResidualThreshParam*prctile(abs(S.NormSpotColors(:,:))',47.5*100/49.0)';
+S.ResidualThresh(S.ResidualThresh<o.ResidualThreshMin) = o.ResidualThreshMin;
+S.ResidualThresh(S.ResidualThresh>o.ResidualThreshMax) = o.ResidualThreshMax;
+nSpots = size(S.NormSpotColors,1);
+
 S.NormBledCodes = o.ompBledCodes(:,:)./vecnorm(o.ompBledCodes(:,:),2,2);
+S.NormSpotColors = S.NormSpotColors(:,:);
 S.nCodes = length(o.CharCodes);
 S.nBackground = o.nBackground;
 S.GeneNames = o.GeneNames;
@@ -133,10 +147,6 @@ end
 S.x0 = ImSz+1;
 S.y0 = ImSz+1;
 
-S.ResidualThresh = o.ResidualThreshParam*prctile(abs(S.NormSpotColors)',47.5*100/49.0)';
-S.ResidualThresh(S.ResidualThresh<o.ResidualThreshMin) = o.ResidualThreshMin;
-S.ResidualThresh(S.ResidualThresh>o.ResidualThreshMax) = o.ResidualThreshMax;
-nSpots = size(S.NormSpotColors,1);
 coefs = zeros(nSpots,S.nCodes+S.nBackground);
 for s=1:nSpots
     coefs(s,:) = omp_free_background(S.NormBledCodes',S.NormSpotColors(s,:)',...
@@ -144,9 +154,7 @@ for s=1:nSpots
 end
 fprintf('\n');
 
-PlotGenes = find(sum(coefs~=0)>0);
-nRows = floor((length(PlotGenes)-0.000001)/7)+1;
-nCols = min(length(PlotGenes),7);
+PlotGenes = find(sum(coefs~=0,1)>0);
 climits = [min(coefs(:)),max(coefs(:))];
 
 %Get Spots Found by Algorithm
@@ -155,18 +163,20 @@ x_range = xy(1)-ImSz:xy(1)+ImSz;
 [A,B] = meshgrid(y_range,x_range);
 c=cat(2,A',B');
 GlobalYX=reshape(c,[],2);
-InRoi = all(int64(round(o.ompSpotGlobalYX))>=min(GlobalYX) &...
-    round(o.ompSpotGlobalYX)<=max(GlobalYX),2);
+InRoi = all(int64(round(o.ompSpotGlobalYX))>=min(GlobalYX,[],1) &...
+    round(o.ompSpotGlobalYX)<=max(GlobalYX,[],1),2);
 AlgFoundGenes = unique(o.ompSpotCodeNo(InRoi))';
 PlotGenes = unique([PlotGenes,AlgFoundGenes]);
+nRows = floor((length(PlotGenes)-0.000001)/7)+1;
+nCols = min(length(PlotGenes),7);
 
 %Get Ground Truth Spots
 gtInRoi = cell(max(o.gtRounds),o.nBP);
 for r=o.gtRounds
     for b=o.UseChannels
         if o.gtGeneNo(r,b)~=0
-            gInRoi = all(int64(round(o.gtSpotGlobalYX{r,b}))>=min(GlobalYX) &...
-                round(o.gtSpotGlobalYX{r,b})<=max(GlobalYX),2);
+            gInRoi = all(int64(round(o.gtSpotGlobalYX{r,b}))>=min(GlobalYX,[],1) &...
+                round(o.gtSpotGlobalYX{r,b})<=max(GlobalYX,[],1),2);
             gtInRoi{r,b} = gInRoi;
             if sum(gInRoi)>0
                 PlotGenes = unique([PlotGenes,o.gtGeneNo(r,b)]);
@@ -177,10 +187,10 @@ end
 
 Small = 1e-6;
 se1 = strel('disk', o.PixelDetectRadius);     %Needs to be bigger than in detect_spots
-ImYX = GlobalYX-min(GlobalYX)+1;
+ImYX = GlobalYX-min(GlobalYX,[],1)+1;
 ImInd = sub2ind(S.ImShape,ImYX(:,1),ImYX(:,2));
-    
-Fig = figure(38103);
+
+Fig = figure(38102);
 set(Fig,'Position',[336,123,820,677]);
 for g=1:length(PlotGenes)
     subplot(nRows, nCols, g);
@@ -191,8 +201,8 @@ for g=1:length(PlotGenes)
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
     hold on
-    l1=scatter(o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),2),o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),1),...
-        30,'y+','LineWidth',2);
+    l1=scatter(o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),2),...
+        o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),1),30,'y+','LineWidth',2);
     plot(xlim, [S.y0 S.y0], 'k'); plot([S.x0 S.x0], ylim, 'k');
     if ismember(PlotGenes(g),o.gtGeneNo)
         [r,b] = ind2sub(size(o.gtGeneNo),find(o.gtGeneNo==PlotGenes(g)));
@@ -214,13 +224,28 @@ for g=1:length(PlotGenes)
     end
     hold off
     set(gca, 'YDir', 'normal');
-    title(S.GeneNames{PlotGenes(g)});
+    title([num2str(PlotGenes(g)),': ',S.GeneNames{PlotGenes(g)}]);
 end
-hL = legend([l1,l2,l3,l4,l5],{'Spots From OMP Alg','GT: Missed','GT: Found','GT: Not in Set','Local Maxima with Current Thresholds'});
+try
+    hL = legend([l1,l2,l3,l4,l5],{'Spots From OMP Alg','GT: Missed',...
+        'GT: Found','GT: Not in Set','Local Maxima with Current Thresholds'});
+catch
+    hL = legend([l1,l5],{'Spots From OMP Alg','Local Maxima with Current Thresholds'});
+end
 newPosition = [0.4 0.94 0.2 0.05];
 newUnits = 'normalized';
 set(hL,'Position', newPosition,'Units', newUnits,...
     'Orientation','horizontal','color','none');
 set( hL, 'Box', 'off' ) ;
+
+%% Give plots of omp parameters at each iteration. 
+if Track
+    NormSpotColor = (double(SpotColor)-o.z_scoreSHIFT)./o.z_scoreSCALE;
+    ResidualThresh = o.ResidualThreshParam*prctile(abs(NormSpotColor(:,:))',47.5*100/49.0)';
+    ResidualThresh(ResidualThresh<o.ResidualThreshMin) = o.ResidualThreshMin;
+    ResidualThresh(ResidualThresh>o.ResidualThreshMax) = o.ResidualThreshMax;
+    o.omp_free_background_track(S.NormBledCodes',NormSpotColor(:,:)',...
+        o.ompMaxGenes,ResidualThresh,S.nCodes+1:S.nCodes+S.nBackground);
+end
 end
 

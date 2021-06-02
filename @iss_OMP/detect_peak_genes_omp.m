@@ -61,6 +61,14 @@ for GeneNo = 1:nCodes
     ImagePeakInd = sub2ind(size(GeneIm),AllLocalYX(PeakInd,1),AllLocalYX(PeakInd,2)); %Different from MaxPixels
     PeakNeighbourhoodNonZeros{GeneNo} = NeighNonZeros(ImagePeakInd);
     
+    %Only save spots in group of > 2 pixels
+    Use = PeakNeighbourhoodNonZeros{GeneNo}>o.ompInitialNeighbThresh;
+    PeakSpotColors{GeneNo} = PeakSpotColors{GeneNo}(Use,:,:);
+    PeakLocalYX{GeneNo} = PeakLocalYX{GeneNo}(Use,:);
+    PeakCoefs{GeneNo} = PeakCoefs{GeneNo}(Use,:);
+    OriginalTile{GeneNo} = OriginalTile{GeneNo}(Use);
+    PeakNeighbourhoodNonZeros{GeneNo} = PeakNeighbourhoodNonZeros{GeneNo}(Use);
+    PeakInd = PeakInd(Use);
     
     if o.Graphics==2
         figure; imagesc(GeneIm); colorbar;

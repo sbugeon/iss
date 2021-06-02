@@ -11,7 +11,7 @@ function [BleedMatrix,DiagMeasure,BleedMatrixAllBleedThrough] = ...
 %BleedMatrix: the bleed matrix that was found.
 %DiagMeasure: should equal nChans if bleed matrix diagonal. 
 %%
-if nargin<4 || isempty(nTries)
+if nargin<5 || isempty(nTries)
     nTries = 0;
 end
 nChans = size(o.UseChannels,2);

@@ -68,8 +68,8 @@ while DiagMeasure<nChans && nTries<nIter
     SpotColors = bsxfun(@rdivide, o.dpSpotColors, p);
     [BleedMatrix,DiagMeasure,o.BleedMatrixAllBleedThrough] = ...
         get_bleed_matrix(o,SpotColors,SpotIsolated,o.BleedMatrixScoreThresh,nTries);
-    %If bleed matrix not diagonal, try modifying percentiles of weakest
-    %channels
+    %If bleed matrix not diagonal, try only using spots that are more like
+    %the initial diagonal bleed matrix. 
     if DiagMeasure<nChans
         o.BleedMatrixScoreThresh = o.BleedMatrixScoreThresh + o.BleedMatrixScoreThreshStep;
         if o.BleedMatrixScoreThresh>o.BleedMatrixScoreThreshMax

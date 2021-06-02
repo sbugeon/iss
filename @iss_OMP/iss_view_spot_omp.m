@@ -132,6 +132,7 @@ S.DotProduct = S.NormSpotColors*S.NormBledCodes';
 S.GeneOrder = [];
 S.ResidualOrder = [];
 S.nCodes = ceil(size(o.ompBledCodes,1)/10)*10;
+S.nCodes = size(o.ompBledCodes,1);
 S.GeneNames = o.GeneNames;
 for g=length(o.CharCodes)+1:S.nCodes
     S.GeneNames{g}='Bckgrnd';
@@ -257,7 +258,7 @@ elseif strcmp(click_type,'alt')
     end
 end
 NormSpotColorsNew = S.NormSpotColors;
-xFull = zeros(S.ImShape(1)*S.ImShape(2),80);
+xFull = zeros(S.ImShape(1)*S.ImShape(2),S.nCodes);
 residual = zeros(S.ImShape(1)*S.ImShape(2),1);
 for b=1:S.ImShape(1)*S.ImShape(2)
     [x,r,residual(b)] = omp_specify_atoms(S.NormBledCodes',S.NormSpotColors(b,:)',S.GeneOrder);

@@ -45,7 +45,14 @@ Shift_median1 = zeros(size(BadMatches));
 Shift_median2 = zeros(size(BadMatches));
 for t=NonemptyTiles
     for r = o.UseRounds
-        Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r)))');
+        if sum(~PcFailed(t,:,r))>1
+            Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r)))');
+        elseif sum(~PcFailed(t,:,r))==0
+            error('PCR failed for Tile %.0f, round %.0f',t,r); 
+        else
+            %Squeeze if only one value gives error
+            Shift_t = D(3,:,t,r,~PcFailed(t,:,r));
+        end
         Shift_median1(t,:,r) = Shift_t(1);
         Shift_median2(t,:,r) = Shift_t(2);
     end
@@ -68,7 +75,14 @@ end
 D_average = zeros(size(D));
 for t=NonemptyTiles
     for r = o.UseRounds
-        Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r)))');
+        if sum(~PcFailed(t,:,r))>1
+            Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r)))');
+        elseif sum(~PcFailed(t,:,r))==0
+            error('PCR failed for Tile %.0f, round %.0f',t,r);
+        else
+            %Squeeze if only one value gives error
+            Shift_t = D(3,:,t,r,~PcFailed(t,:,r));
+        end
         for b=o.UseChannels
             D_average(1,1,t,r,b) = A(b,1);
             D_average(2,2,t,r,b) = A(b,2);

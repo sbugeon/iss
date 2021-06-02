@@ -204,5 +204,68 @@ for i=1:nPlots
 end
 lg = legend(hSuper,LegendData,'Orientation','horizontal','Location','northoutside');
 legend('boxoff');
+
+
+% %Eigenvector analysis
+% NanSum=sum(isnan(SpotImages(:,:)),2);
+% EigSpotImages = nan(21,21,9043);
+% for g=1:size(GeneLogical,2)
+%     [TopEvec, s2] = eigs(double(SpotImages(GeneLogical(:,g)&NanSum==0,:)'*...
+%         SpotImages(GeneLogical(:,g)&NanSum==0,:))/sum(GeneLogical(:,g)&NanSum==0));
+%     if g<=2
+%         Coef = TopEvec(:,2)'*SpotImages(GeneLogical(:,g),:)';
+%         EigIm = reshape(TopEvec(:,2),[21,21]);
+%     else
+%         Coef = TopEvec(:,1)'*SpotImages(GeneLogical(:,g),:)';
+%         EigIm = reshape(TopEvec(:,1),[21,21]);
+%     end
+%     EigSpotImages(:,:,GeneLogical(:,g))=permute(Coef'.*...
+%         permute(repmat(EigIm,1,1,length(Coef)),[3,1,2]),[2,3,1]);
+% end
+% EigRadialProfile = radialAverage(EigSpotImages,11,11,0:10);
+% EigRadialProfile(EigRadialProfile(:,1)<0,:) = nan;
+%% Below replicates radial plot in OutSpotImages round/channel using 
+% only eigenvector component
+% SpotImages = OutSpotImages;
+% NanSum=sum(isnan(SpotImages(:,:)),2);
+% EigSpotImages = nan(size(SpotImages,[2,3,1]));
+% GeneLogical = PlotLogical;
+% EigUse = 1;
+% for g=1:size(GeneLogical,2)
+%     [TopEvec, ~] = eigs(double(SpotImages(NanSum==0,:)'*...
+%         SpotImages(NanSum==0,:))/sum(NanSum==0));
+%     Coef = TopEvec(:,EigUse)'*SpotImages(GeneLogical(:,g),:)';
+%     EigIm = reshape(TopEvec(:,EigUse),[2*ImRad+1,2*ImRad+1]);
+% %     if gEig<=0
+% %         Coef = TopEvec(:,2)'*SpotImages(GeneLogical(:,g),:)';
+% %         EigIm = reshape(TopEvec(:,2),[21,21]);
+% %     else
+% %         Coef = TopEvec(:,1)'*SpotImages(GeneLogical(:,g),:)';
+% %         EigIm = reshape(TopEvec(:,1),[21,21]);
+% %     end
+%     EigSpotImages(:,:,GeneLogical(:,g))=permute(Coef'.*...
+%         permute(repmat(EigIm,1,1,length(Coef)),[3,1,2]),[2,3,1]);
+% end
+% EigRadialProfile = radialAverage(EigSpotImages,ImRad+1,ImRad+1,0:ImRad);
+% EigRadialProfile(EigRadialProfile(:,1)<0,:) = nan;
+% MeanProfile = zeros(ImRad+1,4);
+% StdProfile = zeros(ImRad+1,4);
+% Colors = distinguishable_colors(4,[1,1,1]);
+% for i=1:4
+%     MeanProfile(:,i) = squeeze(nanmean(EigRadialProfile(GeneLogical(:,i),:,:,:),1));
+%     StdProfile(:,i) = squeeze(nanstd(EigRadialProfile(GeneLogical(:,i),:,:,:),[],1));
+% end
+% figure;
+% hold on
+% RadialBins = 0:ImRad;
+% for i=1:4
+%     brMean = MeanProfile(:,i);
+%     brStd = StdProfile(:,i)/2;
+%     fill([RadialBins';flipud(RadialBins')],...
+%         [brMean-brStd;flipud(brMean+brStd)],...
+%         Colors(i,:),'linestyle','none','facealpha',.03);
+%     LinePlots = plot(RadialBins,brMean,'Color',Colors(i,:),...
+%         'LineWidth',1);
+% end
 end
 

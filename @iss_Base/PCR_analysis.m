@@ -16,6 +16,9 @@ function o = PCR_analysis(o,y0,x0)
 [nY, nX] = size(o.EmptyTiles);
 nTiles = nY*nX;
 NonemptyTiles = find(~o.EmptyTiles)';
+if size(NonemptyTiles,2)==1
+    NonemptyTiles = NonemptyTiles';
+end
 
 if ~isfield(o.FindSpotsInfo,'nMatchesFailed')
     o.FindSpotsInfo.nMatchesFailed = o.nMatches;

@@ -20,21 +20,26 @@ classdef iss_OMP < iss_GroundTruth
         z_scoreSHIFT;
         z_scoreSCALE;
         
+        % ompBleedMatrixEigMethod == 'Mean': ScaledKMeans used to compute each
+        % column of bleed matrix.
+        % ompBleedMatrixEigMethod == 'Median': ScaledKMedians used to compute
+        % each column of bleed matrix - just take median of all spots
+        % assigned to each cluster.
+        ompBleedMatrixEigMethod = 'Mean';
+        
         % BleedMatrix used to estimate BledCodes in call_spots_omp.
         % Each round and channel is z-scored.
         z_scoreBleedMatrix
-        % z_scoreBledCodes(nCodes, nBP*nRounds): code vectors after modeling
-        % crosstalk and z-scoring each round/channel.
-        z_scoreBledCodes;
         
         %BackgroundEigenvectors are found from spots on tiles in
         %BackgroundEigenvectorTiles;
         BackgroundEigenvectorTiles;
-        
+                
         %BackgroundEigenvectors(i,b,r) is the intensity in channel b, round
-        %r for the ith eigenvector of the covariance matrix comprised of pixels and
-        %rounds of spots with low dot product with any gene z_scoreBledCodes.
+        %r for the ith eigenvector of the covariance matrix comprised of
+        %pixels a distance > ompBackgroundDist from any spot in iomp search
         %BackgroundEigenvalue(i) is the corresponding eigenvalue.
+        ompBackgroundDist = 15;
         BackgroundEigenvectors;
         BackgroundEigenvalues;
         
@@ -50,32 +55,44 @@ classdef iss_OMP < iss_GroundTruth
         
         %BackgroundEigenvectors(UseBackgroundEigenvectors,:) are appended
         %to z_scoreBledCodes to form ompBledCodes. Default is to choose
-        %first Max_nBackground eigenvectors, but ignoring any with 
-        %BackgroundMaxGeneDotProduct>BackgroundMaxGeneDotProductThresh.
+        %all with eigenvalue > ompBackgroundEigvalueThresh.
+        ompBackgroundEigvalueThresh = 0.15;
         UseBackgroundEigenvectors;
         nBackground;    %size(UseBackgroundEigenvectors).
         Max_nBackground = 7; %there will be at most this number of background codes.
         ompBledCodes;
         
+        %ompBackgroundChannelStrips = true means there will be 7 background
+        %vectors, each being a single color channel in every round i.e.
+        %CharCode = '0000000' for the first one.
+        ompBackgroundChannelStrips = true;
+        
         %OMP stops when reduction in residual drops below
         %ResidualThresh = ResidualThreshParam*SpotSecondLargestIntensity.
-        ResidualThreshParam = 0.175;
+        ResidualThreshParam = 0.0612;
         %ResidualThresh is clamped between the two values below.
-        ResidualThreshMin = 0.0875;
+        ResidualThreshMin = 0.0100;
         ResidualThreshMax = 3.0;
         
         %ompMaxGenes is the maximum number of genes that can be assigned to
         %each pixel.
         ompMaxGenes = 6;
         
+        % Only save to oObject spots with more than ompInitialNeighbThresh
+        % non zero pixels near it.
+        ompInitialNeighbThresh = 2;
+        
         %For quality_threshold:
-        %Spots must have either ompSpotIntensity>ompIntensityThresh or
+        %Spots must have  ompSpotIntensity2>ompIntensityThresh2 &
+        %ompNeighbNonZeros > ompNeighbThresh2 &...
+        %(ompSpotIntensity2>ompIntensityThresh | ompNeighbNonZeros >
+        %ompNeighbThresh | ompSpotScore | ompScoreThresh);
         %ompNeighbNonZeros>ompNeighbThresh or ompSpotScore>ompScoreThresh.
-        ompIntensityThresh=1.7891e+03;  %Optimized using PyTorch
-        ompIntensity2Thresh = 0;
-        ompNeighbThresh=19.9863;        %Optimized using PyTorch
-        ompNeighbThresh2=2;
-        ompScoreThresh = 7.9784         %Optimized using PyTorch
+        ompIntensityThresh = 0.7;       
+        ompIntensityThresh2 = 0.015;
+        ompNeighbThresh = 16;       
+        ompNeighbThresh2 = 10;
+        ompScoreThresh = 4.5;         
         
         %% OMP method outputs
         
@@ -88,9 +105,13 @@ classdef iss_OMP < iss_GroundTruth
         % and round. only for combinatorial splots
         ompSpotColors;
         
-        %ompSpotIntensity is the modified spot intensity given by
-        %get_spot_intensity.m
+        %ompSpotIntensity is the mean intensity in the unbled code of gene
+        %ompSpotCodeNo(s) in the z_scored ompSpotColors(s,:).
         ompSpotIntensity;
+        
+        %ompSpotIntensity2 is the median intensity in the unbled code of gene
+        %ompSpotCodeNo(s) in the z_scored ompSpotColors(s,:).
+        ompSpotIntensity2;
                       
         %ompScore is the reduction in error caused by introduction of gene in
         %rounds/channels where there is not already a gene. Given by
@@ -106,12 +127,97 @@ classdef iss_OMP < iss_GroundTruth
         %ompCoef(s,g) is the weighting of spot s for gene g. Most are zero.
         %The last nBackground are background codes and are always non zero.
         ompCoefs;
+        
         %ompNeighbNonZeros(s) is the number of pixels in the surrounding
         %region around spot s that have non zero coefficient for the gene
         %specified by ompSpotCodeNo(s). Min value is 1. Region size
         %specified by o.PixelDetectRadius. For default,
         %o.PixelDetectRadius=4, max value of this is 37.
         ompNeighbNonZeros;
+        %% Initial OMP to get gene efficiencies
+        
+        %OMPFileNames contains the names of files in which initial omp
+        %method data is stored
+        OMP_FileNames;
+        
+        %OMPFileMaxTiles is approximately the maximum number of tiles
+        %that can be stored in a single file. Output data to files so don't
+        %get memory problems.
+        OMPFileMaxTiles = 6;
+        
+        % iompSpotColors(Spot, Base, Round) contains spot color on each base
+        % and round.
+        iompSpotColors;
+        
+        % iompSpotCodeNo is the gene found for each spot
+        iompSpotCodeNo;
+        
+        % iompSpotGlobalYX(Spot,1:2) contains y,x coordinates of every spot in
+        % global coordiate system.
+        iompSpotGlobalYX;
+        
+        % iompResOverBackground(s) is the norm of iompSpotColors(s,:) after
+        % Background vectors have been fit to it minus the norm after
+        % Background vectors and gene iompSpotCodeNo(s) have. 
+        iompResOverBackground;
+        
+        % iompSpotScore is the difference between iompResOverBackground(s)
+        % when gene iompSpotCodeNo(s) is used and when the 2nd best gene is
+        % used. 
+        iompSpotScore;
+        
+        % iompCoef(s) is the quantity of BledCodes(iompSpotCodeNo(s),:) fit
+        % to iompSpotColors(s,:)
+        iompCoef;
+        
+        %iompSpotIntensity is the mean intensity in the unbled code of gene
+        %iompSpotCodeNo(s) in the z_scored iompSpotColors(s,:).
+        iompSpotIntensity;
+        
+        %iompSpotIntensity2 is the median intensity in the unbled code of gene
+        %iompSpotCodeNo(s) in the z_scored iompSpotColors(s,:).
+        iompSpotIntensity2;
+        
+        %iompLocalTile(s) is the tile spot s was found on
+        iompLocalTile;
+        
+        %iompBestGene(s) is gene number of best gene at location of spot s.
+        iompSpotBestGene;
+        
+        % Only save to oObject spots with more than iompSpotScore,
+        % iompResOverBackground, iompCoef exceeding these thresholds.
+        ompInitialScoreThresh = 0;
+        ompInitialResThresh = 0.005;
+        ompInitialCoefThresh = 0;       
+        
+        %GroundTruth Data for initial OMP
+        iomp_gtColor;
+        iomp_gtIdentity;
+        iomp_gtFound;
+        
+        %iompBledCodes are the bled codes used in the initial omp search.
+        iompBledCodes;
+        
+        %The mean of iompSpots with Score,Coef,Intensity and ResOverBackground
+        %all exceeding these thresholds will be used to find GeneEfficiency
+        GeneEfficiencyScoreThresh = 0.01;
+        GeneEfficiencyCoefThresh = 0.5;
+        GeneEfficiencyIntensityThresh = 0.1;
+        GeneEfficiencyResThresh = 0.1;
+        
+        %If less than GeneEfficiencyMinSpots satisfy the above thresholds
+        %for gene g, GeneEfficiency(g,:) = 1. 
+        GeneEfficiencyMinSpots = 10;
+        
+        %GeneEfficiency(g,r) is the strength of gene g in round r compared
+        %to o.z_scoreBleedMatrix(:,CharCode{g}(r)+1) or
+        GeneEfficiency;
+        
+        % z_scoreBledCodes(nCodes, nBP*nRounds): code vectors after modeling
+        % crosstalk and z-scoring each round/channel. These bled codes
+        % include the effect GeneEfficiency(g,r) on gene g, round r.
+        % These are the gene bled codes used in the final omp search.
+        z_scoreBledCodes;
         
     end
 end

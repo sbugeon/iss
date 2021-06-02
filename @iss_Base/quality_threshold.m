@@ -37,8 +37,18 @@ elseif strcmpi('OMP',Method)
      %QualOK = o.ompNeighbNonZeros>o.ompNeighbThresh | (o.ompSpotIntensity>o.ompIntensityThresh & o.ompNeighbNonZeros>o.ompNeighbThresh2);
      %QualOK = QualOK & o.ompSpotIntensity2 > o.ompIntensity2Thresh;
      %New method, found using PyTorch
-     QualOK = o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh | o.([pf,'SpotIntensity'])>o.ompIntensityThresh |...
+     %Use median SpotIntensity2 not mean SpotIntensity as more robust to
+     %cases where OMP is bad with one good round. 
+     QualOK = o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
          o.([pf,'SpotScore'])>o.ompScoreThresh;
+     QualOK = QualOK & o.([pf,'SpotIntensity2'])>o.ompIntensityThresh2 & ...
+         o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh2;
+%      CoefInd = sub2ind(size(o.ompCoefs),[1:length(o.([pf,'SpotCodeNo']))]',o.([pf,'SpotCodeNo']));
+%      QualOK = o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh | o.([pf,'Coefs'])(CoefInd)>o.ompIntensityThresh |...
+%          o.([pf,'SpotScore'])>o.ompScoreThresh;
+%      QualOK = QualOK & o.([pf,'Coefs'])(CoefInd)>o.pIntensityThresh & o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh2;
+    
+     
 elseif strcmpi('Spatial',Method)
     QualOK = o.([pf,'SpotScore'])>0;        %All spots at the moment.
 else

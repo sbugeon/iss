@@ -1,8 +1,9 @@
-function [x,r,r_norm] = omp_free_background(A,b,n_nonzero_coefs,thresh,background_indices)
+function [x,r,r_norm] = omp_free_background_track(o,A,b,n_nonzero_coefs,thresh,background_indices)
 
-% Orthogonal Matching Pursuit (OMP)
+%% Orthogonal Matching Pursuit (OMP)
 % https://github.com/seunghwanyoo/omp
 % Input:
+%   o: iss object
 %   A: dictionary (matrix)
 %   b: signal 
 %   n_nonzero_coefs: max number of atoms from A (not including background)
@@ -13,7 +14,9 @@ function [x,r,r_norm] = omp_free_background(A,b,n_nonzero_coefs,thresh,backgroun
 %   x: coeff vector for sparse representation
 %   r: residual
 %   r_norm: norm of residual
-
+% This tracks the omp results at each stage of the process. It then gives
+% the results, TrackInfo, to the function track_residual for plotting. 
+%%
 [N,K] = size(A); % N:dim of signal, K:#atoms in dictionary
 if (N ~= size(b))
     error('Dimension not matched');
@@ -38,6 +41,15 @@ r_norm_last = inf;   % inf so have to have atleast one coefficient.
 omega = zeros(S,1);  % selected support
 omega_last = omega;
 A_omega = [];        % corresponding columns of A
+
+TrackInfo.thresh = thresh;
+TrackInfo.n_nonzero_coefs = n_nonzero_coefs;
+TrackInfo.r = zeros(n_nonzero_coefs+2,N);
+TrackInfo.r(1,:) = b;
+TrackInfo.r_norm = zeros(n_nonzero_coefs+2,1);
+TrackInfo.r_norm(1) = r_norm;
+TrackInfo.coefs = zeros(n_nonzero_coefs+2,K);
+
 cnt = 0;
 while (cnt < S)  % choose S atoms
     cnt = cnt+1;
@@ -56,6 +68,13 @@ while (cnt < S)  % choose S atoms
     x_ls = A_omega \ b;  % Aomega * x_ls = b
     r = b - A_omega * x_ls; % update r
     r_norm = norm(r);
+    if cnt>=S_background
+        TrackInfo.r(2+cnt-S_background,:) = r;
+        TrackInfo.r_norm(2+cnt-S_background) = r_norm;
+        TrackInfo.coefs(2+cnt-S_background,omega(1:cnt)) = x_ls;
+        TrackInfo.A_omega = A_omega(:,S_background+1:end);
+        TrackInfo.omega = omega(S_background+1:cnt);
+    end
     if r_norm_last-r_norm<thresh && cnt>S_background
         %If met residue threshold, go back to last solution 
         %i.e. current solution is too many atoms.
@@ -74,6 +93,8 @@ end
 for i = 1:S
     x(omega(i)) = x_ls(i); %x_sparse(i).value;
 end
+
+o.track_residual(TrackInfo);
 
 end
 

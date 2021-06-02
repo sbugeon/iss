@@ -29,10 +29,19 @@ if o.LogToFile
     diary(o.LogFile);
     cleanup = onCleanup(@()diary('off'));
 end
-%% 
-if isempty(o.ompBledCodes)
-    o = o.get_omp_bled_codes;
-end
+%% Set up normalisation paramaters
+% o.ompBleedMatrixEigMethod = 'Mean';
+% o = o.get_initial_bled_codes;
+% 
+% %% Get gene efficiencies and background eigenvectors
+% o = o.call_spots_omp_initial;
+% o = o.get_gene_efficiencies;
+o.ompBledCodes = o.z_scoreBledCodes;
+nCodes = length(o.CharCodes);
+o.ompBledCodes = zeros(nCodes+o.nBackground,o.nRounds*o.nBP);
+o.ompBledCodes(1:nCodes,:) = o.z_scoreBledCodes;
+o.ompBledCodes(nCodes+1:nCodes+o.nBackground,:) = ...
+    o.BackgroundEigenvectors(o.UseBackgroundEigenvectors,:);
 %% Load in images, run OMP on each pixel, find local maxima in omp coefficient 
 % images for each gene.
 NonemptyTiles = find(~o.EmptyTiles)';
@@ -40,7 +49,6 @@ if size(NonemptyTiles,2)==1
     NonemptyTiles = NonemptyTiles';
 end
 
-nCodes = length(o.CharCodes);
 PeakSpotColors = cell(nCodes,1);
 PeakLocalYX = cell(nCodes,1);
 PeakCoefs = cell(nCodes,1);
@@ -139,7 +147,8 @@ o.ompSpotGlobalYX = cell2mat(GlobalYX);
 o.ompLocalTile = cell2mat(GoodOriginalTile);  
 o.ompCoefs = cell2mat(Coefs);
 o.ompNeighbNonZeros = cell2mat(NeighbNonZeros);
-o.ompSpotIntensity = o.get_spot_intensity(o.ompSpotCodeNo,o.ompSpotColors);
+[~,o.ompSpotIntensity2] = ...
+    o.get_spot_intensity(o.ompSpotCodeNo,o.ompSpotColors,o.z_scoreSCALE);
 o.ompSpotScore = o.get_omp_score;
 end
 

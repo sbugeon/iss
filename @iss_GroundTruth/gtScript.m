@@ -233,7 +233,7 @@ end
 %% Get PixelBased probabilities for ground truth spots
 %Need LookupTable to get PixelBased probabilities.
 %load(fullfile(o.OutputDirectory, ['LookupTable',num2str(o.ProbMethod),'.mat']));
-
+UseRoundsOrig = 1:7;
 o.gt_pxSpotGlobalYX = cell(sum(o.gtGeneNo(:)>0),1);
 o.gt_pxSpotColors = cell(sum(o.gtGeneNo(:)>0),1);
 o.gt_pxSpotCodeNo = cell(sum(o.gtGeneNo(:)>0),1);

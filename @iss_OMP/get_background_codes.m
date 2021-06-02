@@ -1,74 +1,72 @@
 function [BackgroundEigenvectors,BackgroundEigenvalues,BackgroundMaxGeneDotProduct,...
-    BackgroundMaxGeneDotProductGene,EigenvectorTiles] = get_background_codes(o,ChannelStrips,DotProductThresh,nTilesToUse)
-%% Find vectors to best represent background
-%First find all pixels not well represented by genes. Then find
-%eigenvectors of covariance matrix of resulting pixels - these are the
-%background eigenvectors.
-%o: iss_OMP object.
-%ChannelStrips: if true, returns background eigenvectors that are just a
-%strip in each channel. 
-%DotProductThresh: If best dot product less than this, then is background
-%nTilesToUse: number of tiles to consider to find background eigenvectors. 
-%EigenvectorTiles: tiles used to find the background eigenvectors
+    BackgroundMaxGeneDotProductGene] = get_background_codes(o,SpotColors)
+%% [BackgroundEigenvectors,BackgroundEigenvalues,BackgroundMaxGeneDotProduct,...
+%   BackgroundMaxGeneDotProductGene] = o.get_background_codes(SpotColors);
+% Find vectors to best represent background
+% Finds covariance matrix of background pixels. Then takes eigenvectors of
+% this. 
+% If o.ompBackgroundChannelStrips, then will just return 7 background
+% eigenvectors which are just strips in each color channel. 
+% Input: 
+% o: iss_OMP object.
+% SpotColors: Raw SpotColors of pixels representative of background
+%
+% Output:
+% BackgroundEigenvectors(i,b,r): intensity in channel b, round
+% r for the ith eigenvector of the covariance matrix comprised of
+% background pixels
+% BackgroundEigenvalues(i): corresponding eigenvalue.
+% BackgroundMaxGeneDotProduct(i): the absolute dot product of
+% BackgroundEigenvectors(i,:) with
+% o.iompBledCodes(BackgroundMaxGeneDotProductGene(i),:).
+% This is the largest dot product of any gene with BackgroundEigenvectors(i,:)
 %%
-if nargin<2 || isempty(ChannelStrips)
-    ChannelStrips = false;
-end
-nCodes = length(o.CharCodes);
-NormBledCodes = o.z_scoreBledCodes./vecnorm(o.z_scoreBledCodes(:,:),2,2);
-
-if ChannelStrips
+if o.ompBackgroundChannelStrips 
+    %Eigenvector b only has intensity in channel b for all rounds. 
     BackgroundEigenvectors = zeros(o.nBP,o.nBP,o.nRounds);
     for b=1:o.nBP
-        UnbledBackground = zeros(o.nBP,o.nRounds);
-        UnbledBackground(b,:) = 1;
-        BackgroundEigenvectors(b,:,:) = o.z_scoreBleedMatrix(:,:,1) * UnbledBackground;
+        BackgroundEigenvectors(b,b,:) = 1;
     end
+    BackgroundEigenvectors = BackgroundEigenvectors(o.UseChannels,:,:);
     BackgroundEigenvectors = BackgroundEigenvectors./vecnorm(BackgroundEigenvectors(:,:),2,2);
-    BackgroundEigenvalues = zeros(o.nBP,1);
-else    
-    if nargin<3 || isempty(DotProductThresh)
-        DotProductThresh = 0.35;
-    end
-    if nargin<4 || isempty(nTilesToUse)
-        nTilesToUse = 5;
-    end
-    NonemptyTiles = find(~o.EmptyTiles)';
-    if size(NonemptyTiles,2)==1
-        NonemptyTiles = NonemptyTiles';
-    end
-    fprintf('Finding background codes\n');
-    %For speed, only use 5 tiles
-    if isempty(o.BackgroundEigenvectorTiles)
-        EigenvectorTiles = NonemptyTiles(randperm(numel(NonemptyTiles),min(nTilesToUse,length(NonemptyTiles))));
-    else
-        EigenvectorTiles = o.BackgroundEigenvectorTiles;
-    end
-    BackgroundSpotColors = cell(max(NonemptyTiles),1);
-    
-    for t=EigenvectorTiles
-        [LocalYX,SpotColors] = o.get_spot_colors_all_pixels(t);
-        SpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
-        NormSpotColors = SpotColors./vecnorm(SpotColors(:,:),2,2);  %So norm=1        
-        MaxGeneDotProduct = get_bled_code_max_dot_product(NormSpotColors,NormBledCodes,nCodes);
-        KeepBackgroundSpots = MaxGeneDotProduct<DotProductThresh;
-        BackgroundSpotColors{t} = SpotColors(KeepBackgroundSpots,:,:);
-    end
-    BackgroundSpotsFullSet = cell2mat(BackgroundSpotColors);
-    CovMatrix = BackgroundSpotsFullSet(:,:)'*BackgroundSpotsFullSet(:,:);
+    BackgroundEigenvalues = ones(length(o.UseChannels),1);
+else
+    z_scoredSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
+    z_scoredSpotColors = z_scoredSpotColors(:,o.UseChannels,o.UseRounds);
+    %CovMatrix = z_scoredSpotColors(:,:)'*z_scoredSpotColors(:,:);
+    CovMatrix = cov(z_scoredSpotColors(:,:));
     [Eig,BackgroundEigenvalues] = get_eig(CovMatrix);
-    BackgroundEigenvectors = reshape(Eig',[o.nRounds*o.nBP,o.nBP,o.nRounds]);
+    BackgroundEigenvectors = zeros(length(BackgroundEigenvalues),o.nBP,o.nRounds);
+    BackgroundEigenvectors(:,o.UseChannels,o.UseRounds) = ...
+        reshape(Eig',[length(BackgroundEigenvalues),length(o.UseChannels),length(o.UseRounds)]);
     BackgroundEigenvalues = BackgroundEigenvalues/vecnorm(BackgroundEigenvalues);
 end
 %Find out how much background eigenvectors resemble genes
+nCodes = length(o.CharCodes);
+BledGeneCodes = reshape(o.iompBledCodes,[nCodes,o.nBP,o.nRounds]);
+BledGeneCodes = BledGeneCodes(:,o.UseChannels,o.UseRounds);
+BledGeneCodes(isnan(BledGeneCodes)) = 0;
+NormBledGeneCodes = BledGeneCodes(:,:)./vecnorm(BledGeneCodes(:,:),2,2);
+NormBledGeneCodes(isnan(NormBledGeneCodes)) = 0;
+BackgroundEigenvectorsCrop = ...
+    reshape(BackgroundEigenvectors,[size(BackgroundEigenvalues,1),o.nBP,o.nRounds]);
+BackgroundEigenvectorsCrop = BackgroundEigenvectors(:,o.UseChannels,o.UseRounds);
+BackgroundEigenvectorsCrop(isnan(BackgroundEigenvectorsCrop))=0;
+BackgroundEigenvectorsCrop = ...
+    BackgroundEigenvectorsCrop(:,:)./vecnorm(BackgroundEigenvectorsCrop(:,:),2,2);
+BackgroundEigenvectorsCrop(isnan(BackgroundEigenvectorsCrop))=0;
 [BackgroundMaxGeneDotProduct,BackgroundMaxGeneDotProductGene] = ...
-    get_bled_code_max_dot_product(BackgroundEigenvectors,NormBledCodes,nCodes);
+    get_bled_code_max_dot_product(BackgroundEigenvectorsCrop,NormBledGeneCodes,nCodes);
 
 if o.Graphics
     figure(180432); clf
-    for i=1:min(9,length(BackgroundEigenvectors))
+    for i=1:min(9,length(BackgroundEigenvalues))
         subplot(3,3,i);
-        imagesc(squeeze(BackgroundEigenvectors(i,:,:)));
+        if o.nRounds>1
+            imagesc(squeeze(BackgroundEigenvectors(i,:,:)));
+        else
+            imagesc(squeeze(BackgroundEigenvectors(i,:,:))');
+        end
         title(sprintf('Eigenvalue = %.3f\n%s DotProduct = %.3f',...
             BackgroundEigenvalues(i),o.GeneNames{BackgroundMaxGeneDotProductGene(i)},...
             BackgroundMaxGeneDotProduct(i)));
@@ -89,7 +87,7 @@ end
      
 end
 
-function [MaxDotProduct,MaxGeneNumber] = get_bled_code_max_dot_product(SpotColors,GeneBledCodes,nCodes)
+function [MaxDotProduct,MaxGeneNumber,DotProductStd] = get_bled_code_max_dot_product(SpotColors,GeneBledCodes,nCodes)
 %For each spot, s, finds dot product of SpotColors(s,:) with each gene.
 %Then returns max absolute dot product and corresponding gene. 
 %Both SpotColors and GeneBledCodes should have been normalised. 
@@ -98,4 +96,5 @@ for GeneNo=1:nCodes
     GeneDotProduct(:,GeneNo) = SpotColors(:,:)*GeneBledCodes(GeneNo,:)';
 end
 [MaxDotProduct,MaxGeneNumber] = max(abs(GeneDotProduct),[],2);
+DotProductStd = std(abs(GeneDotProduct),[],2);
 end   

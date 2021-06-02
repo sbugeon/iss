@@ -1,17 +1,24 @@
-function [SpotIntensity, MedianIntensity] = get_spot_intensity(o,SpotCodeNo,SpotColors)
+function [SpotIntensity, MedianIntensity] = get_spot_intensity(o,SpotCodeNo,SpotColors,NormFactor)
+%% [SpotIntensity, MedianIntensity] = o.get_spot_intensity(SpotCodeNo,SpotColors,z_score);
 %This gives a modified spot intensity taking account of the gene it is
 %assigned to.
-%For spot s, it takes all colour channels that appear in the gene
-%SpotCodeNo(s). Call this SpotCode2, then SpotIntensity(s) =
-%mean(SpotCode2(InCharCode))-mean(SpotCode2(NotInCharCode))
+%NormFactor(1,b,r) is the value that SpotColors(:,b,r) is divided by to
+%give Normalised SpotColors.
+%If don't give NormFactor:
+% For spot s, matched to gene g = SpotCodeNo(s),
+% SpotIntensity(s) =
+% mean(SpotColors(s,InCharCode_gene_g))-mean(SpotColors(s,NotInCharCode_gene_g))
+%If give NormFactor == true:
+% We first normalise the spot color by o.BledCodesPercentile.
+% SpotIntensity(s) =
+% mean(NormSpotColors(s,InCharCode_gene_g))-mean(NormSpotColors(s,NotInCharCode_gene_g))
 %Hence a high SpotIntensity indicates a high intensity and a good match.
 
-% nPixels = sum(o.HistCounts(:,1,1));
-% z_scoreSHIFT = sum(o.HistValues'.*o.HistCounts)/nPixels;  %Want 0 mean
-% z_scoreSHIFT = zeros(size(z_scoreSHIFT));
-% MeanOfSquare = sum(o.HistValues.^2'.*o.HistCounts)/nPixels;
-% z_scoreSCALE = sqrt(MeanOfSquare - z_scoreSHIFT.^2);
-% SpotColors = (double(SpotColors)-z_scoreSHIFT)./z_scoreSCALE; %Z-score first
+Norm = false;
+if nargin>=4
+    SpotColors = double(SpotColors)./NormFactor; %Normalise
+    Norm = true;
+end
 
 nCodes = length(o.GeneNames);
 CodeIndex = zeros(nCodes,o.nRounds);
@@ -34,10 +41,14 @@ for s=1:nSpots
     % NEED TO INVESTIGATE SPOT INTENSITY: Z-SCORE and NO SUBTRACTION BEST I THINK
     sCodeIndex = CodeIndex(SpotCodeNo(s),:);
     sCodeIndex = sCodeIndex(sCodeIndex>0);
-    SpotIntensity(s) = mean(SpotCode(sCodeIndex))-mean(SpotCode(NonCodeIndex{SpotCodeNo(s)}));
+    if Norm
+        SpotIntensity(s) = mean(SpotCode(sCodeIndex));
+    else
+        SpotIntensity(s) = mean(SpotCode(sCodeIndex))-mean(SpotCode(NonCodeIndex{SpotCodeNo(s)}));
+    end
     %SpotIntensity(s) = mean(SpotCode(CodeIndex(SpotCodeNo(s),:)));
     %SpotIntensity(s) = mean(SpotCode(NonCodeIndex{SpotCodeNo(s)}));
-    MedianIntensity(s) = median(SpotCode(NonCodeIndex{SpotCodeNo(s)}));
+    MedianIntensity(s) = median(SpotCode(sCodeIndex));
     if mod(s,round(nSpots/100))==0
         Percent = sprintf('%.6f', round(s*100/nSpots));
         fprintf('\b\b\b\b\b%s%%',Percent(1:4));

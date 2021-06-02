@@ -183,7 +183,8 @@ caxis(caxis_lims);
 if Norm>1
     colormap(gca,bluewhitered);
 end
-title(sprintf('Predicted Code for %s, code #%d', o.GeneNames{CodeNo}, CodeNo),'Color','w');
+title(sprintf('Predicted Code, Unbled code shown: %s, code #%d, coef = %.2f',...
+    o.GeneNames{CodeNo}, CodeNo, SpotCoefs(CodeNo)),'Color','w');
 set(gca, 'ytick', 1:o.nBP);
 set(gca, 'YTickLabel', o.bpLabels);
 ylabel('Color Channel','Color','w');
@@ -303,7 +304,8 @@ if strcmp(click_type,'normal')
     if Norm>1
         colormap(gca,bluewhitered);
     end
-    title(sprintf('Predicted Code for %s, code #%d. Coef = %.2f', o.GeneNames{CodeNo}, CodeNo, Coefs(CodeNo)),'Color','w');     
+    title(sprintf('Predicted Code, Unbled code shown: %s, code #%d, coef = %.2f',...
+        o.GeneNames{CodeNo}, CodeNo, Coefs(CodeNo)),'Color','w');     
     
     if CodeNo ~= OrigCodeNo
         if Coefs(CodeNo)==0
@@ -327,7 +329,8 @@ if strcmp(click_type,'normal')
         imagesc(Error); colorbar('Color','w');
         caxis(error_caxis_lims);
         colormap(gca,bluewhitered);
-        title(sprintf('Error with %s, code #%d, coef = %.2f is %.2f', o.GeneNames{CodeNo}, CodeNo, Coefs(CodeNo),sum(abs(Error(:)))),'Color','w');        
+        title(sprintf('Error with %s, code #%d, coef = %.2f is %.2f',...
+            o.GeneNames{CodeNo}, CodeNo, Coefs(CodeNo),sum(abs(Error(:)))),'Color','w');        
     end
    
     
@@ -392,16 +395,19 @@ end
         end
         hold on
         for r=1:o.nRounds
-            rectangle('Position',gSquares(r,:),'EdgeColor',sq_color,'LineWidth',2,'LineStyle',':')
+            rectangle('Position',gSquares(r,:),'EdgeColor',sq_color,...
+                'LineWidth',2,'LineStyle',':')
         end
         if IncludeGT && subplot==1
             for r=o.gtRounds
                 for b=1:o.nBP
                     if o.gtGeneNo(r,b)==0; continue; end
                     if o.gtGeneNo(r,b)==CodeNo
-                        rectangle('Position',[r-0.5,b-0.5,1,1],'EdgeColor',sq_color,'LineWidth',2,'LineStyle','-');
+                        rectangle('Position',[r-0.5,b-0.5,1,1],...
+                            'EdgeColor',sq_color,'LineWidth',2,'LineStyle','-');
                     else
-                        rectangle('Position',[r-0.5,b-0.5,1,1],'EdgeColor','k','LineWidth',2,'LineStyle','-');
+                        rectangle('Position',[r-0.5,b-0.5,1,1],...
+                            'EdgeColor','k','LineWidth',2,'LineStyle','-');
                     end
                 end
             end
