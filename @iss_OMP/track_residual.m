@@ -77,6 +77,19 @@ for i=1:nIters
         TextColor = 'k';
     end
     
+    if i==1
+        set(gca, 'ytick', 1:o.nBP);
+        set(gca, 'YTickLabel', o.bpLabels);
+        set(gca, 'xtick', 1:o.nRounds);
+        ylabel('Channel');
+        xlabel('Round');
+    else
+        set(gca, 'ytick', 1:o.nBP);
+        set(gca, 'YTickLabel', []);
+        set(gca, 'xtick', 1:o.nRounds);
+        set(gca, 'XTickLabel', []);
+    end
+    
     if i>=2 && j<nGenes+1
         subplot(2, nIters, i+nIters);
         imagesc(reshape(TrackInfo.A_omega(:,j),ImShape));
@@ -90,6 +103,18 @@ for i=1:nIters
         GeneNo = TrackInfo.omega(j);
         title(sprintf('%.0f: %s\nCoef = %.3f',GeneNo,...
             o.GeneNames{GeneNo},TrackInfo.coefs(CoefIter,GeneNo)),'Color',TextColor);
+        if j==1
+            set(gca, 'ytick', 1:o.nBP);
+            set(gca, 'YTickLabel', o.bpLabels);
+            set(gca, 'xtick', 1:o.nRounds);
+            ylabel('Channel');
+            xlabel('Round');
+        else
+            set(gca, 'ytick', 1:o.nBP);
+            set(gca, 'YTickLabel', []);
+            set(gca, 'xtick', 1:o.nRounds);
+            set(gca, 'XTickLabel', []);
+        end
         j=j+1;
         if j==nGenes+1
             colorbar('Position', [0.93  0.1  0.01  0.4]);
