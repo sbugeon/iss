@@ -63,10 +63,20 @@ for g=1:nCodes
 %             o.z_scoreBleedMatrix(:,ChannelNo)';
 %     end
 
-    if o.Graphics==2
+    if o.Graphics==2 || sum(Use)<o.GeneEfficiencyMinSpots
+        if sum(Use)<o.GeneEfficiencyMinSpots
+            FigNo = 47280+g;
+            warning(['GeneEfficiency set to 1.0 for all rounds of gene %.0f: %s ',...
+                'because only %.0f spots pass thresholding. ',...
+                'Need o.GeneEfficiencyMinSpots=%.0f spots to use ',...
+                'mean code shown in figure %.0f'],...
+                g,o.GeneNames{g},sum(Use),o.GeneEfficiencyMinSpots,FigNo);
+        else
+            FigNo = 47280;
+        end
         CLims = [min(min(NormMeanCode(:)),min(BledCodes(g,:))),...
             max(max(NormMeanCode(:)),max(BledCodes(g,:)))];
-        fig = figure(47280);
+        fig = figure(FigNo);
         fig.Position = [163,312,1150,414];
         subplot(1,3,1);
         imagesc(squeeze(NormMeanCode));

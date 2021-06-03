@@ -65,7 +65,7 @@ for t=1:length(NonemptyTiles)
     %Get local maxima in coefs for each gene
     [tPeakLocalYX,tPeakSpotColors,tPeakCoefs,tPeakNeighbNonZeros,tOriginalTile] = ...
     o.detect_peak_genes_omp(coefs,AllSpotColors,AllAnchorLocalYX,tile_no);
-    clearvars GoodSpotColors GoodAnchorLocalYX;
+    clearvars GoodSpotColors GoodAnchorLocalYX coefs;
     
     %Keep data for all tiles together
     PeakSpotColors = cellfun( @(x,y) [x;y], PeakSpotColors, tPeakSpotColors, 'UniformOutput', false );

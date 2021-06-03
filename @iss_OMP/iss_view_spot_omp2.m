@@ -58,7 +58,10 @@ else
     if nargin<5 || isempty(ScoreMethod)
         ScoreMethod = S.CallMethod;
     elseif ~strcmpi(S.CallMethod,ScoreMethod)
-        S.SpotYX = o.([o.CallMethodPrefix(ScoreMethod),'SpotGlobalYX']);
+        S.QualOK = 1;
+    end
+    S.SpotYX = o.([o.CallMethodPrefix(ScoreMethod),'SpotGlobalYX']);
+    if size(S.SpotYX,1)~=size(S.QualOK,1)
         S.QualOK = 1;
     end
     %Only consider spots that can be seen in current plot
@@ -167,8 +170,7 @@ InRoi = all(int64(round(o.ompSpotGlobalYX))>=min(GlobalYX,[],1) &...
     round(o.ompSpotGlobalYX)<=max(GlobalYX,[],1),2);
 AlgFoundGenes = unique(o.ompSpotCodeNo(InRoi))';
 PlotGenes = unique([PlotGenes,AlgFoundGenes]);
-nRows = floor((length(PlotGenes)-0.000001)/7)+1;
-nCols = min(length(PlotGenes),7);
+ompQualOK = o.quality_threshold('OMP');
 
 %Get Ground Truth Spots
 gtInRoi = cell(max(o.gtRounds),o.nBP);
@@ -190,8 +192,15 @@ se1 = strel('disk', o.PixelDetectRadius);     %Needs to be bigger than in detect
 ImYX = GlobalYX-min(GlobalYX,[],1)+1;
 ImInd = sub2ind(S.ImShape,ImYX(:,1),ImYX(:,2));
 
+%Indicate if local maxima is duplicate
+[AllLocalTile, ~] = which_tile(GlobalYX,...
+    o.TileOrigin(:,:,o.ReferenceRound), o.TileSz);
+NotDuplicate = (AllLocalTile==t);
+
 Fig = figure(38102);
 set(Fig,'Position',[336,123,820,677]);
+nRows = floor((length(PlotGenes)-0.000001)/7)+1;
+nCols = min(length(PlotGenes),7);
 for g=1:length(PlotGenes)
     subplot(nRows, nCols, g);
     CoefIm = reshape(coefs(:,PlotGenes(g)),S.ImShape);
@@ -201,18 +210,22 @@ for g=1:length(PlotGenes)
     set(gca,'YTickLabel',[]);
     set(gca,'XTickLabel',[]);
     hold on
-    l1=scatter(o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),2),...
-        o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g),1),30,'y+','LineWidth',2);
+    l1=scatter(o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g)&ompQualOK,2),...
+        o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g)&ompQualOK,1),100,'+',...
+        'MarkerEdgeColor',[0.5,0.5,0.5],'LineWidth',2);
+    l2=scatter(o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g)&~ompQualOK,2),...
+        o.ompSpotGlobalYX(InRoi&o.ompSpotCodeNo==PlotGenes(g)&~ompQualOK,1),100,'x',...
+        'MarkerEdgeColor',[0.5,0.5,0.5],'LineWidth',2);
     plot(xlim, [S.y0 S.y0], 'k'); plot([S.x0 S.x0], ylim, 'k');
     if ismember(PlotGenes(g),o.gtGeneNo)
         [r,b] = ind2sub(size(o.gtGeneNo),find(o.gtGeneNo==PlotGenes(g)));
-        l2=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==2,2),...
+        l3=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==2,2),...
             o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==2,1),...
-            30,'kx','LineWidth',2);
-        l3=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==1,2),...
+            30,'kv','LineWidth',2);
+        l4=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==1,2),...
             o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==1,1),...
-            30,'ko','LineWidth',2);
-        l4=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==0,2),...
+            30,'k^','LineWidth',2);
+        l5=scatter(o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==0,2),...
             o.gtSpotGlobalYX{r,b}(gtInRoi{r,b}&o.omp_gtFound{r,b}==0,1),...
             30,'kd','LineWidth',2);
     end
@@ -220,17 +233,36 @@ for g=1:length(PlotGenes)
         Dilate = imdilate(CoefIm, se1);
         MaxPixels = find(CoefIm + Small >= Dilate & CoefIm > 0);
         PeakInd = find(ismember(ImInd,MaxPixels));
-        l5=scatter(GlobalYX(PeakInd,2),GlobalYX(PeakInd,1),30,'gs','LineWidth',2);
+        ndPeak = NotDuplicate(PeakInd);
+        l6=scatter(GlobalYX(PeakInd(ndPeak),2),GlobalYX(PeakInd(ndPeak),1),...
+            30,'gs','LineWidth',2);
+        l7=scatter(GlobalYX(PeakInd(~ndPeak),2),GlobalYX(PeakInd(~ndPeak),1),...
+            30,'gx','LineWidth',2);
     end
     hold off
     set(gca, 'YDir', 'normal');
     title([num2str(PlotGenes(g)),': ',S.GeneNames{PlotGenes(g)}]);
 end
 try
-    hL = legend([l1,l2,l3,l4,l5],{'Spots From OMP Alg','GT: Missed',...
-        'GT: Found','GT: Not in Set','Local Maxima with Current Thresholds'});
+    if sum(~NotDuplicate)>0
+        hL = legend([l1,l2,l3,l4,l5,l6,l7],{'ompAlg: Pass QualOK',...
+            'ompAlg: Fail QualOK','GT: Missed',...
+            'GT: Found','GT: Not in Set','Local Maxima with Current Thresholds',...
+            'Duplicate Local Maxima'});
+    else
+        hL = legend([l1,l2,l3,l4,l5,l6],{'ompAlg: Pass QualOK',...
+            'ompAlg: Fail QualOK','GT: Missed',...
+            'GT: Found','GT: Not in Set','Local Maxima with Current Thresholds'});
+    end
 catch
-    hL = legend([l1,l5],{'Spots From OMP Alg','Local Maxima with Current Thresholds'});
+    if sum(~NotDuplicate)>0
+        hL = legend([l1,l2,l6,l7],{'ompAlg: Pass QualOK',...
+            'ompAlg: Fail QualOK','Local Maxima with Current Thresholds',...
+            'Duplicate Local Maxima'});
+    else
+        hL = legend([l1,l2,l6,l7],{'ompAlg: Pass QualOK',...
+            'ompAlg: Fail QualOK','Local Maxima with Current Thresholds'});
+    end
 end
 newPosition = [0.4 0.94 0.2 0.05];
 newUnits = 'normalized';
