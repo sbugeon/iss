@@ -1,4 +1,5 @@
-function [gtTruePositiveSet,thresh] = get_gtTruePositiveSet(o,thresh,OnlyHighOneChannel,MaxSpots)
+function [gtTruePositiveSet,thresh] = get_gtTruePositiveSet(o,thresh,...
+    OnlyHighOneChannel,MaxSpots,FractHighChannelThresh)
 %% o = o.get_gtTruePositiveSet;
 % Returns a logical array that is true for all spots that should be Gad
 % i.e. that have high intensity in ground truth round, ground truth
@@ -6,6 +7,8 @@ function [gtTruePositiveSet,thresh] = get_gtTruePositiveSet(o,thresh,OnlyHighOne
 % If OnlyHighOneChannel == true then:
 % Has to be closer to Line2 (OtherGeneChannelColor=0) than 
 % Line1 (OtherGeneChannelColor=GeneChannelOfInterestColor).
+% This has to be the case for all but a fraction as indicated by 
+% FractHighChannelThresh to be included in the set.
 % I.e. want GeneChannelOfInterestColor high and all OtherGeneChannelColor
 % low in that imaging round only.
 % Else: just require GeneChannelOfInterestColor>thresh.
@@ -14,6 +17,10 @@ function [gtTruePositiveSet,thresh] = get_gtTruePositiveSet(o,thresh,OnlyHighOne
 % selected.
 if nargin<4 || isempty(MaxSpots)
     MaxSpots = inf;
+end
+
+if nargin<5 || isempty(FractHighChannelThresh)
+    FractHighChannelThresh = 0;
 end
 
 Line1 = [0,0;1,1];
@@ -51,7 +58,8 @@ for r=o.gtRounds
                 dist2 = abs(z_scoreColor(:,NonGTRoundChannel(r2b2)));
                 ToUseAll(:,r2b2) = dist2<dist1;
             end
-            ToUse = all(ToUseAll,2);
+            %ToUse = all(ToUseAll,2);
+            ToUse = sum(~ToUseAll,2)<=nRoundChannel*FractHighChannelThresh;
         elseif OnlyHighOneChannel==false
             ToUse = true(length(o.gt_gtColor{r,b}),1);
         end

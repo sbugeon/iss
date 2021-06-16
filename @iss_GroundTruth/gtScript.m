@@ -273,23 +273,25 @@ o.gt_pxSpotScore = cell2mat(o.gt_pxSpotScore);
 o.gt_pxSpotIntensity = cell2mat(o.gt_pxSpotIntensity);
 
 %% Get OMP results for ground truth spots
-o.gt_ompCoefs = cell(sum(o.gtGeneNo(:)>0),1);
-o.gt_ompSpotScore = cell(sum(o.gtGeneNo(:)>0),1);
+%o.gt_ompCoefs = cell(sum(o.gtGeneNo(:)>0),1);
+%o.gt_ompSpotScore = cell(sum(o.gtGeneNo(:)>0),1);
+o.gt_ompCoefs = cell(o.nRounds+o.nExtraRounds,o.nBP);
+o.gt_ompSpotScore = cell(o.nRounds+o.nExtraRounds,o.nBP);
 
-i=1;
+%i=1;
 for r=o.gtRounds
     for b=o.UseChannels
         if o.gtGeneNo(r,b)==0; continue; end
         nPeaks = size(o.gtSpotColors{r,b},1);
         SpotColors = (o.gtSpotColors{r,b}-o.z_scoreSHIFT)./o.z_scoreSCALE;
-        o.gt_ompCoefs{i} = o.get_omp_coefs(SpotColors);
-        o.gt_ompSpotScore{i} = o.get_omp_score(SpotColors,o.gt_ompCoefs{i},...
+        o.gt_ompCoefs{r,b} = o.get_omp_coefs(SpotColors);
+        o.gt_ompSpotScore{r,b} = o.get_omp_score(SpotColors,o.gt_ompCoefs{r,b},...
             ones(nPeaks,1)*o.gtGeneNo(r,b));
-        i=i+1;
+        %i=i+1;
     end
 end
-o.gt_ompCoefs = cell2mat(o.gt_ompCoefs);
-o.gt_ompSpotScore = cell2mat(o.gt_ompSpotScore);
+%o.gt_ompCoefs = cell2mat(o.gt_ompCoefs);
+%o.gt_ompSpotScore = cell2mat(o.gt_ompSpotScore);
 
 %% Get true positive and false positive stats for prob and pixel based methods
 o = get_pf_gtTruePositiveSets(o,'Prob');

@@ -110,12 +110,12 @@ end
 
 i = size(TruePosData.Summary,1)+1;      %INDEX OF DATA TO BE ADDED
 TruePosData.Summary(i,'FileLocation') = ...
-    {fullfile(o.OutputDirectory, 'oOMP3_FullNoWeightsMeanGeneEfficiency')};
+    {fullfile(o.OutputDirectory, 'oOMP_ArtificialGenes')};
 %Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
 %Method = 'Pixel: pQualThresh, ProbMethod = 1, pQualThresh3=51, Median BleedMatrix, Used GeneEfficiencies, Used get_secondary_gene_prob with remove_full_code';
-Method = 'OMP: SpotIntensity is median(Z_scored in Unbled code) and no subtraction, o.ompUseWeights=False FinalThresholding was QualOK = quality_threshold(o,Method), o.ompNeighbThresh2>10. Proper initial OMP, 7 Background Channel Strips, Gene Efficiencies found from Mean Code, Low ResidualThreshParam/Min, iompGoodQualOK = o.iompSpotIntensity>0.1 & o.iompCoef>0.5 & o.iompSpotScore>0.01 & o.iompResOverBackground>0.1;';
+%Method = 'MP_Weights: Use DotProduct>2 as only thresh in OMP. Stop MP iteration when any artificial gene found, SpotIntensity is median(Z_scored in Unbled code) and no subtraction, weight by round, FinalThresholding was QualOK = quality_threshold(o,Method), o.ompNeighbThresh2=5. Proper initial OMP, 7 Background Channel Strips, Gene Efficiencies found from Mean Code';
 %Method = 'Spatial With ompBledCodes(ompBledCodes<0.1)=0';
-%Method = 'OMP: UnBledCodes';
+Method = 'OMP: UnBledCodes, 5 MaxGenes, o.ompNeighbThresh2=9, Lower Residual Thresh, Stop on Artificial or Repeated Genes';
 %Method = 'Spatial';
 Intensity_Method = 'Median Unbled Z_scored';
 %Intensity_Method = 'Mean Unbled';
@@ -341,20 +341,20 @@ QualThresh4(b)
 % LogProbThresh2(d)
 
 %% Testing OMP thresholds
-o.ompNeighbThresh2=10;
-o.ompIntensityThresh2=0.015;
-% % NeighbThresh = 1:4:33;
-% % QualParam2 = -10000:2000:18000;
-% % % ScoreThresh = 0:0.1:0.9;
-% %ScoreThresh = -4:4:24;
-NeighbThresh = 13:1:20;
-% % %QualParam2 = 6000:100:6800;
-QualParam2 = 0.5:0.1:0.8;
-ScoreThresh = 4.2:0.1:4.9;
+%o.ompNeighbThresh2=9;
+%o.ompIntensityThresh2=0.015;
+% NeighbThresh = 1:4:33;
+% QualParam2 = -2:0.5:3;
+% ScoreThresh = -4:4:24;
+% QualParam2 = -10000:2000:18000;
+% ScoreThresh = 0:0.1:0.9;
+% NeighbThresh = 12:1:20;
+% QualParam2 = 0.5:0.1:1.0;
+% ScoreThresh = 4.1:0.1:4.8;
 % ScoreThresh = 0:0.001:0.9;
-% NeighbThresh = o.ompNeighbThresh;
-% QualParam2 = o.ompIntensityThresh;
-% ScoreThresh = o.ompScoreThresh;
+NeighbThresh = o.ompNeighbThresh;
+QualParam2 = o.ompIntensityThresh;
+ScoreThresh = o.ompScoreThresh;
 ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh));
 
 for n=1:length(NeighbThresh)

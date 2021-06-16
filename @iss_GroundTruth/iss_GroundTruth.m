@@ -60,6 +60,14 @@ classdef iss_GroundTruth < iss_PixelBased
         %gtFalsePosMinSep.
         gtFalsePosMinSep = 10;     
         
+        %When finding false positives, will include in FP set, spots with
+        %intensity more than 
+        %gtFalsePosSingleChannelThreshFactor*gtColorFalsePositiveThresh
+        %as long as a fraction <=gtLeniantThresh of the other gtRounds 
+        %are more intense than the round of interest. 
+        gtFalsePosSingleChannelThreshFactor = 1/3;
+        gtLeniantThresh = 0.3;
+        
         %HistCounts(:,b,r) is the pixel count corresponding to each value
         %in HistValues for channel b, round r
         gtHistCounts;

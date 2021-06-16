@@ -43,9 +43,14 @@ if strcmpi(o.gtColorFalsePositiveThresh,'auto')
 end
 [o.gtTruePositiveSet,o.gtColorTruePositiveThresh] = ...
     o.get_gtTruePositiveSet(o.gtColorTruePositiveThresh,true,o.gtTruePositiveMaxSpots);
-%For FalsePositiveSet, relax the constraint that peaks are only high in
+%For FalsePositiveSet1, relax the constraint that peaks are only high in
 %one channel and also use lower threshold.
-gtFalsePositiveSet = o.get_gtTruePositiveSet(o.gtColorFalsePositiveThresh,false);
+%For FalsePositiveSet2, use even lower threshold, but require that only a
+%few gt_channels (fraction is o.gtLeniantThresh) are more intense than round of interest.
+gtFalsePositiveSet1 = o.get_gtTruePositiveSet(o.gtColorFalsePositiveThresh,false);
+gtFalsePositiveSet2 = ...
+    o.get_gtTruePositiveSet(o.gtFalsePosSingleChannelThreshFactor*o.gtColorFalsePositiveThresh,...
+    true,inf,o.gtLeniantThresh);
 
 for r=o.gtRounds
     for b=o.UseChannels
@@ -54,7 +59,8 @@ for r=o.gtRounds
         fprintf('There are %d %s peak spots\n', length(gtSpotGlobalYX_TP),...
             o.GeneNames{o.gtGeneNo(r,b)});
         
-        gtSpotGlobalYX_FP = o.gtSpotGlobalYX{r,b}(gtFalsePositiveSet{r,b},:);
+        rbFalsePositiveSet = gtFalsePositiveSet1{r,b} | gtFalsePositiveSet2{r,b};
+        gtSpotGlobalYX_FP = o.gtSpotGlobalYX{r,b}(rbFalsePositiveSet,:);
         
         %For each point GadPeakTruePositive, find nearest Gad spot found by pixel
         %based method

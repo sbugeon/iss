@@ -2,6 +2,7 @@ function gt_plot(o,Method)
 %% o.gt_plot('Method');
 % visually display ground truth spots found and missed.
 %Sort gene numbers by round then channel.
+pf = o.CallMethodPrefix(Method);
 S.GeneNoIndices = find(o.gtGeneNo>0);
 [r,b] = find(o.gtGeneNo>0);
 S.GeneNoIndices = sortrows([S.GeneNoIndices,r,b],[2,3]);
@@ -9,7 +10,12 @@ S.GeneNoIndices = S.GeneNoIndices(:,1);
 gtImagesCell = cell(size(S.GeneNoIndices));
 for i=1:length(S.GeneNoIndices)
     [r,b] = ind2sub(size(o.gtGeneNo),S.GeneNoIndices(i));
-    gtImagesCell{i} = imread(o.gtBigImFiles{r,b})-o.TilePixelValueShift;
+    try
+        gtImagesCell{i} = imread(o.gtBigImFiles{r,b})-o.TilePixelValueShift;
+    catch
+        MaxYX = ceil(max(o.([pf,'SpotGlobalYX'])));
+        gtImagesCell{i} = zeros(MaxYX(:,2),MaxYX(:,1),'uint16');
+    end
 end
 %Make dimension of all background images the same so zoom maintained.
 XY_Dim = cell2mat(cellfun(@size,gtImagesCell,'uni',false));
