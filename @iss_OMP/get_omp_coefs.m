@@ -23,7 +23,7 @@ fprintf('Percentage of spot coefs found:       ');
 for s=1:nSpots
     if NonZeroSpots(s)
         coefs(s,:) = omp_free_background(BledCodes(:,:)',z_scoredSpotColors(s,:)',...
-            o.ompMaxGenes,ResidualThresh(s),nCodes+1:nCodes+o.nBackground)';
+            o.ompMaxGenes,ResidualThresh(s),nCodes+1:nCodes+o.nBackground,1:nCodes)';
     end
     if mod(s,round(nSpots/100))==0
         Percent = sprintf('%.6f', round(s*100/nSpots));

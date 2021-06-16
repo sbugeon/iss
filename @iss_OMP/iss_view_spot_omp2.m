@@ -54,11 +54,16 @@ else
     end
     CrossHairColor = [1,1,1];   %Make white as black background
     xy = ginput_modified(1,CrossHairColor);
-    S = evalin('base', 'issPlot2DObject');
-    if nargin<5 || isempty(ScoreMethod)
-        ScoreMethod = S.CallMethod;
-    elseif ~strcmpi(S.CallMethod,ScoreMethod)
+    try
+        S = evalin('base', 'issPlot2DObject');
+        if nargin<5 || isempty(ScoreMethod)
+            ScoreMethod = S.CallMethod;
+        elseif ~strcmpi(S.CallMethod,ScoreMethod)
+            S.QualOK = 1;
+        end
+    catch
         S.QualOK = 1;
+        S.Roi = [1,inf,1,inf];
     end
     S.SpotYX = o.([o.CallMethodPrefix(ScoreMethod),'SpotGlobalYX']);
     if size(S.SpotYX,1)~=size(S.QualOK,1)
@@ -153,7 +158,7 @@ S.y0 = ImSz+1;
 coefs = zeros(nSpots,S.nCodes+S.nBackground);
 for s=1:nSpots
     coefs(s,:) = omp_free_background(S.NormBledCodes',S.NormSpotColors(s,:)',...
-        o.ompMaxGenes,S.ResidualThresh(s),S.nCodes+1:S.nCodes+S.nBackground)';
+        o.ompMaxGenes,S.ResidualThresh(s),S.nCodes+1:S.nCodes+S.nBackground,1:S.nCodes)';
 end
 fprintf('\n');
 
@@ -260,7 +265,7 @@ catch
             'ompAlg: Fail QualOK','Local Maxima with Current Thresholds',...
             'Duplicate Local Maxima'});
     else
-        hL = legend([l1,l2,l6,l7],{'ompAlg: Pass QualOK',...
+        hL = legend([l1,l2,l6],{'ompAlg: Pass QualOK',...
             'ompAlg: Fail QualOK','Local Maxima with Current Thresholds'});
     end
 end

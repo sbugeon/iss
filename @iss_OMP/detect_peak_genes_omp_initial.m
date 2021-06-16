@@ -56,19 +56,28 @@ BledCodes = BledCodes./vecnorm(BledCodes(:,:),2,2);
 BledCodes(isnan(BledCodes)) = 0;
 %% PROPER METHOD: Get residual reduction obtained by removing each gene in addition to 
 %that achieved by removing background
+nSpots = size(z_scoredSpotColors,1);
 z_scoredSpotColors = z_scoredSpotColors(:,:)';
-BackgroundResNorm = o.get_spot_residual(BledCodes',z_scoredSpotColors,...
+%AllSpotIntensity(i) is the 4th largest value of AllSpotColors(i,:) if
+%o.nRounds=7, i.e. this is saying we need high intensity in at least
+%one channel in half the number of rounds to be a gene.
+AllSpotIntensity = prctile(z_scoredSpotColors,...
+    (o.nRounds*o.nBP-o.nRounds/2)*100/(o.nRounds*o.nBP))';
+Use = AllSpotIntensity>o.iompInitialIntensityThresh;
+z_scoredSpotColors = z_scoredSpotColors(:,Use);
+BackgroundResNorm = zeros(nSpots,1);
+BackgroundResNorm(Use) = o.get_spot_residual(BledCodes',z_scoredSpotColors,...
     nCodes+1:nCodes+nBackground);
-AllResOverBackground = zeros(size(GoodSpotColors,1),nCodes);
-AllCoef = zeros(size(GoodSpotColors,1),nCodes);
+AllResOverBackground = zeros(nSpots,nCodes);
+AllCoef = zeros(nSpots,nCodes);
 fprintf('Finding residual after removing gene     ');
 for GeneNo = 1:nCodes
     g_num = sprintf('%.6f', GeneNo);
     fprintf('\b\b\b\b%s',g_num(1:4));
     [gResNorm,gCoef] = o.get_spot_residual(BledCodes',z_scoredSpotColors,...
         [nCodes+1:nCodes+nBackground,GeneNo]);
-    AllResOverBackground(:,GeneNo) = BackgroundResNorm - gResNorm;
-    AllCoef(:,GeneNo) = gCoef(:,end);   
+    AllResOverBackground(Use,GeneNo) = BackgroundResNorm(Use) - gResNorm;
+    AllCoef(Use,GeneNo) = gCoef(:,end);   
 end
 fprintf('\n');
 clear BackgroundResNorm gCoef gResNorm z_scoredSpotColors

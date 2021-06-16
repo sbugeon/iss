@@ -82,6 +82,14 @@ classdef iss_OMP < iss_GroundTruth
         % non zero pixels near it.
         ompInitialNeighbThresh = 2;
         
+        % To save time in call_spots_omp:
+        % If BasePixels are pixels with 4th (ceil(o.nRounds/2))
+        % largest z_scoredSpotColor greater than ompInitialIntensityThresh
+        % Then OMP only carried out on pixels closer than
+        % o.PixelDetectRadius to these.
+        % Will probably have ompInitialIntensityThresh = ompIntensityThresh2
+        ompInitialIntensityThresh = 0.0150;
+        
         %For quality_threshold:
         %Spots must have  ompSpotIntensity2>ompIntensityThresh2 &
         %ompNeighbNonZeros > ompNeighbThresh2 &...
@@ -144,6 +152,13 @@ classdef iss_OMP < iss_GroundTruth
         %that can be stored in a single file. Output data to files so don't
         %get memory problems.
         OMPFileMaxTiles = 6;
+        
+        % To save time in call_spots_omp_initial:
+        % iOMP only carried out on pixels with 4th (ceil(o.nRounds/2))
+        % largest z_scoredSpotColor greater than iompInitialIntensityThresh
+        % Will probably have iompInitialIntensityThresh =
+        % GeneEfficiencyIntensityThresh.
+        iompInitialIntensityThresh = 0.1;
         
         % iompSpotColors(Spot, Base, Round) contains spot color on each base
         % and round.
@@ -218,6 +233,8 @@ classdef iss_OMP < iss_GroundTruth
         % include the effect GeneEfficiency(g,r) on gene g, round r.
         % These are the gene bled codes used in the final omp search.
         z_scoreBledCodes;
+        
+
         
     end
 end

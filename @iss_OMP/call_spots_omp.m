@@ -60,7 +60,17 @@ for t=1:length(NonemptyTiles)
     %Get pixel colors
     [AllAnchorLocalYX,AllSpotColors] = o.get_spot_colors_all_pixels(tile_no);
     AllSpotColors = (double(AllSpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
-    coefs = o.get_omp_coefs(AllSpotColors);
+    %AllSpotIntensity(i) is the 4th largest value of AllSpotColors(i,:) if
+    %o.nRounds=7, i.e. this is saying we need high intensity in at least
+    %one channel in half the number of rounds to be a gene.
+    AllSpotIntensity = prctile(AllSpotColors(:,:)',...
+        (o.nRounds*o.nBP-o.nRounds/2)*100/(o.nRounds*o.nBP))';
+    tree = KDTreeSearcher(...
+        double(AllAnchorLocalYX(AllSpotIntensity>o.ompInitialIntensityThresh,:)));
+    [~,Dist] = tree.knnsearch(double(AllAnchorLocalYX),'K',1);
+    Use = Dist<o.PixelDetectRadius;
+    coefs = zeros(size(AllSpotIntensity,1),nCodes+o.nBackground);
+    coefs(Use,:) = o.get_omp_coefs(AllSpotColors(Use,:,:));
     
     %Get local maxima in coefs for each gene
     [tPeakLocalYX,tPeakSpotColors,tPeakCoefs,tPeakNeighbNonZeros,tOriginalTile] = ...

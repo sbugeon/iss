@@ -222,5 +222,6 @@ set(gca,'XColor','w');
 set(gca,'YColor','w');
 set(gca, 'color', 'k');
 hold off
+drawnow;
 end
 
