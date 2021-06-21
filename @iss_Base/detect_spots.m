@@ -71,7 +71,13 @@ while nPeaks < o.minPeaks
     nPeaks = size(MaxPixels,1);
     i = i+1;
 end
-
+if ~(r==o.ReferenceRound && c==o.ReferenceChannel)
+    MaxPixelIntensity = Image(MaxPixels);
+    [~,SortIndex] = sort(MaxPixelIntensity,'descend');
+    if nPeaks>o.DetectSpotsMaxSpots
+        MaxPixels = MaxPixels(SortIndex(1:o.DetectSpotsMaxSpots));
+    end
+end
 [yPeak, xPeak] = ind2sub(size(Image), MaxPixels);
 PeakPos = [yPeak, xPeak];
 Image = int32(round(Image));    %Don't need random shift for finding isolated spots

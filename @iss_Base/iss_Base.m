@@ -284,6 +284,13 @@ classdef iss_Base
         %MinThresh is the smallest value DectionThresh can get to       
         MinThresh = 10;
         
+        %If spots detected on particular imaging round is greater than
+        %this, then will only select the DetectSpotsMaxSpots most intense
+        %spots. I.e. PCR works better if trying to fit fewer more intense
+        %spots. This only applies to imaging rounds and not reference round
+        %and channel as need lots of spots for this image. 
+        DetectSpotsMaxSpots = 1500;
+        
         %MinSpots is the smallest number of spots on a round/tile for a
         %particular colour channel for hat color channel to be deemed
         %suitable for finding the initial shifts to the anchor round. If

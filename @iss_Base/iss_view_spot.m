@@ -112,7 +112,7 @@ load(fullfile(o.OutputDirectory, 'FindSpotsWorkspace.mat'), 'AllBaseLocalYX');
     RoundTile,AllBaseLocalYX);
 if SpotLocation==true
     if max(max(abs(double(o.([pf,'SpotColors'])(SpotNo,:,o.UseRounds(o.UseRounds<=o.nRounds)))...
-            -SpotColor(:,:,o.UseRounds(o.UseRounds<=o.nRounds)))))>0
+            -SpotColor(:,:,o.UseRounds(o.UseRounds<=o.nRounds)))))>1e-10
         warning('Spot Color found is different from than in o object');
     end
 end
