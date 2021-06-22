@@ -40,7 +40,7 @@ ExcludeGenes = {};
 AllGeneNames = o.GeneNames(o.([pf,'SpotCodeNo']));
 IncludeSpot = ~ismember(AllGeneNames, ExcludeGenes) ...
     & inpolygon(o.([pf,'SpotGlobalYX'])(:,1), o.([pf,'SpotGlobalYX'])(:,2), o.CellCallRegionYX(:,1), o.CellCallRegionYX(:,2)) ...
-    & o.quality_threshold('Method');
+    & o.quality_threshold(Method);
 % SpotYX is only the spots we are bothered with, in global coordinates
 SpotYX = round(o.([pf,'SpotGlobalYX'])(IncludeSpot,:));
 SpotGeneName = AllGeneNames(IncludeSpot);
