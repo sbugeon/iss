@@ -1,5 +1,5 @@
 function o = call_cells(o, gSet, Method, BackgroundImage)
-% o = o.call_cells(gSet)
+% o = o.call_cells(gSet,'Method')
 %  
 % Cell calling via negative binomial model
 % 
@@ -13,6 +13,7 @@ function o = call_cells(o, gSet, Method, BackgroundImage)
 % note that the last class is a zero-expressing cell; the last cell is background
 if nargin<2 || isempty(Method)
     Method = 'DotProduct';
+    warning('Method not provided, using DotProduct.');
 end
 if ~ismember({Method},o.CallMethods)
     error('Method invalid, must be member of o.CallMethods.');
