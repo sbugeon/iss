@@ -1,16 +1,24 @@
-function o = call_cells(o, gSet, BackgroundImage)
+function o = call_cells(o, gSet, Method, BackgroundImage)
 % o = o.call_cells(gSet)
 %  
 % Cell calling via negative binomial model
 % 
 % input gSet: GeneSet structure containing results of scRNAseq clustering
+% Method = 'DotProduct','Prob','Pixel' or 'OMP' to consider gene assignments given
+% by o.dpSpotCodeNo, o.pSpotCodeNo, o.pxSpotCodeNo, o.ompSpotCodeNo respectively.
 %
 % Creates outputs: 
 % pCellClass: posterior probability of each cell to be in each class (nCells*nClasses)
 % pSpotCell: posterior probability of each spot to be in top 5 neighboring cells (nSpots * nCells, sparse)
 % note that the last class is a zero-expressing cell; the last cell is background
-
-if nargin<3
+if nargin<2 || isempty(Method)
+    Method = 'DotProduct';
+end
+if ~ismember({Method},o.CallMethods)
+    error('Method invalid, must be member of o.CallMethods.');
+end
+pf = o.CallMethodPrefix(Method);
+if nargin<4
     BackgroundImage = [];
 end
 %% load properties of local region of interest
@@ -28,12 +36,12 @@ Class2 = 'Zero';
 %ExcludeGenes = {'Vsnl1'};
 ExcludeGenes = {};
 %% include correct spots
-AllGeneNames = o.GeneNames(o.SpotCodeNo);
+AllGeneNames = o.GeneNames(o.([pf,'SpotCodeNo']));
 IncludeSpot = ~ismember(AllGeneNames, ExcludeGenes) ...
-    & inpolygon(o.SpotGlobalYX(:,1), o.SpotGlobalYX(:,2), o.CellCallRegionYX(:,1), o.CellCallRegionYX(:,2)) ...
-    & o.quality_threshold;
+    & inpolygon(o.([pf,'SpotGlobalYX'])(:,1), o.([pf,'SpotGlobalYX'])(:,2), o.CellCallRegionYX(:,1), o.CellCallRegionYX(:,2)) ...
+    & o.quality_threshold('Method');
 % SpotYX is only the spots we are bothered with, in global coordinates
-SpotYX = round(o.SpotGlobalYX(IncludeSpot,:));
+SpotYX = round(o.([pf,'SpotGlobalYX'])(IncludeSpot,:));
 SpotGeneName = AllGeneNames(IncludeSpot);
 
 y0 = min(o.CellCallRegionYX(:,1));

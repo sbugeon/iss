@@ -2,8 +2,8 @@ function QualOK = quality_threshold(o,Method)
 % QualOK = o.quality_threshold
 % quick function that returns a binary saying which spots are above quality
 % threshold
-%Method = 'DotProduct','Prob' or 'Pixel' to consider gene assignments given
-%by o.SpotCodeNo, o.pSpotCodeNo and o.pxSpotCodeNo respectively.
+%Method = 'DotProduct','Prob','Pixel' or 'OMP' to consider gene assignments given
+%by o.dpSpotCodeNo, o.pSpotCodeNo, o.pxSpotCodeNo, o.ompSpotCodeNo respectively.
 
 if nargin<2 || isempty(Method)
     Method = 'DotProduct';
