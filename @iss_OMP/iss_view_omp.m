@@ -64,7 +64,7 @@ SpotGlobalYX = o.([pf,'SpotGlobalYX'])(SpotNo,:);
 SpotCoefs = o.([pf,'Coefs'])(SpotNo,:);
 SpotScore = o.([pf,'SpotScore'])(SpotNo);
 SpotNeighbNonZero = o.([pf,'NeighbNonZeros'])(SpotNo);
-SpotIntensity = o.([pf,'SpotIntensity'])(SpotNo);
+SpotIntensity = o.([pf,'SpotIntensity2'])(SpotNo);
 %PredCode is scaled and shifted (Norm 2)
 PredCode = SpotCoefs*o.([pf,'BledCodes'])(:,:);
 PredCode = reshape(PredCode,CodeShape);
@@ -100,7 +100,7 @@ ScoreMatrix = get_omp_score(o,(double(SpotColor)-o.z_scoreSHIFT)./o.z_scoreSCALE
 v0 = min(-0.2,min(cSpotColor(:)));
 v1 = max(0.2,max(cSpotColor(:)));
 caxis_lims = [v0 v1];
-score_caxis_lims = [-2, 2];
+score_caxis_lims = [-o.ompScore_LargeErrorMax, o.ompScore_LargeErrorMax];
 
 if IncludeGT
     gtSpotColor = o.([pf,'_gtColor'])(SpotNo,:,o.gtRounds);
@@ -260,7 +260,7 @@ set(ClickPlot,'ButtonDownFcn',{@getCoord,o,CodeShape,CodeShapeSqueeze,...
 % 
 set(gcf,'Position',[409,92,793,707])
 figtitle = sgtitle('', 'interpreter', 'tex','Color','w');   %'tex' required for colors
-figtitle.String = sprintf('Spot %d: code %d, %s. Coef = %.2f, NeighbNonZero = %d, Score = %.2f, Intensity = %.0f',...
+figtitle.String = sprintf('Spot %d: code %d, %s. Coef = %.2f, NeighbNonZero = %d, Score = %.2f, Intensity = %.3f',...
     SpotNo, CodeNo, o.GeneNames{CodeNo}, SpotCoefs(CodeNo), SpotNeighbNonZero,SpotScore,SpotIntensity);
 %figtitle.Color='red';
 %drawnow
@@ -274,6 +274,7 @@ if nargin>=4 && ishandle(FigNo)
     rect = findall(gcf,'Type', 'Rectangle');
     delete(rect);
 end
+figure(430476599);
 end
 
 function getCoord(aH,evnt,o,CodeShape,CodeShapeSqueeze,code_sq_color,error_sq_color,...

@@ -90,17 +90,38 @@ classdef iss_OMP < iss_GroundTruth
         % Will probably have ompInitialIntensityThresh = ompIntensityThresh2
         ompInitialIntensityThresh = 0.0150;
         
+        %For ompSpotScore:
+        %GeneEfficiency(g,r)<ompScore_GeneEfficiencyThresh means don't use
+        %round r for gene g when getting ompSpotScore.
+        ompScore_GeneEfficiencyThresh = 0.1;
+        %Score Preferentially weights rounds/channels with large error:
+        %Rounds/Channels where error larger than ompScore_LargeErrorPrcntileThresh
+        %of all rounds/channels for that spot are treated as large.
+        ompScore_LargeErrorPrcntileThresh = 80;
+        %Rounds/Channels where error is larger than
+        %ompScore_LargeErrorMax*ompScore_LargeErrorPrcntileThreshValue is set to 
+        %ompScore_LargeErrorMax*ompScore_LargeErrorPrcntileThreshValue
+        ompScore_LargeErrorMax = 3;
+        
         %For quality_threshold:
         %Spots must have  ompSpotIntensity2>ompIntensityThresh2 &
         %ompNeighbNonZeros > ompNeighbThresh2 &...
         %(ompSpotIntensity2>ompIntensityThresh | ompNeighbNonZeros >
         %ompNeighbThresh | ompSpotScore | ompScoreThresh);
         %ompNeighbNonZeros>ompNeighbThresh or ompSpotScore>ompScoreThresh.
-        ompIntensityThresh = 0.7;       
-        ompIntensityThresh2 = 0.015;
-        ompNeighbThresh = 16;       
+        ompIntensityThresh = 0.5;       
+        ompIntensityThresh2 = 0.005;
+        ompNeighbThresh = 18;       
         ompNeighbThresh2 = 10;
-        ompScoreThresh = 4.5;         
+        ompScoreThresh = 4.3;    
+        ompScoreThresh2 = 1.1;
+        
+        %Spots assigned to gene that is not largest coefficient for pixel
+        %have a stornger thresholding as given by these:
+        ompIntensityThresh3 = 0.01;
+        ompIntensityThresh3_CoefDiffFactor = 0.27;
+        ompNeighbThresh3 = 28;
+        ompScoreThresh3 = 6.9;
         
         %% OMP method outputs
         
@@ -121,9 +142,9 @@ classdef iss_OMP < iss_GroundTruth
         %ompSpotCodeNo(s) in the z_scored ompSpotColors(s,:).
         ompSpotIntensity2;
                       
-        %ompScore is the reduction in error caused by introduction of gene in
-        %rounds/channels where there is not already a gene. Given by
-        %get_omp_score
+        %ompScore is the based onreduction in error caused by introduction 
+        %of gene in rounds/channels where there is not already a gene. 
+        %Given by get_omp_score
         ompSpotScore;
                 
         %ompSpotCodeNo is the gene found for each spot

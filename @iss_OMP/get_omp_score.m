@@ -1,7 +1,12 @@
 function NormExpScore = get_omp_score(o,z_scoredSpotColors,OriginalCoefs,SpotCodeNo)
-%% ModScore = get_omp_score(o)
-% omp score is reduction in error caused by introduction of gene in
+%% ModScore = o.get_omp_score(z_scoredSpotColors,OriginalCoefs,SpotCodeNo)
+% omp score is based on the reduction in error caused by introduction of gene in
 % rounds/channels where there is not already a gene.
+% It is normalised so independent of spot intensity
+% A perfect spot would have a score of about 1 in each round so a total score of 7. 
+% (Can get a better than this but just to give a order of magnitude
+% for good spots. Actual best score is o.ompScore_LargeErrorMax*o.nRounds). 
+%
 % z_scoredSpotColors: spot colors that have been z-scored by channel and
 % round.
 % OriginalCoefs(s,g) is the coefficient of spot s for gene g found by the
@@ -17,38 +22,61 @@ if nargin==1
     SpotCodeNo = o.([pf,'SpotCodeNo']);
 end
 
+%% Overall score is difference between the residual after all genes 
+% added to when all but gene specified by SpotCodeNo(s) added.
 nSpots = length(SpotCodeNo);
-OriginalPredCodes = OriginalCoefs*o.ompBledCodes(:,:);
+FinalPredCodes = OriginalCoefs*o.ompBledCodes(:,:);
 BestGeneIndex = sub2ind(size(OriginalCoefs),(1:nSpots)',SpotCodeNo);
 RemoveGeneCoefs = OriginalCoefs;
 RemoveGeneCoefs(BestGeneIndex) = 0;
 RemoveGenePredCodes = RemoveGeneCoefs*o.ompBledCodes(:,:);
-OriginalError = abs(z_scoredSpotColors(:,:)-OriginalPredCodes);
+FinalError = abs(z_scoredSpotColors(:,:)-FinalPredCodes);
 RemoveGeneError = abs(z_scoredSpotColors(:,:)-RemoveGenePredCodes); 
+OverallScore = RemoveGeneError - FinalError;
 
-%AbsErrorFactor so rounds/channels where error is greater contribute more
-%THE FACTORS HERE E.G. 80, 0.5, 1.5 MAY NEED MORE THOUGHT
-AbsErrorFactor = RemoveGeneError./prctile(RemoveGeneError',80)';
-AbsErrorFactor(AbsErrorFactor<0.5)=0.5;
-AbsErrorFactor(AbsErrorFactor>1.5)=1.5;
-OverallScore = RemoveGeneError - OriginalError;
+%% Get multiplier to modify OverallScore so only rounds/channels in 
+% the unbled code for specfied gene contribute. Also, if round in
+% unbled code but gene efficiency very low (i.e. RCPs failed in that
+% round) then don't include. 
 
-%Get multiplier that only takes into account rounds/channels in unbled code
 nCodes = length(o.CharCodes);
 GeneMultiplier = zeros(o.nRounds*o.nBP,nCodes);
 for g=1:nCodes
     GeneMultiplier(:,g) = o.UnbledCodes(g,:);
 end
 GeneMultiplier(:,nCodes+1) = 0;     %Use when no overlapping spots
+%Set Low Gene Efficiency Rounds to all not in unbled code 
+%i.e. forget these rounds
+GeneEfficiency = repelem(o.GeneEfficiency,1,o.nBP)';
+GeneEfficiency(:,nCodes+1) = 0;
+FailedGeneRound = GeneEfficiency<o.ompScore_GeneEfficiencyThresh;
+GeneUnbledFailedRounds = FailedGeneRound+GeneMultiplier==2;
+GeneMultiplier(FailedGeneRound)=0;
 ScoreMultiplier = GeneMultiplier(:,SpotCodeNo);
+ModScore = OverallScore.*ScoreMultiplier';
+%Normalise score because want score metric independent of intensity to go
+%with other metrics (SpotIntensity and NeighbNonZeros) that do depend on
+%intensity).
+NormModScore = ModScore./RemoveGeneError;
 
-%Now want to modify this so neglect rounds/channels which already have a
-%gene in.
+%% When looking at codes, the gene looks more likely if it explains rounds
+% that have large error so give larger weightings to these through
+% AbsErrorFactor. Precise form is through trial and error - 
+% By larger error we mean more than 80th (o.ompScore_LargeErrorPrcntileThresh)
+% percentile and don't want to
+% overly weight one anomalously large round/channel hence upper bound.
+AbsErrorFactor = RemoveGeneError./prctile(RemoveGeneError',...
+    o.ompScore_LargeErrorPrcntileThresh)';
+AbsErrorFactor(AbsErrorFactor<1)=1;
+AbsErrorFactor(AbsErrorFactor>o.ompScore_LargeErrorMax)=o.ompScore_LargeErrorMax;
+
+%% Now want to modify this so neglect rounds which already have a
+%positive gene in. Every gene needs to explain something on their own independent 
+%of what other genes present
 [CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:73)','descend');
 SortedCoefs = SortedCoefs';
 CoefValues=CoefValues';
 SortedCoefs(CoefValues<=0) = nCodes+1;
-
 %Deal with each overlapping genes in turn until no spot has any more genes
 MinCodeNo = 1;
 nOverlaps = 0;
@@ -59,20 +87,36 @@ while MinCodeNo<nCodes+1
         GeneMultiplier(:,SortedCoefs(:,nOverlaps));
     MinCodeNo=min(SortedCoefs(:,nOverlaps));
 end
-ScoreMultiplier(ScoreMultiplierOverlaps>1&ScoreMultiplier==1)=0.15;
-%nRoundChannelsNorm = o.nRounds./sum(ScoreMultiplier==1)';
-nRoundChannelsNorm=1;
 
-ModScore = OverallScore.*ScoreMultiplier';
-NormModScore = ModScore./RemoveGeneError;
-ExpScore = (exp(NormModScore)-1).*AbsErrorFactor;
+% %Set genes that are by far the best to have no overlap i.e. use all rounds
+% %for clear matches DOESN'T MAKE TOO MUCH DIFFERENCE
+% SpotInd = sub2ind(size(OriginalCoefs),(1:length(SpotCodeNo))',SpotCodeNo);
+% SpotCoef = OriginalCoefs(SpotInd);
+% SortCoef = sort(abs(OriginalCoefs(:,1:73)),2,'descend');
+% GoodMatch = SpotCoef-SortCoef(:,2)>0;
+% ScoreMultiplierOverlaps(:,GoodMatch) = 0;
+
+%Set rounds/channels overlapping with other gene = 0.
+AbsErrorFactor(ScoreMultiplierOverlaps'>1&ScoreMultiplier'==1)=0;
+%Set rounds where Gene RCPS failed to 0.
+AbsErrorFactor(GeneUnbledFailedRounds(:,SpotCodeNo)')=0;
+%For spots with overlapping genes or that match to genes with failed rounds,
+%give more weight to other rounds to compensate for less rounds used in score.
+nRoundsUsed = max(o.nRounds-sum(AbsErrorFactor==0,2),1);
+nRoundsUsedNorm = o.nRounds./nRoundsUsed;
+
+%% Combine factors
+% Again, through trial and error. Use exponential as to put a lower bound
+% on how bad single round can be i.e. min(ExpScore) = -AbsErrorFactor.
+% Use log(2) factor so limit on how good single round can be is same as
+% limit on how bad round can be. 
+% I.e. max(NormModScore)=1 so max(ExpScore) = AbsErrorFactor
+ExpScore = (exp(NormModScore*log(2))-1).*AbsErrorFactor;
 if nSpots>1
     ExpScore = sum(ExpScore,2);
-    NormExpScore = ExpScore.*nRoundChannelsNorm;
+    NormExpScore = ExpScore.*nRoundsUsedNorm;
 else
-    NormExpScore = reshape(ExpScore.*nRoundChannelsNorm,o.nRounds,o.nBP);
+    NormExpScore = reshape(ExpScore.*nRoundsUsedNorm,...
+        o.nRounds,o.nBP);
 end
-%ModScore = sum(ModScore,2)./nRoundChannelsUsed;
-%Fraction of error present without gene is removed due to gene
-%ModScore = sum(ModScore,2)./RemoveGeneErrorSum; 
 end
