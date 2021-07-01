@@ -9,9 +9,9 @@ o = iss_PixelBased;
 o.AnchorRound = 8;              %Round that contains Dapi image
 o.AnchorChannel =  ;            %Channel that has most spots in o.AnchorRound
 o.DapiChannel = 1;              %Channel in o.AnchorRound that contains Dapi images
-o.InitialShiftChannel = 4;      %Channel to use to find initial shifts between rounds
-o.ReferenceRound = 4;           %Global coordinate system is built upon o.ReferenceRound and
-o.ReferenceChannel = 4;         %o.ReferenceChannel. If RefRound = AnchorRound, this has to be AnchorChannel.
+o.InitialShiftChannel = o.AnchorChannel;      %Channel to use to find initial shifts between rounds
+o.ReferenceRound = o.AnchorRound;           %Global coordinate system is built upon o.ReferenceRound and
+o.ReferenceChannel = o.AnchorChannel;         %o.ReferenceChannel. If RefRound = AnchorRound, this has to be AnchorChannel.
 o.RawFileExtension = '.nd2';    %Format of raw data
 o.LogToFile = 1;                %Set to 1 if you want to save command window to txt file, else set to 0.
 o.StripHack = true;             %Hack to deal with strips of all zeros in raw data. Recommend on.
@@ -20,6 +20,9 @@ o.StripHack = true;             %Hack to deal with strips of all zeros in raw da
 %CHECK BEFORE EACH RUN
 o.InputDirectory = '...\Experiment1\raw_data';     %Folder path of raw data
 
+o.nBP = 7;              %Number of Channels
+o.nRounds = 7;          %Number of Imaging Rounds
+o.nExtraRounds = 1;     %Treat Anchor channel as extra round
 %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
 o.FileBase = cell(o.nRounds+o.nExtraRounds,1);
 o.FileBase{1} = 'round0';
@@ -47,10 +50,9 @@ end
 %% extract and filter
 
 %parameters
-o.nRounds = 7;
-o.nExtraRounds = 1;         %Treat Anchor channel as extra round
 o.FirstBaseChannel = 1;
-o.bpLabels = {'0', '1', '2', '3','4','5','6'}; %order of bases
+%o.bpLabels = {'0', '1', '2', '3','4','5','6'}; %order of bases
+o.bpLabels = cellstr(num2str((0:o.nBP-1)'))';
 
 %These specify the dimensions of the filter. R1 should be approximately the
 %radius of the spot and R2 should be double this.
@@ -64,6 +66,17 @@ o.TilePixelValueShift = 15000;
 o.MaxWaitTime1 = 60;      %Less time for round 1 incase name is wrong
 o.MaxWaitTime = 21600;  
 
+%Errors to ensure channels/rounds selected correctly
+if o.InitialShiftChannel>o.nBP
+    error('Ensure o.InitialShiftChannel <= o.nBP = %.0f',o.nBP);
+end
+if o.ReferenceChannel>o.nBP
+    error('Ensure o.AnchorChannel <= o.nBP = %.0f',o.nBP);
+end
+if o.ReferenceRound>o.nRounds+o.nExtraRounds
+    error('Ensure o.ReferenceRound <= o.nRounds+o.nExtraRounds = %.0f',...
+        o.nRounds+o.nExtraRounds);
+end
 %run code
 save(fullfile(o.OutputDirectory, 'oExtract'), 'o', '-v7.3');
 try
@@ -101,7 +114,6 @@ o.RegWidenSearch = [50,50];
 
 %If a channel or round is faulty, you can ignore it by selecting only the
 %good ones in o.UseChannels and o.UseRounds.
-o.nBP = 7;
 o.UseChannels = 1:o.nBP;
 o.UseRounds = 1:o.nRounds;
 
