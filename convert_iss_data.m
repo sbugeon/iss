@@ -93,6 +93,8 @@ end
 
 %With some old versions, PCR did not include centering.
 if isempty(o.TileCentre)
+    warning(['Old Data did not include TileCentre. ',...
+        'So Run find_spots2 again before re-running any call_spots algorithms.']);
     o.TileCentre = 0.5*[o.TileSz+1,o.TileSz+1];
 end
 
