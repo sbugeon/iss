@@ -91,5 +91,8 @@ if ~isempty(o.pxSpotGlobalYX)
     o.pxLocalTile = o.get_local_tile(o.pxSpotGlobalYX);
 end
 
+%With some old versions, PCR did not include centering.
+if isempty(o.TileCentre)
+    o.TileCentre = 0.5*[o.TileSz+1,o.TileSz+1];
 end
 
