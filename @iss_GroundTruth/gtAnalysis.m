@@ -110,12 +110,12 @@ end
 
 i = size(TruePosData.Summary,1)+1;      %INDEX OF DATA TO BE ADDED
 TruePosData.Summary(i,'FileLocation') = ...
-    {fullfile(o.OutputDirectory, 'oOMP_ArtificialGenes')};
+    {fullfile(o.OutputDirectory, 'oOMP_NewPCR_NewSpotScore')};
 %Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
 %Method = 'Pixel: pQualThresh, ProbMethod = 1, pQualThresh3=51, Median BleedMatrix, Used GeneEfficiencies, Used get_secondary_gene_prob with remove_full_code';
 %Method = 'MP_Weights: Use DotProduct>2 as only thresh in OMP. Stop MP iteration when any artificial gene found, SpotIntensity is median(Z_scored in Unbled code) and no subtraction, weight by round, FinalThresholding was QualOK = quality_threshold(o,Method), o.ompNeighbThresh2=5. Proper initial OMP, 7 Background Channel Strips, Gene Efficiencies found from Mean Code';
 %Method = 'Spatial With ompBledCodes(ompBledCodes<0.1)=0';
-Method = 'OMP: UnBledCodes, 5 MaxGenes, o.ompNeighbThresh2=9, Lower Residual Thresh, Stop on Artificial or Repeated Genes';
+Method = 'OMP: Use PCR with max 1500 spots on each imaging tile, o.ompNeighbThresh2=10, o.ompScoreThresh2=1.1. Include Higher Thresh for Non Max Genes';
 %Method = 'Spatial';
 Intensity_Method = 'Median Unbled Z_scored';
 %Intensity_Method = 'Mean Unbled';
@@ -341,29 +341,45 @@ QualThresh4(b)
 % LogProbThresh2(d)
 
 %% Testing OMP thresholds
-%o.ompNeighbThresh2=9;
-%o.ompIntensityThresh2=0.015;
+%%
+nCodes = length(o.CharCodes);
+MaxCoef = max(abs(o.ompCoefs(:,1:nCodes )),[],2);
+SpotInd = sub2ind(size(o.ompCoefs),(1:length(o.ompSpotCodeNo))',o.ompSpotCodeNo);
+SpotCoef = o.ompCoefs(SpotInd);
+%%        
+o.ompNeighbThresh2 = 10;
+o.ompIntensityThresh2 = 0.005;
+o.ompScoreThresh2 = 1.1;
+o.ompIntensityThresh3 = 0.01;
+o.ompIntensityThresh3_CoefDiffFactor = 0.27;
+o.ompNeighbThresh3 = 28;
+o.ompScoreThresh3 = 6.9;
 % NeighbThresh = 1:4:33;
 % QualParam2 = -2:0.5:3;
-% ScoreThresh = -4:4:24;
-% QualParam2 = -10000:2000:18000;
-% ScoreThresh = 0:0.1:0.9;
-% NeighbThresh = 12:1:20;
-% QualParam2 = 0.5:0.1:1.0;
-% ScoreThresh = 4.1:0.1:4.8;
+%ScoreThresh = -4:4:24;
+NeighbThresh = 16:1:20;
+QualParam2 = 0.3:0.1:0.7;
+ScoreThresh = 4.1:0.1:4.5;
+% ScoreThresh = 3.2:0.1:3.8;
 % ScoreThresh = 0:0.001:0.9;
-NeighbThresh = o.ompNeighbThresh;
-QualParam2 = o.ompIntensityThresh;
-ScoreThresh = o.ompScoreThresh;
+%ScoreThresh = 4:0.1:6;
+%NeighbThresh = o.ompNeighbThresh;
+%QualParam2 = o.ompIntensityThresh;
+% ScoreThresh = o.ompScoreThresh;
 ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh));
-
+        
 for n=1:length(NeighbThresh)
     o.ompNeighbThresh=NeighbThresh(n);
     for i=1:length(QualParam2)
         o.ompIntensityThresh=QualParam2(i);
         for s=1:length(ScoreThresh)
             o.ompScoreThresh=ScoreThresh(s);
-            QualOK = quality_threshold(o,'OMP');
+            QualOK = quality_threshold(o,'OMP',MaxCoef,SpotCoef);
+            %Use = MaxCoef-SpotCoef>0.26;
+            %QualOK(Use) = QualOK(Use) & (o.ompSpotIntensity2(Use)>0.03 | o.ompSpotScore(Use)>o.ompScoreThresh*2);
+       
+            %Use = MaxCoef-SpotCoef>0;
+            %QualOK(Use) = QualOK(Use) & (o.ompSpotIntensity2(Use)>0.01.*(1+round((MaxCoef(Use)-SpotCoef(Use))./0.27)) | o.ompSpotScore(Use)>o.ompScoreThresh*1.6 | o.ompNeighbNonZeros(Use)>o.ompNeighbThresh*1.3);
             for r=o.gtRounds
                 for b=o.UseChannels
                     if o.gtGeneNo(r,b)==0; continue; end
@@ -500,3 +516,99 @@ end
 [a,b] = min(ScoreImage(:));
 a
 ScoreThresh(b)
+
+%% What genes are near missed ground truth?
+r = 8;
+b = 4;
+g = o.gtGeneNo(r,b);
+MaxDist = 5;
+MaxGenes = 12;
+GT_MissedYX = o.gtSpotGlobalYX{r,b}(o.omp_gtFound{r,b}==2,:);
+nMissedGT = size(GT_MissedYX,1);
+GT_FoundYX = o.gtSpotGlobalYX{r,b}(o.omp_gtFound{r,b}==1,:);
+nFoundGT = size(GT_FoundYX,1);
+QualOK = o.quality_threshold('OMP');
+QualOK_CodeNo = o.ompSpotCodeNo(QualOK);
+tree = KDTreeSearcher(o.ompSpotGlobalYX(QualOK,:));
+[Ind_Missed,Dist_Missed] = tree.knnsearch(GT_MissedYX,'K',MaxGenes);
+[Ind_Found,Dist_Found] = tree.knnsearch(GT_FoundYX,'K',MaxGenes);
+Dist_Found(QualOK_CodeNo(Ind_Found)==g) = inf;      %Don't show g for found ground truth
+nNearCoefsMissed = sum(Dist_Missed<=MaxDist,2);
+nNearCoefsFound = sum(Dist_Found<=MaxDist,2);
+figure; histogram(nNearCoefsMissed,-0.5:MaxGenes+0.5,'Normalization','probability');
+hold on;
+histogram(nNearCoefsFound,-0.5:MaxGenes+0.5,'Normalization','probability');
+legend(['Missed Ground Truth Spots: ',num2str(nMissedGT)],...
+    ['Found Ground Truth Spots: ',num2str(nFoundGT)]);
+title(sprintf('Number of Genes found near %s Ground Truth',o.GeneNames{g}));
+figure; 
+Hist = histogram(QualOK_CodeNo(Ind_Missed(Dist_Missed<MaxDist)),0.5:73.5);
+GeneNoCounts = Hist.BinCounts;
+hold on;
+histogram(QualOK_CodeNo(Ind_Found(Dist_Found<MaxDist)),0.5:73.5);
+legend(['Missed Ground Truth Spots: ',num2str(nMissedGT)],...
+    ['Found Ground Truth Spots: ',num2str(nFoundGT)]);
+title(sprintf('Genes found near %s Ground Truth',o.GeneNames{g}));
+xticks(1:73);
+xticklabels(o.GeneNames);
+xtickangle(90);
+
+%% Plot Gene Bled Codes of most common genes to missed ground truth
+nModeNearGenes = 2;
+[~,ModeGeneNumbers] = sort(GeneNoCounts,2,'descend');
+%find which rounds/channels overlap
+OverlapBledCodeThresh = 0.04;
+BledCodeOverlap_br = cell(nModeNearGenes,1);
+AllGlyphs = ['x','d','*','o','>','^'];
+GlyphLineWidth = 2;
+rShift = -0.25:0.5/(nModeNearGenes-1):0.25; % So glyphs don't overlap
+for i=1:nModeNearGenes
+    g_i = ModeGeneNumbers(i);
+    IndOverlap = find(o.ompBledCodes(g,:)>OverlapBledCodeThresh &...
+        o.ompBledCodes(g_i,:)>OverlapBledCodeThresh);
+    [Overlap_b,Overlap_r] = ind2sub([o.nBP,o.nRounds],IndOverlap);
+    Overlap_r = Overlap_r + rShift(i);
+    BledCodeOverlap_br{i} = [Overlap_b',Overlap_r'];
+end
+CLims = [min(o.ompBledCodes(:)), max(o.ompBledCodes(:))];
+figure; 
+subplot(nModeNearGenes+1,1,1);
+imagesc(reshape(o.ompBledCodes(g,:),[o.nRounds,o.nBP]));
+title(sprintf('Ground Truth Bled Code, gene %.0f: %s',...
+    g,o.GeneNames{g}));
+xticks(1:o.nRounds);
+xticklabels([]);
+yticks(1:o.nBP);
+yticklabels(o.bpLabels);
+ylabel('Channel');
+caxis(CLims);
+hold on;
+for i=1:nModeNearGenes
+    scatter(BledCodeOverlap_br{i}(:,2),BledCodeOverlap_br{i}(:,1),...
+        'r',AllGlyphs(i),'LineWidth',GlyphLineWidth);
+end
+for i=1:nModeNearGenes
+    g_i = ModeGeneNumbers(i);
+    subplot(nModeNearGenes+1,1,i+1);
+    imagesc(reshape(o.ompBledCodes(g_i,:),[o.nRounds,o.nBP]));
+    nGT_spots_near_gi = ...
+        sum(sum(QualOK_CodeNo(Ind_Missed)==g_i & Dist_Missed<MaxDist,2)>0);
+    title(sprintf('Gene %.0f: %s. %.0f/%.0f missed ground truth near this',...
+        g_i,o.GeneNames{g_i},nGT_spots_near_gi,nMissedGT));
+    xticks(1:o.nRounds);
+    if i==nModeNearGenes
+        xticklabels(1:7);
+        xlabel('Round');
+    else
+        xticklabels([]);
+    end
+    yticks(1:o.nBP);
+    yticklabels(o.bpLabels);
+    ylabel('Channel');
+    caxis(CLims);
+    hold on
+    scatter(BledCodeOverlap_br{i}(:,2),BledCodeOverlap_br{i}(:,1),...
+        'r',AllGlyphs(i),'LineWidth',GlyphLineWidth);
+   
+end
+
