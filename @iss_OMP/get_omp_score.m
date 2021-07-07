@@ -20,6 +20,7 @@ if nargin==1
     z_scoredSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
     OriginalCoefs = o.([pf,'Coefs']);
     SpotCodeNo = o.([pf,'SpotCodeNo']);
+    clearvars SpotColors
 end
 
 %% Overall score is difference between the residual after all genes 
@@ -30,10 +31,15 @@ BestGeneIndex = sub2ind(size(OriginalCoefs),(1:nSpots)',SpotCodeNo);
 RemoveGeneCoefs = OriginalCoefs;
 RemoveGeneCoefs(BestGeneIndex) = 0;
 RemoveGenePredCodes = RemoveGeneCoefs*o.ompBledCodes(:,:);
+clear RemoveGeneCoefs BestGeneIndex
 FinalError = abs(z_scoredSpotColors(:,:)-FinalPredCodes);
+clear FinalPredCodes 
 RemoveGeneError = abs(z_scoredSpotColors(:,:)-RemoveGenePredCodes); 
+clear z_scoredSpotColors RemoveGenePredCodes
 OverallScore = RemoveGeneError - FinalError;
 
+% Save memory
+clearvars FinalError 
 %% Get multiplier to modify OverallScore so only rounds/channels in 
 % the unbled code for specfied gene contribute. Also, if round in
 % unbled code but gene efficiency very low (i.e. RCPs failed in that
@@ -58,7 +64,7 @@ ModScore = OverallScore.*ScoreMultiplier';
 %with other metrics (SpotIntensity and NeighbNonZeros) that do depend on
 %intensity).
 NormModScore = ModScore./RemoveGeneError;
-
+clear ModScore OverallScore
 %% When looking at codes, the gene looks more likely if it explains rounds
 % that have large error so give larger weightings to these through
 % AbsErrorFactor. Precise form is through trial and error - 
@@ -69,14 +75,16 @@ AbsErrorFactor = RemoveGeneError./prctile(RemoveGeneError',...
     o.ompScore_LargeErrorPrcntileThresh)';
 AbsErrorFactor(AbsErrorFactor<1)=1;
 AbsErrorFactor(AbsErrorFactor>o.ompScore_LargeErrorMax)=o.ompScore_LargeErrorMax;
-
+clear RemoveGeneError
 %% Now want to modify this so neglect rounds which already have a
 %positive gene in. Every gene needs to explain something on their own independent 
 %of what other genes present
-[CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:73)','descend');
+[CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:nCodes)','descend');
+clear OriginalCoefs
 SortedCoefs = SortedCoefs';
 CoefValues=CoefValues';
 SortedCoefs(CoefValues<=0) = nCodes+1;
+clear CoefValues
 %Deal with each overlapping genes in turn until no spot has any more genes
 MinCodeNo = 1;
 nOverlaps = 0;
@@ -87,7 +95,7 @@ while MinCodeNo<nCodes+1
         GeneMultiplier(:,SortedCoefs(:,nOverlaps));
     MinCodeNo=min(SortedCoefs(:,nOverlaps));
 end
-
+clear SortedCoefs
 % %Set genes that are by far the best to have no overlap i.e. use all rounds
 % %for clear matches DOESN'T MAKE TOO MUCH DIFFERENCE
 % SpotInd = sub2ind(size(OriginalCoefs),(1:length(SpotCodeNo))',SpotCodeNo);
@@ -104,6 +112,7 @@ AbsErrorFactor(GeneUnbledFailedRounds(:,SpotCodeNo)')=0;
 %give more weight to other rounds to compensate for less rounds used in score.
 nRoundsUsed = max(o.nRounds-sum(AbsErrorFactor==0,2),1);
 nRoundsUsedNorm = o.nRounds./nRoundsUsed;
+clear ScoreMultiplier ScoreMultiplierOverlaps SpotCodeNo
 
 %% Combine factors
 % Again, through trial and error. Use exponential as to put a lower bound
