@@ -110,12 +110,12 @@ end
 
 i = size(TruePosData.Summary,1)+1;      %INDEX OF DATA TO BE ADDED
 TruePosData.Summary(i,'FileLocation') = ...
-    {fullfile(o.OutputDirectory, 'oOMP_NewPCR_NewSpotScore')};
+    {fullfile(o.OutputDirectory, 'oOMP_NewScore_NewPCR_ConstantBackgroundWeightDotProduct_DotProduct2')};
 %Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
 %Method = 'Pixel: pQualThresh, ProbMethod = 1, pQualThresh3=51, Median BleedMatrix, Used GeneEfficiencies, Used get_secondary_gene_prob with remove_full_code';
 %Method = 'MP_Weights: Use DotProduct>2 as only thresh in OMP. Stop MP iteration when any artificial gene found, SpotIntensity is median(Z_scored in Unbled code) and no subtraction, weight by round, FinalThresholding was QualOK = quality_threshold(o,Method), o.ompNeighbThresh2=5. Proper initial OMP, 7 Background Channel Strips, Gene Efficiencies found from Mean Code';
 %Method = 'Spatial With ompBledCodes(ompBledCodes<0.1)=0';
-Method = 'OMP: Use PCR with max 1500 spots on each imaging tile, o.ompNeighbThresh2=10, o.ompScoreThresh2=1.1. Include Higher Thresh for Non Max Genes';
+Method = 'OMP: Fit background first and use better get_weighted_gene_dot_product2. o.ompNormBledCodeUnbledBoost=1.';
 %Method = 'Spatial';
 Intensity_Method = 'Median Unbled Z_scored';
 %Intensity_Method = 'Mean Unbled';
@@ -346,20 +346,20 @@ nCodes = length(o.CharCodes);
 MaxCoef = max(abs(o.ompCoefs(:,1:nCodes )),[],2);
 SpotInd = sub2ind(size(o.ompCoefs),(1:length(o.ompSpotCodeNo))',o.ompSpotCodeNo);
 SpotCoef = o.ompCoefs(SpotInd);
-%%        
-o.ompNeighbThresh2 = 10;
-o.ompIntensityThresh2 = 0.005;
-o.ompScoreThresh2 = 1.1;
-o.ompIntensityThresh3 = 0.01;
-o.ompIntensityThresh3_CoefDiffFactor = 0.27;
-o.ompNeighbThresh3 = 28;
-o.ompScoreThresh3 = 6.9;
+%% Change Thresh1
+% o.ompNeighbThresh2 = 8;
+% o.ompIntensityThresh2 = 0.005;
+% o.ompScoreThresh2 = 1.1;
+% o.ompIntensityThresh3 = 0.01;
+% o.ompIntensityThresh3_CoefDiffFactor = 0.27;
+% o.ompNeighbThresh3 = 28;
+% o.ompScoreThresh3 = 6.5;
 % NeighbThresh = 1:4:33;
 % QualParam2 = -2:0.5:3;
 %ScoreThresh = -4:4:24;
-NeighbThresh = 16:1:20;
-QualParam2 = 0.3:0.1:0.7;
-ScoreThresh = 4.1:0.1:4.5;
+NeighbThresh = 9:1:14;
+QualParam2 = 0.4:0.1:0.8;
+ScoreThresh = 3:0.1:3.7;
 % ScoreThresh = 3.2:0.1:3.8;
 % ScoreThresh = 0:0.001:0.9;
 %ScoreThresh = 4:0.1:6;
@@ -403,6 +403,85 @@ o.ompScoreThresh = ScoreThresh(c);
 NeighbThresh(a)
 QualParam2(b)
 ScoreThresh(c)
+%% Change Thresh2
+NeighbThresh = 3:1:9;
+QualParam2 = 0.001:0.001:0.007;
+ScoreThresh = 0.3:0.1:0.8;
+ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh));
+        
+for n=1:length(NeighbThresh)
+    o.ompNeighbThresh2=NeighbThresh(n);
+    for i=1:length(QualParam2)
+        o.ompIntensityThresh2=QualParam2(i);
+        for s=1:length(ScoreThresh)
+            o.ompScoreThresh2=ScoreThresh(s);
+            QualOK = quality_threshold(o,'OMP',MaxCoef,SpotCoef);
+            for r=o.gtRounds
+                for b=o.UseChannels
+                    if o.gtGeneNo(r,b)==0; continue; end
+                    pfTruePosSet = o.([pf,'_gtIdentity']){r,b}==1;
+                    pfFalsePosSet = o.([pf,'_gtIdentity']){r,b}==2;
+                    %ScoreImage(i,j,k,k2) = ScoreImage(i,j,k,k2)+sum(QualOK&pfTruePosSet)/sum(pfTruePosSet)+...
+                    %     5*sum(~QualOK&pfFalsePosSet)/sum(pfFalsePosSet);
+                    ScoreImage(n,i,s) = ScoreImage(n,i,s)+sum(~QualOK&pfTruePosSet)+...
+                        sum(o.gtTruePositiveSet{r,b})-sum(pfTruePosSet)+2*sum(QualOK&pfFalsePosSet);
+                end
+            end
+        end
+    end
+end
+[a,b] = min(ScoreImage(:));
+a
+[a,b,c]=ind2sub(size(ScoreImage),b);
+o.ompNeighbThresh2=NeighbThresh(a);
+o.ompIntensityThresh2=QualParam2(b);
+o.ompScoreThresh2 = ScoreThresh(c);
+NeighbThresh(a)
+QualParam2(b)
+ScoreThresh(c)
+
+%% Change Thresh3
+NeighbThresh = 15:1:21;
+QualParam2 = 0.009:0.001:0.011;
+ScoreThresh = 5.8:0.1:6.4;
+CoefFactor = 0.23:0.01:0.29;
+ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh),length(CoefFactor));
+        
+for n=1:length(NeighbThresh)
+    o.ompNeighbThresh3=NeighbThresh(n);
+    for i=1:length(QualParam2)
+        o.ompIntensityThresh3=QualParam2(i);
+        for s=1:length(ScoreThresh)
+            o.ompScoreThresh3=ScoreThresh(s);
+            for c=1:length(CoefFactor)
+                o.ompIntensityThresh3_CoefDiffFactor = CoefFactor(c);
+                QualOK = quality_threshold(o,'OMP',MaxCoef,SpotCoef);
+                for r=o.gtRounds
+                    for b=o.UseChannels
+                        if o.gtGeneNo(r,b)==0; continue; end
+                        pfTruePosSet = o.([pf,'_gtIdentity']){r,b}==1;
+                        pfFalsePosSet = o.([pf,'_gtIdentity']){r,b}==2;
+                        %ScoreImage(i,j,k,k2) = ScoreImage(i,j,k,k2)+sum(QualOK&pfTruePosSet)/sum(pfTruePosSet)+...
+                        %     5*sum(~QualOK&pfFalsePosSet)/sum(pfFalsePosSet);
+                        ScoreImage(n,i,s,c) = ScoreImage(n,i,s,c)+sum(~QualOK&pfTruePosSet)+...
+                            sum(o.gtTruePositiveSet{r,b})-sum(pfTruePosSet)+2*sum(QualOK&pfFalsePosSet);
+                    end
+                end
+            end
+        end
+    end
+end
+[a,b] = min(ScoreImage(:));
+a
+[a,b,c2,d]=ind2sub(size(ScoreImage),b);
+o.ompNeighbThresh3=NeighbThresh(a);
+o.ompIntensityThresh3=QualParam2(b);
+o.ompScoreThresh3 = ScoreThresh(c2);
+o.ompIntensityThresh3_CoefDiffFactor = CoefFactor(d);
+NeighbThresh(a)
+QualParam2(b)
+ScoreThresh(c2)
+CoefFactor(d)
 
 %% Initial OMP thresholding
 % Store initial ground truth data first
@@ -518,8 +597,8 @@ a
 ScoreThresh(b)
 
 %% What genes are near missed ground truth?
-r = 8;
-b = 4;
+r = 9;
+b = 6;
 g = o.gtGeneNo(r,b);
 MaxDist = 5;
 MaxGenes = 12;
@@ -554,7 +633,7 @@ xticklabels(o.GeneNames);
 xtickangle(90);
 
 %% Plot Gene Bled Codes of most common genes to missed ground truth
-nModeNearGenes = 2;
+nModeNearGenes = 4;
 [~,ModeGeneNumbers] = sort(GeneNoCounts,2,'descend');
 %find which rounds/channels overlap
 OverlapBledCodeThresh = 0.04;

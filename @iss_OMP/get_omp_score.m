@@ -121,11 +121,16 @@ clear ScoreMultiplier ScoreMultiplierOverlaps SpotCodeNo
 % limit on how bad round can be. 
 % I.e. max(NormModScore)=1 so max(ExpScore) = AbsErrorFactor
 ExpScore = (exp(NormModScore*log(2))-1).*AbsErrorFactor;
+ExpScore = ExpScore.*nRoundsUsedNorm;
+ExpScore(ExpScore<-o.ompScore_LargeErrorMax) = -o.ompScore_LargeErrorMax;
+ExpScore(ExpScore>o.ompScore_LargeErrorMax) = o.ompScore_LargeErrorMax;
 if nSpots>1
-    ExpScore = sum(ExpScore,2);
-    NormExpScore = ExpScore.*nRoundsUsedNorm;
+    NormExpScore = sum(ExpScore,2);
+    %NormExpScore = ExpScore.*nRoundsUsedNorm;
 else
-    NormExpScore = reshape(ExpScore.*nRoundsUsedNorm,...
+%     NormExpScore = reshape(ExpScore.*nRoundsUsedNorm,...
+%         o.nRounds,o.nBP);
+    NormExpScore = reshape(ExpScore,...
         o.nRounds,o.nBP);
 end
 end
