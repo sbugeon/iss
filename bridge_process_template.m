@@ -5,7 +5,7 @@
 
 %% Parameters that should be checked before each run
 %CHECK BEFORE EACH RUN
-o = iss_PixelBased;
+o = iss_OMP;
 o.AnchorRound = 8;              %Round that contains Dapi image
 o.AnchorChannel =  ;            %Channel that has most spots in o.AnchorRound
 o.DapiChannel = 1;              %Channel in o.AnchorRound that contains Dapi images
@@ -149,16 +149,20 @@ o = o.call_spots;
 [o,LookupTable] = o.call_spots_prob;
 save(fullfile(o.OutputDirectory, 'oCall_spots'), 'o', '-v7.3');
 
-%Pixel based
-o = o.call_spots_pixel(LookupTable);
-o = o.get_secondary_gene_prob(LookupTable);
-save(fullfile(o.OutputDirectory, 'oCall_spots_pixel'), 'o', '-v7.3');
+% %Pixel based
+% o = o.call_spots_pixel(LookupTable);
+% o = o.get_secondary_gene_prob(LookupTable);
+% save(fullfile(o.OutputDirectory, 'oCall_spots_pixel'), 'o', '-v7.3');
+
+%OMP
+o = o.call_spots_omp;
+save(fullfile(o.OutputDirectory, 'oCall_spots_OMP'), 'o', '-v7.3');
 %% plot results
 
 o.CombiQualThresh = 0.7;
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
-o.plot(o.BigAnchorFile,Roi,'Prob');
+o.plot(o.BigAnchorFile,Roi,'OMP');
 
 %iss_view_codes(o,234321,1);
 %o.pIntensityThresh = 100;
