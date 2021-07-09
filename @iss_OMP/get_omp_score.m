@@ -79,10 +79,8 @@ clear RemoveGeneError
 %% Now want to modify this so neglect rounds which already have a
 %positive gene in. Every gene needs to explain something on their own independent 
 %of what other genes present
-[CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:nCodes)','descend');
+[CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:nCodes),2,'descend');
 clear OriginalCoefs
-SortedCoefs = SortedCoefs';
-CoefValues=CoefValues';
 SortedCoefs(CoefValues<=0) = nCodes+1;
 clear CoefValues
 %Deal with each overlapping genes in turn until no spot has any more genes

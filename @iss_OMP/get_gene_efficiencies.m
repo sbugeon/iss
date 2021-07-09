@@ -24,7 +24,12 @@ GoodQualOK = ...
 %     o.iompSpotCodeNo==o.iompSpotBestGene;
 BledCodes = zeros(nCodes,o.nBP,o.nRounds);
 for g=1:nCodes
-    Use = GoodQualOK&o.iompSpotCodeNo==g;
+    Use = find(GoodQualOK&o.iompSpotCodeNo==g);
+%     %Only keep genes not near other genes
+%     tree = KDTreeSearcher(o.iompSpotGlobalYX(GoodQualOK&o.iompSpotCodeNo~=g,:));
+%     [~,Dist2NearestOtherGene] = ...
+%         tree.knnsearch(o.iompSpotGlobalYX(GoodQualOK&o.iompSpotCodeNo==g,:),'K',1);
+%     Use = Use(Dist2NearestOtherGene>=5);
     MeanCode = mean(double(o.iompSpotColors(Use,:,:)));
     %MeanCode = median(double(o.iompSpotColors(Use,:,:))); %Median gave slightly better results
     NormMeanCode = (MeanCode-o.z_scoreSHIFT)./o.z_scoreSCALE;

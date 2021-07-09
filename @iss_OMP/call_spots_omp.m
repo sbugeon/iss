@@ -155,7 +155,7 @@ o.ompSpotColors = o.ompSpotColors.*o.z_scoreSCALE + o.z_scoreSHIFT;
 o.ompSpotCodeNo = cell2mat(SpotCodeNo);
 o.ompSpotGlobalYX = cell2mat(GlobalYX);
 o.ompLocalTile = cell2mat(GoodOriginalTile);  
-o.ompCoefs = cell2mat(Coefs);
+o.ompCoefs = sparse(cell2mat(Coefs));  %Sparse as mostly zeros
 o.ompNeighbNonZeros = cell2mat(NeighbNonZeros);
 [~,o.ompSpotIntensity2] = ...
     o.get_spot_intensity(o.ompSpotCodeNo,o.ompSpotColors,o.z_scoreSCALE);

@@ -90,7 +90,7 @@ fprintf('loading channel/round images...');
 if SpotLocation == false
     %Find tile that the point is on and local centered coordinates in reference round
     t = o.get_local_tile([xy(2),xy(1)]);
-    SpotNo = [];
+    SpotNo = [xy(2),xy(1)];
 else
     t = o.([pf,'LocalTile'])(SpotNo);
 end
@@ -134,18 +134,13 @@ for r=1:o.nRounds
         SpotColors(:,b,r) = BaseImSm(:);               
     end
 end
-
+fprintf('\n');
 %Get dot product with the gene bled codes for each pixel in image
 S.ImSz = ImSz;
 S.ImShape = [2*S.ImSz+1,2*S.ImSz+1];
 S.NormSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
-S.ResidualThresh = o.ResidualThreshParam*prctile(abs(S.NormSpotColors(:,:))',47.5*100/49.0)';
-S.ResidualThresh(S.ResidualThresh<o.ResidualThreshMin) = o.ResidualThreshMin;
-S.ResidualThresh(S.ResidualThresh>o.ResidualThreshMax) = o.ResidualThreshMax;
-nSpots = size(S.NormSpotColors,1);
-
-S.NormBledCodes = o.ompBledCodes(:,:)./vecnorm(o.ompBledCodes(:,:),2,2);
 S.NormSpotColors = S.NormSpotColors(:,:);
+coefs = o.get_omp_coefs(S.NormSpotColors);
 S.nCodes = length(o.CharCodes);
 S.nBackground = o.nBackground;
 S.GeneNames = o.GeneNames;
@@ -155,12 +150,6 @@ end
 S.x0 = ImSz+1;
 S.y0 = ImSz+1;
 
-coefs = zeros(nSpots,S.nCodes+S.nBackground);
-for s=1:nSpots
-    coefs(s,:) = omp_free_background(S.NormBledCodes',S.NormSpotColors(s,:)',...
-        o.ompMaxGenes,S.ResidualThresh(s),S.nCodes+1:S.nCodes+S.nBackground,1:S.nCodes)';
-end
-fprintf('\n');
 
 PlotGenes = find(sum(coefs~=0,1)>0);
 climits = [min(coefs(:)),max(coefs(:))];
@@ -202,7 +191,11 @@ ImInd = sub2ind(S.ImShape,ImYX(:,1),ImYX(:,2));
     o.TileOrigin(:,:,o.ReferenceRound), o.TileSz);
 NotDuplicate = (AllLocalTile==t);
 
-Fig = figure(38102);
+if ishandle(38102)
+    Fig = figure(38103);
+else 
+    Fig = figure(38102);
+end
 set(Fig,'Position',[336,123,820,677]);
 nRows = floor((length(PlotGenes)-0.000001)/7)+1;
 nCols = min(length(PlotGenes),7);
@@ -260,20 +253,26 @@ try
             'GT: Found','GT: Not in Set','Local Maxima with Current Thresholds'});
     end
 catch
-    if sum(~NotDuplicate)>0
-        hL = legend([l1,l2,l6,l7],{'ompAlg: Pass QualOK',...
-            'ompAlg: Fail QualOK','Local Maxima with Current Thresholds',...
-            'Duplicate Local Maxima'});
-    else
-        hL = legend([l1,l2,l6],{'ompAlg: Pass QualOK',...
-            'ompAlg: Fail QualOK','Local Maxima with Current Thresholds'});
+    try
+        if sum(~NotDuplicate)>0
+            hL = legend([l1,l2,l6,l7],{'ompAlg: Pass QualOK',...
+                'ompAlg: Fail QualOK','Local Maxima with Current Thresholds',...
+                'Duplicate Local Maxima'});
+        else
+            hL = legend([l1,l2,l6],{'ompAlg: Pass QualOK',...
+                'ompAlg: Fail QualOK','Local Maxima with Current Thresholds'});
+        end
+    catch
     end
 end
 newPosition = [0.4 0.94 0.2 0.05];
 newUnits = 'normalized';
-set(hL,'Position', newPosition,'Units', newUnits,...
-    'Orientation','horizontal','color','none');
-set( hL, 'Box', 'off' ) ;
+try
+    set(hL,'Position', newPosition,'Units', newUnits,...
+        'Orientation','horizontal','color','none');
+    set( hL, 'Box', 'off' ) ;
+catch
+end
 
 %% Give plots of omp parameters at each iteration. 
 if Track
@@ -281,7 +280,7 @@ if Track
     ResidualThresh = o.ResidualThreshParam*prctile(abs(NormSpotColor(:,:))',47.5*100/49.0)';
     ResidualThresh(ResidualThresh<o.ResidualThreshMin) = o.ResidualThreshMin;
     ResidualThresh(ResidualThresh>o.ResidualThreshMax) = o.ResidualThreshMax;
-    o.omp_free_background_track(S.NormBledCodes',NormSpotColor(:,:)',...
+    o.omp_free_background_track(o.ompBledCodes',NormSpotColor(:,:)',...
         o.ompMaxGenes,ResidualThresh,S.nCodes+1:S.nCodes+S.nBackground);
 end
 end

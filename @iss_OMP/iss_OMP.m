@@ -80,7 +80,7 @@ classdef iss_OMP < iss_GroundTruth
         
         % Only save to oObject spots with more than ompInitialNeighbThresh
         % non zero pixels near it.
-        ompInitialNeighbThresh = 2;
+        ompInitialNeighbThresh = 5;
         
         % To save time in call_spots_omp:
         % If BasePixels are pixels with 4th (ceil(o.nRounds/2))
@@ -117,7 +117,7 @@ classdef iss_OMP < iss_GroundTruth
         ompScoreThresh2 = 1.1;
         
         %Spots assigned to gene that is not largest coefficient for pixel
-        %have a stornger thresholding as given by these:
+        %have a stronger thresholding as given by these:
         ompIntensityThresh3 = 0.01;
         ompIntensityThresh3_CoefDiffFactor = 0.27;
         ompNeighbThresh3 = 28;

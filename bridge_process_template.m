@@ -155,6 +155,7 @@ save(fullfile(o.OutputDirectory, 'oCall_spots'), 'o', '-v7.3');
 % save(fullfile(o.OutputDirectory, 'oCall_spots_pixel'), 'o', '-v7.3');
 
 %OMP
+o.ompInitialNeighbThresh = 5;  % Increase to use less memory. Keep below 10.
 o = o.call_spots_omp;
 save(fullfile(o.OutputDirectory, 'oCall_spots_OMP'), 'o', '-v7.3');
 %% plot results
