@@ -26,7 +26,9 @@ AllBaseSpotNo = AllBaseSpotNo(:,1:2:o.nBP*2,:);
 
 nSpots = size(LocalYX,1);
 LocalYX = [LocalYX-o.TileCentre,ones(nSpots,1)];
-SpotColors = nan(nSpots, o.nBP, max(o.UseRounds));
+% SpotColors includes all o.nRounds in find_spots and max(o.UseRounds) if
+% considering ground truth rounds. 
+SpotColors = nan(nSpots, o.nBP, max(max(o.UseRounds),o.nRounds));
 PointCorrectedLocalYX = nan(nSpots, 2, o.nRounds, o.nBP);
 
 for t=NonemptyTiles

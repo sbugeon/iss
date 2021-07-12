@@ -31,6 +31,8 @@ function [PeakLocalYX,PeakSpotColors,PeakResOverBackground,...
 
 %% Use Channel strips as background for initial search
 nCodes = length(o.CharCodes);
+nChannels = length(o.UseChannels);
+nRounds = length(o.UseRounds);
 z_scoredSpotColors = (double(GoodSpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
 z_scoredSpotColors = z_scoredSpotColors(:,o.UseChannels,o.UseRounds);
 BledGeneCodes = reshape(o.iompBledCodes,[nCodes,o.nBP,o.nRounds]);
@@ -62,7 +64,7 @@ z_scoredSpotColors = z_scoredSpotColors(:,:)';
 %o.nRounds=7, i.e. this is saying we need high intensity in at least
 %one channel in half the number of rounds to be a gene.
 AllSpotIntensity = prctile(z_scoredSpotColors,...
-    (o.nRounds*o.nBP-o.nRounds/2)*100/(o.nRounds*o.nBP))';
+    (nRounds*nChannels-nRounds/2)*100/(nRounds*nChannels))';
 Use = AllSpotIntensity>o.iompInitialIntensityThresh;
 z_scoredSpotColors = z_scoredSpotColors(:,Use);
 BackgroundResNorm = zeros(nSpots,1);

@@ -48,6 +48,8 @@ NonemptyTiles = find(~o.EmptyTiles)';
 if size(NonemptyTiles,2)==1
     NonemptyTiles = NonemptyTiles';
 end
+nRounds = length(o.UseRounds);
+nChannels = length(o.UseChannels);
 
 PeakSpotColors = cell(nCodes,1);
 PeakLocalYX = cell(nCodes,1);
@@ -64,7 +66,7 @@ for t=1:length(NonemptyTiles)
     %o.nRounds=7, i.e. this is saying we need high intensity in at least
     %one channel in half the number of rounds to be a gene.
     AllSpotIntensity = prctile(AllSpotColors(:,:)',...
-        (o.nRounds*o.nBP-o.nRounds/2)*100/(o.nRounds*o.nBP))';
+        (nRounds*nChannels-nRounds/2)*100/(nRounds*nChannels))';
     tree = KDTreeSearcher(...
         double(AllAnchorLocalYX(AllSpotIntensity>o.ompInitialIntensityThresh,:)));
     [~,Dist] = tree.knnsearch(double(AllAnchorLocalYX),'K',1);

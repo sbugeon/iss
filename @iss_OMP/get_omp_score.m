@@ -46,17 +46,30 @@ clearvars FinalError
 % round) then don't include. 
 
 nCodes = length(o.CharCodes);
+%Need AllChannels for nRoundsUsedNorm calculation - exclude rounds with
+%channel not in UseChannels.
+GeneMultiplierKeepAllChannels = zeros(o.nRounds*o.nBP,nCodes);
 GeneMultiplier = zeros(o.nRounds*o.nBP,nCodes);
+%Neglect channels/rounds not in UseChannels/UseRounds.
+UnbledCodesReshape = reshape(o.UnbledCodes,nCodes,o.nBP,o.nRounds);
+FailedChannels = ~ismember(1:o.nBP,o.UseChannels);
+UnbledCodesReshape(:,FailedChannels,:) = 0;
+FailedRounds = ~ismember(1:o.nRounds,o.UseRounds);
+UnbledCodesReshape(:,:,FailedRounds) = 0;
 for g=1:nCodes
-    GeneMultiplier(:,g) = o.UnbledCodes(g,:);
+    GeneMultiplier(:,g) = UnbledCodesReshape(g,:);
+    GeneMultiplierKeepAllChannels(:,g) = o.UnbledCodes(g,:);
 end
 GeneMultiplier(:,nCodes+1) = 0;     %Use when no overlapping spots
+GeneMultiplierKeepAllChannels(:,nCodes+1) = 0;
 %Set Low Gene Efficiency Rounds to all not in unbled code 
 %i.e. forget these rounds
 GeneEfficiency = repelem(o.GeneEfficiency,1,o.nBP)';
 GeneEfficiency(:,nCodes+1) = 0;
 FailedGeneRound = GeneEfficiency<o.ompScore_GeneEfficiencyThresh;
-GeneUnbledFailedRounds = FailedGeneRound+GeneMultiplier==2;
+%Bad gene efficiency or not in UseChannels:
+GeneUnbledFailedRounds = FailedGeneRound+GeneMultiplier==2 | ...
+    (GeneMultiplierKeepAllChannels==1 & GeneMultiplier == 0);
 GeneMultiplier(FailedGeneRound)=0;
 ScoreMultiplier = GeneMultiplier(:,SpotCodeNo);
 ModScore = OverallScore.*ScoreMultiplier';
@@ -64,6 +77,7 @@ ModScore = OverallScore.*ScoreMultiplier';
 %with other metrics (SpotIntensity and NeighbNonZeros) that do depend on
 %intensity).
 NormModScore = ModScore./RemoveGeneError;
+NormModScore(ScoreMultiplier'==0)=0;  %Set any Nans due to o.UseChannels to 0.
 clear ModScore OverallScore
 %% When looking at codes, the gene looks more likely if it explains rounds
 % that have large error so give larger weightings to these through

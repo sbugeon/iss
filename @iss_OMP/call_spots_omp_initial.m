@@ -238,7 +238,7 @@ fprintf('\n');
     o.BackgroundMaxGeneDotProductGene] = ...
     o.get_background_codes(cell2mat(AllBackgroundSpotColors));
 if o.ompBackgroundChannelStrips
-    o.UseBackgroundEigenvectors = ismember(1:o.nBP,o.UseChannels)';
+    o.UseBackgroundEigenvectors = true(sum(o.UseChannels>0),1);
 else
     o.UseBackgroundEigenvectors = o.BackgroundEigenvalues>o.ompBackgroundEigvalueThresh;
 end

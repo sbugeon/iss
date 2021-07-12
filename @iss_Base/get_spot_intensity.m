@@ -24,9 +24,10 @@ nCodes = length(o.GeneNames);
 CodeIndex = zeros(nCodes,o.nRounds);
 NonCodeIndex = cell(nCodes,1);
 for g=1:nCodes
-    GeneChannels = str2double(regexp(cell2mat(o.CharCodes(g)),'\d','match'))+1;    
+    GeneChannels = str2double(regexp(cell2mat(o.CharCodes(g)),'\d','match'))+1; 
+    GeneChannels(~ismember(GeneChannels,o.UseChannels)) = nan;
     CodeIndex(g,1:length(GeneChannels)) = sub2ind([o.nBP,o.nRounds],GeneChannels,1:length(GeneChannels));
-    UnusedChannels = setdiff(1:o.nBP,GeneChannels);
+    UnusedChannels = setdiff(o.UseChannels,GeneChannels);
     UnusedChannelIndex = sub2ind([o.nBP,o.nRounds],repelem(UnusedChannels,1,o.nRounds),repmat(1:o.nRounds,1,length(UnusedChannels)));
     NonCodeIndex{g} = setdiff(1:o.nRounds*o.nBP,[CodeIndex(g,:),UnusedChannelIndex]);
 end

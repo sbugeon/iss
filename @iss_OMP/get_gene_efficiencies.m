@@ -39,9 +39,9 @@ for g=1:nCodes
         %W = abs(o.z_scoreBleedMatrix(:,ChannelNo)');
         W = 1;
         ChannelNo = str2num(o.CharCodes{g}(r))+1;
-        if sum(Use)>=o.GeneEfficiencyMinSpots
-            o.GeneEfficiency(g,r) = (W.*NormMeanCode(:,:,r))/...
-                (W.*o.z_scoreBleedMatrix(:,ChannelNo)');
+        if sum(Use)>=o.GeneEfficiencyMinSpots && ismember(ChannelNo,o.UseChannels)
+            o.GeneEfficiency(g,r) = (W.*NormMeanCode(:,o.UseChannels,r))/...
+                (W.*o.z_scoreBleedMatrix(o.UseChannels,ChannelNo)');
         end
         BledCodes(g,:,r) = o.GeneEfficiency(g,r)*...
             o.z_scoreBleedMatrix(:,ChannelNo)';
@@ -119,6 +119,10 @@ for g=1:nCodes
     end
 end
 o.z_scoreBledCodes = BledCodes(:,:);
+% Set non o.UseChannels, o.UseRounds to 0 not nan.
+% Both SpotColors and BledCodes are 0 in these rounds/channels so OMP won't
+% try and fit them. 
+o.z_scoreBledCodes(isnan(o.z_scoreBledCodes)) = 0;  
 o.z_scoreBledCodes = o.z_scoreBledCodes./vecnorm(o.z_scoreBledCodes(:,:),2,2);
 end
 
