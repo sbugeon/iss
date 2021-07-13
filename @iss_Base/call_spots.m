@@ -45,11 +45,7 @@ nRounds = size(o.UseRounds,2);
 if strcmpi(o.BleedMatrixType,'Separate')
     p = prctile(o.dpSpotColors, o.SpotNormPrctile);
 elseif strcmpi(o.BleedMatrixType,'Single')
-    p = zeros(1,o.nBP,o.nRounds);
-    for b = 1:o.nBP
-        bSpotColors = o.dpSpotColors(:,b,:);
-        p(:,b,:) = prctile(bSpotColors(:), o.SpotNormPrctile);
-    end    
+    p = o.get_channel_norm;
 else
     warning('Wrong o.BleedMatrixType entry, should be either Separate or Single')
 end

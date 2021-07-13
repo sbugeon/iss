@@ -350,6 +350,19 @@ classdef iss_Base
         % normalizes spot fluorescence so this percentile = 1
         SpotNormPrctile = 98;
         
+        %Used in get_channel_norm. 
+        %If bNorm = o.BledCodesPercentile(:,b,:), it must satisfy:
+        %Prob(bIntensity>ChannelNormValue1*bNorm) = ChannelNormThresh1;
+        %Prob(bIntensity>ChannelNormValue2*bNorm) < ChannelNormThresh2;
+        %Prob(bIntensity>ChannelNormValue3*bNorm) < ChannelNormThresh3;
+        %Where prob is based on all pixel data HistCounts. 
+        ChannelNormValue1 = 1;
+        ChannelNormValue2 = 0.5;  %ChannelNormValue2<ChannelNormValue1 (Not sharp gradient at lower intensities)
+        ChannelNormValue3 = 5;    %ChannelNormValue3>ChannelNormValue1 (Few outliers)
+        ChannelNormThresh1 = 1e-3;
+        ChannelNormThresh2 = 1e-2;
+        ChannelNormThresh3 = 1e-5;
+        
         % BleedMatrix column for channel b is taking all single round codes
         % that have a dot product that best matches that channel code and
         % has DotProduct>BleedMatrixScoreThresh. The channel code is then

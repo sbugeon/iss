@@ -68,7 +68,16 @@ else
     end
     CrossHairColor = [1,1,1];   %Make white as black background
     xy = ginput_modified(1,CrossHairColor);
-    S = evalin('base', 'issPlot2DObject');
+    try
+        S = evalin('base', 'issPlot2DObject');
+    catch
+        pf = o.CallMethodPrefix(ScoreMethod);
+        S.CallMethod = ScoreMethod;
+        S.SpotYX = o.([pf,'SpotGlobalYX']);
+        S.QualOK = 1;
+        S.Roi = round([1, max(o.([pf,'SpotGlobalYX'])(:,2)), ...
+             1, max(o.([pf,'SpotGlobalYX'])(:,1))]);
+    end
     if nargin<5 || isempty(ScoreMethod)
         ScoreMethod = S.CallMethod;
     elseif ~strcmpi(S.CallMethod,ScoreMethod)

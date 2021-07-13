@@ -31,23 +31,9 @@ end
 
 nChans = size(o.UseChannels,2);
 nRounds = size(o.UseRounds,2);
-%o.cSpotColors = o.cSpotColors(:,o.UseChannels,o.UseRounds);
 
-%FILTER OUT REALLY HIGH VALUES
-%Good = all(o.cSpotColors(:,:)<10000,2);         
-%o.cSpotColors = o.cSpotColors(Good,:,:);
-%o.cSpotIsolated = o.cSpotIsolated(Good);
-%o.SpotGlobalYX = o.SpotGlobalYX(Good,:);
-
-% First divide by o.ExtractScale so comparable between experiments
-
-%Normalise each colour channel by a percentile as to correct for weaker
-%colour channels
-p = zeros(1,o.nBP,o.nRounds);
-for b = 1:o.nBP
-    bSpotColors = o.dpSpotColors(:,b,:);
-    p(:,b,:) = prctile(bSpotColors(:), o.SpotNormPrctile);
-end
+%Normalise each colour channel to correct for weaker colour channels
+p = o.get_channel_norm;
 o.z_scoreSCALE = p;
 o.z_scoreSHIFT = zeros(size(o.z_scoreSCALE));
 
@@ -65,7 +51,7 @@ BleedMatrixScoreThresh = o.BleedMatrixScoreThresh;
 while DiagMeasure<nChans && nTries<nIter
     SpotColors = bsxfun(@rdivide, o.dpSpotColors, p);
     [BleedMatrix,DiagMeasure] = ...
-        get_bleed_matrix(o,SpotColors,SpotIsolated,BleedMatrixScoreThresh,nTries);
+        o.get_bleed_matrix_omp(SpotColors,SpotIsolated,BleedMatrixScoreThresh,nTries);
     %If bleed matrix not diagonal, try only using spots that are more like
     %the initial diagonal bleed matrix. 
     if DiagMeasure<nChans

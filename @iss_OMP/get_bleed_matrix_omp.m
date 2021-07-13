@@ -1,6 +1,6 @@
 function [BleedMatrix,DiagMeasure] = ...
-    get_bleed_matrix(o,SpotColors,SpotIsolated,ScoreThresh,nTries)
-%% [BleedMatrix,DiagMeasure] = o.get_bleed_matrix(SpotColors,nTries)
+    get_bleed_matrix_omp(o,SpotColors,SpotIsolated,ScoreThresh,nTries)
+%% [BleedMatrix,DiagMeasure] = o.get_bleed_matrix_omp(SpotColors,nTries)
 %Gets bleed matrix for SpotColors.
 %SpotColors: o.dpSpotColors normalised in some way to equalise channels
 %SpotIsolated: which spots are well isolated so used to compute bleed matrix.
