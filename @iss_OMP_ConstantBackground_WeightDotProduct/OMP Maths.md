@@ -7,7 +7,7 @@ The function that carries out the OMP is [```o.get_omp_coefs```](https://github.
 The background is fitted using the function [```o.get_spot_residual_background```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m). This assumes that there are ```o.nBP``` background eigenvectors and each one is just a strip in a color channel i.e. ```o.ompBackgroundChannelStrips=true```. An example for channel 2 is shown below:
 
 <p float="left">
-<img src="MathsImages/README/BackgroundCode.png" width = "250"> 
+<img src="MathsImages/BackgroundCode.png" width = "250"> 
 </p>
 
 
