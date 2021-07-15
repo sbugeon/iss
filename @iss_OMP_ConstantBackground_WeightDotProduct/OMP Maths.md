@@ -1,5 +1,15 @@
-# How to run
-The only file that you need to run to obtain and save the data is [bridge_process_template.m](https://github.com/jduffield65/iss/blob/master/bridge_process_template.m). The following will explain the changes to this file that need to made in order for it work with your data.
+# Orthogonal Matching Pursuit Method
+The orthogonal matching pursuit (OMP) algorithm used in [this folder](https://github.com/jduffield65/iss/tree/master/%40iss_OMP_ConstantBackground_WeightDotProduct) differs from the [conventional algorithm](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/omp_free_background.m) in how the background is fitted and how the next atom (gene in this case) is selected. This document expalins how.
+
+The function that carries out the OMP is [```o.get_omp_coefs```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_omp_coefs.m). It takes SpotColors [normalised by channel](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_Base/get_channel_norm.m) and fits the [background eigenvectors](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP/get_background_codes.m) followed by successive genes, as long as they exceed a certain threshold.
+
+## Fitting Background
+The background is fitted using the function [```o.get_spot_residual_background```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m). This assumes that there are ```o.nBP``` background eigenvectors and each one is just a strip in a color channel i.e. ```o.ompBackgroundChannelStrips=true```. An example for channel 2 is shown below:
+
+<p float="left">
+<img src="MathsImages/README/BackgroundCode.png" width = "250"> 
+</p>
+
 
 ## Parameters that should be checked before each run
 There are a few parameters that need double checking or adjusting before each run:
