@@ -94,6 +94,36 @@ The final dot product is then given by:
 
 In the bottom right plot shown, NormRoundWeight is <img src="https://i.upmath.me/svg/W_%7Bgr%7D%5E2" alt="W_{gr}^2" />, RoundDotProduct is <img src="https://i.upmath.me/svg/DP_%7Bgr%7D" alt="DP_{gr}" /> and RoundContribution is <img src="https://i.upmath.me/svg/W_%7Bgr%7D%5E2DP_%7Bgr%7D" alt="W_{gr}^2DP_{gr}" />.
 
+## Finding coefficients for selected genes
+Now we know the best gene to add, we need to find a coefficiet for it. This is done in the standard OMP least squares way. If we are considering the first gene to be added [then](https://github.com/jduffield65/iss/blob/d0892cb0c001b4f380e15443791aef9f5f26ad4e/%40iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual.m#L22):
+
+<img src="https://i.upmath.me/svg/C_g%20%3D%20%5Cfrac%7B%5Csum_%7Bb%3D1%7D%5E7%5Csum_%7Br%3D1%7D%5E7s'_%7Bbr%7Dg_%7Bbr%7D%7D%7B%5Csum_%7Bb%3D1%7D%5E7%5Csum_%7Br%3D1%7D%5E7g_%7Bbr%7D%5E2%7D" alt="C_g = \frac{\sum_{b=1}^7\sum_{r=1}^7s'_{br}g_{br}}{\sum_{b=1}^7\sum_{r=1}^7g_{br}^2}" />
+
+Where <img src="https://i.upmath.me/svg/s'" alt="s'" /> refers to the spot residual post background removal i.e. spot color - background. It is always this for every iteration as we refit the genes we have previously found when subsequent genes are added. 
+
+If we are on a later iteration with more than one gene, then the MATLAB [backslash operation](https://github.com/jduffield65/iss/blob/d0892cb0c001b4f380e15443791aef9f5f26ad4e/%40iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual.m#L24) is used to solve:
+
+<img src="https://i.upmath.me/svg/C_G%20%3D%20%5Cbigg(G%5ETG%5Cbigg)%5E%7B-1%7DG%5ETs'" alt="C_G = \bigg(G^TG\bigg)^{-1}G^Ts'" />
+
+where G is a 49 x nGenesAdded matrix where each column is the bled code of a gene that is added and <img src="https://i.upmath.me/svg/C_G%20%3D%20%5BC_%7Bg1%7D%2C%20C_%7Bg2%7D%20...%5D" alt="C_G = [C_{g1}, C_{g2} ...]" />.
+
+Genes are continually added in this way until there are [```o.ompMaxGenes```](https://github.com/jduffield65/iss/blob/d0892cb0c001b4f380e15443791aef9f5f26ad4e/%40iss_OMP/iss_OMP.m#L77-L79) added to explain a particular spot color or:
+
+<img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%20Residual_%7Bi-1%7D%20-%20Residual_%7Bi%7D%20%3C%20ResidualThresh%20" alt="\Delta Residual = Residual_{i-1} - Residual_{i} &lt; ResidualThresh " />
+
+Where:
+
+<img src="https://i.upmath.me/svg/Residual%20%3D%20%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%5Csum_%7Br%3D1%7D%5E7s''_%7Bbr%7D%5E2%7D" alt="Residual = \sqrt{\sum_{b=1}^7\sum_{r=1}^7s''_{br}^2}" />
+
+[ResidualThresh](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_coefs.m#L10-L17) is based on the second largest value in the initial spot color. The process is more easily explained through the example spot we have been using, this has ResidualThresh = 0.036:
+
+<p float="left">
+<img src="MathsImages/OMP_FullFit.png" width = "1000"> 
+</p>
+
+Here, i=1 refers to just Aldoc so <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.46" alt="Residual_i = 0.46" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%201.12" alt="Residual_{i-1} = 1.12" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.66" alt="\Delta Residual = 0.66" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3E%20ResidualThresh" alt="\Delta Residual &gt; ResidualThresh" /> so we proceed and accept Aldoc. For i=2, <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.24" alt="Residual_i = 0.24" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%200.46" alt="Residual_{i-1} = 0.46" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.22" alt="\Delta Residual = 0.22" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3E%20ResidualThresh" alt="\Delta Residual &gt; ResidualThresh" /> so we proceed and accept Trp53i11. For i=3, <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.21" alt="Residual_i = 0.21" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%200.24" alt="Residual_{i-1} = 0.24" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.03" alt="\Delta Residual = 0.03" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3C%20ResidualThresh" alt="\Delta Residual &lt; ResidualThresh" /> so we reject Hapln1 and end.
+
+
 
 
 
