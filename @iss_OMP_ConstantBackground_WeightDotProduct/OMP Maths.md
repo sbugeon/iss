@@ -4,11 +4,28 @@ The orthogonal matching pursuit (OMP) algorithm used in [this folder](https://gi
 The function that carries out the OMP is [```o.get_omp_coefs```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_omp_coefs.m). It takes SpotColors [normalised by channel](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_Base/get_channel_norm.m) and fits the [background eigenvectors](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP/get_background_codes.m) followed by successive genes, as long as they exceed a certain threshold.
 
 ## Fitting Background
-The background is fitted using the function [```o.get_spot_residual_background```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m). This assumes that there are ```o.nBP``` background eigenvectors and each one is just a strip in a color channel i.e. ```o.ompBackgroundChannelStrips=true```. An example for channel 2 is shown below:
+The background is fitted using the function [```o.get_spot_residual_background```](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m). This assumes that there are ```o.nBP``` background eigenvectors and each one is just a strip in a color channel i.e. ```o.ompBackgroundChannelStrips=true```. An example for channel 1 is shown below:
 
 <p float="left">
 <img src="MathsImages/BackgroundCode.png" width = "450"> 
 </p>
+
+The background fitting procedure will be illustrated by fitting the above background vector to the following (channel normalised) spot color:
+
+<p float="left">
+<img src="MathsImages/SpotColor.png" width = "450"> 
+</p>
+
+The basic procedure, shown below, is to find a weight factor that normalises the contribution from each round so that no one round dominates. Multiply both background code and spot color by this weight. Then the final coefficient for the background code is the dot product of the weighted spot color with the weighted background code.
+
+<p float="left">
+<img src="MathsImages/BackgroundFit.png" width = "700"> 
+</p>
+
+The weight factor for fitting the channel b background vector in round r is:
+<img src=//i.upmath.me/svg/W_%7Bb%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7Bb%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D />
+
+
 
 
 ## Parameters that should be checked before each run
