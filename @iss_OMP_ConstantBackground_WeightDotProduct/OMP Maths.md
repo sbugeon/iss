@@ -122,14 +122,11 @@ Where:
 </p>
 
 Here, i=1 refers to just Aldoc so:
-
 <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.46" alt="Residual_i = 0.46" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%201.12" alt="Residual_{i-1} = 1.12" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.66" alt="\Delta Residual = 0.66" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3E%20ResidualThresh" alt="\Delta Residual &gt; ResidualThresh" /> so we proceed and accept Aldoc. 
 
 i=2:
-
 <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.24" alt="Residual_i = 0.24" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%200.46" alt="Residual_{i-1} = 0.46" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.22" alt="\Delta Residual = 0.22" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3E%20ResidualThresh" alt="\Delta Residual &gt; ResidualThresh" /> so we proceed and accept Trp53i11. 
 
 i=3:
-
 <img src="https://i.upmath.me/svg/Residual_i%20%3D%200.21" alt="Residual_i = 0.21" />, <img src="https://i.upmath.me/svg/Residual_%7Bi-1%7D%20%3D%200.24" alt="Residual_{i-1} = 0.24" /> and <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3D%200.03" alt="\Delta Residual = 0.03" />. <img src="https://i.upmath.me/svg/%5CDelta%20Residual%20%3C%20ResidualThresh" alt="\Delta Residual &lt; ResidualThresh" /> so we reject Hapln1 and end.
 
