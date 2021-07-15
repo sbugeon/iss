@@ -22,9 +22,11 @@ The basic procedure, shown below, is to find a weight factor that normalises the
 <img src="MathsImages/BackgroundFit.png" width = "700"> 
 </p>
 
-The weight factor for fitting the channel b background vector in round r is:
+The weight factor for fitting the channel B background vector in round r is:
 
-<img src="https://i.upmath.me/svg/W_%7Bb%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7Bb%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D" alt="W_{b,r} = \frac{1}{(|s_{b,r}|+\lambda)^\sigma}" />
+<img src="https://i.upmath.me/svg/W_%7BB%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7BB%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D" alt="W_{B,r} = \frac{1}{(|s_{B,r}|+\lambda)^\sigma}" />
+
+<img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is the spot color in channel b, round r. <img src="https://i.upmath.me/svg/%5Clambda" alt="\lambda" /> is [```o.ompWeightShift```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L18) which is just a small number to stop <img src="https://i.upmath.me/svg/W_%7BB%2Cr%7D" alt="W_{B,r}" /> blowing up for small <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" />. <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" /> is [```o.ompWeightPower```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L22), the lower <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" />, the greater the contributions of the rounds where <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is large.
 
 
 
