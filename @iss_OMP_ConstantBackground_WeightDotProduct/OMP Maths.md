@@ -19,7 +19,7 @@ The background fitting procedure will be illustrated by fitting the above backgr
 The basic procedure, shown below, is to find a weight factor that normalises the contribution from each round so that no one round dominates. Multiply both background code and spot color by this weight. Then the final coefficient for the background code is the dot product of the weighted spot color with the weighted background code.
 
 <p float="left">
-<img src="MathsImages/BackgroundFit.png" width = "700"> 
+<img src="MathsImages/BackgroundFit.png" width = "1000"> 
 </p>
 
 The [weight factor](https://github.com/jduffield65/iss/blob/efa8542e0331e5337bdf05846755e1999b830b0d/%40iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m#L25-L30) for fitting the channel B background vector in round r is:
@@ -38,7 +38,7 @@ The [final coefficient](https://github.com/jduffield65/iss/blob/efa8542e0331e533
 The spot color found after fitting the background is shown in the middle plot below. The values of <img src="https://i.upmath.me/svg/C_b" alt="C_b" /> for all channels, b, are kept constant after this initial fitting which differs from the usual OMP method where they are re-fit after each subsequent gene is added. The reason for this is that sometimes an unusual background can be fit to justify further genes. 
 
 <p float="left">
-<img src="MathsImages/BackgroundResult.png" width = "700"> 
+<img src="MathsImages/BackgroundResult.png" width = "1000"> 
 </p>
 
 ## Fitting Genes
