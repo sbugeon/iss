@@ -23,7 +23,7 @@ The basic procedure, shown below, is to find a weight factor that normalises the
 </p>
 
 The weight factor for fitting the channel b background vector in round r is:
-<img src=//i.upmath.me/svg/W_%7Bb%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7Bb%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D />
+<img src="//i.upmath.me/svg/W_%7Bb%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7Bb%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D" />
 
 
 
