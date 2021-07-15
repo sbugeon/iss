@@ -22,11 +22,20 @@ The basic procedure, shown below, is to find a weight factor that normalises the
 <img src="MathsImages/BackgroundFit.png" width = "700"> 
 </p>
 
-The weight factor for fitting the channel B background vector in round r is:
+The [weight factor](https://github.com/jduffield65/iss/blob/efa8542e0331e5337bdf05846755e1999b830b0d/%40iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m#L25-L30) for fitting the channel B background vector in round r is:
 
 <img src="https://i.upmath.me/svg/W_%7BB%2Cr%7D%20%3D%20%5Cfrac%7B1%7D%7B(%7Cs_%7BB%2Cr%7D%7C%2B%5Clambda)%5E%5Csigma%7D" alt="W_{B,r} = \frac{1}{(|s_{B,r}|+\lambda)^\sigma}" />
 
-<img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is the spot color in channel B, round r. <img src="https://i.upmath.me/svg/%5Clambda" alt="\lambda" /> is [```o.ompWeightShift```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L18) which is just a small number to stop <img src="https://i.upmath.me/svg/W_%7BB%2Cr%7D" alt="W_{B,r}" /> blowing up for small <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" />. <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" /> is [```o.ompWeightPower```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L22), the lower <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" />, the greater the contributions of the rounds where <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is large. If <img src="https://i.upmath.me/svg/%5Clambda%3D0" alt="\lambda=0" /> and <img src="https://i.upmath.me/svg/%5Csigma%3D1" alt="\sigma=1" />, then the weighted spot color shown in the third column would have an absolute value of 1 for all rounds in channel 1.
+<img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is the spot color in channel B, round r. <img src="https://i.upmath.me/svg/%5Clambda" alt="\lambda" /> is [```o.ompWeightShift```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L18) which is just a small number to stop <img src="https://i.upmath.me/svg/W_%7BB%2Cr%7D" alt="W_{B,r}" /> blowing up for small <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" />. <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" /> is [```o.ompWeightPower```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L22), the lower <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" />, the greater the contributions of the rounds where <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%7D" alt="s_{B,r}}" /> is large. 
+
+For <img src="https://i.upmath.me/svg/%5Clambda%3D0.01" alt="\lambda=0.01" /> and <img src="https://i.upmath.me/svg/%5Csigma%3D0.9" alt="\sigma=0.9" />, the weight factor is shown in the top row. The third row just shows the second row multiplied by the weight factor. If <img src="https://i.upmath.me/svg/%5Clambda%3D0" alt="\lambda=0" /> and <img src="https://i.upmath.me/svg/%5Csigma%3D1" alt="\sigma=1" />, then the weighted spot color shown would have an absolute value of 1 for all rounds in channel 1.
+
+The final coefficient of the background vector for chanel B is given by:
+<img src="https://i.upmath.me/svg/C_B%20%3D%20%5Cfrac%7B%5Csum_%7Br%3D1%7D%5E7W_%7BB%2Cr%7D%5E2s_%7BB%2Cr%7Dg_%7BB%2Cr%7D%7D%7B%5Csum_%7Br%3D1%7D%5E7W_%7BB%2Cr%7D%5E2g_%7BB%2Cr%7D%5E2%7D" alt="C_B = \frac{\sum_{r=1}^7W_{B,r}^2s_{B,r}g_{B,r}}{\sum_{r=1}^7W_{B,r}^2g_{B,r}^2}" />
+
+<img src="https://i.upmath.me/svg/g_%7BB%2Cr%7D" alt="g_{B,r}" /> is the value of the background vector for channel B in round r. In the procedure shown, this is equivalent to multiplying the two weighted codes in the third row together, then dividing by the square of the weighted background. The result of this is shown as the Weighted Dot Product in the bottom row. <img src="https://i.upmath.me/svg/C_B" alt="C_B" /> is then found by summing this.
+
+
 
 
 
