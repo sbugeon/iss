@@ -33,7 +33,72 @@ For <img src="https://i.upmath.me/svg/%5Clambda%3D0.01" alt="\lambda=0.01" /> an
 The [final coefficient](https://github.com/jduffield65/iss/blob/efa8542e0331e5337bdf05846755e1999b830b0d/%40iss_OMP_ConstantBackground_WeightDotProduct/get_spot_residual_background.m#L37) of the background vector for channel B is given by:
 <img src="https://i.upmath.me/svg/C_B%20%3D%20%5Cfrac%7B%5Csum_%7Br%3D1%7D%5E7W_%7BB%2Cr%7D%5E2s_%7BB%2Cr%7Dg_%7BB%2Cr%7D%7D%7B%5Csum_%7Br%3D1%7D%5E7W_%7BB%2Cr%7D%5E2g_%7BB%2Cr%7D%5E2%7D" alt="C_B = \frac{\sum_{r=1}^7W_{B,r}^2s_{B,r}g_{B,r}}{\sum_{r=1}^7W_{B,r}^2g_{B,r}^2}" />
 
-<img src="https://i.upmath.me/svg/g_%7BB%2Cr%7D" alt="g_{B,r}" /> is the value of the background vector for channel B in round r. In the procedure shown, this is equivalent to multiplying the two weighted codes in the third row together, then dividing by the square of the weighted background. The result of this is shown as the Weighted Dot Product in the bottom row. <img src="https://i.upmath.me/svg/C_B" alt="C_B" /> is then found by summing this. It is clear from the formula that if <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%20%3D%20%5Cmu%20g_%7BB%2Cr%7D" alt="s_{B,r} = \mu g_{B,r}" /> then <img src="https://i.upmath.me/svg/C_B%20%3D%20%5Cmu" alt="C_B = \mu" /> for any value of <img src="https://i.upmath.me/svg/%5Cmu" alt="\mu" />
+<img src="https://i.upmath.me/svg/g_%7BB%2Cr%7D" alt="g_{B,r}" /> is the value of the background vector for channel B in round r. In the procedure shown, this is equivalent to multiplying the two weighted codes in the third row together, then dividing by the square of the weighted background. The result of this is shown as the Weighted Dot Product in the bottom row. <img src="https://i.upmath.me/svg/C_B" alt="C_B" /> is then found by summing this. It is clear from the formula that if <img src="https://i.upmath.me/svg/s_%7BB%2Cr%7D%20%3D%20%5Cmu%20g_%7BB%2Cr%7D" alt="s_{B,r} = \mu g_{B,r}" /> then <img src="https://i.upmath.me/svg/C_B%20%3D%20%5Cmu" alt="C_B = \mu" /> for any value of <img src="https://i.upmath.me/svg/%5Cmu" alt="\mu" />.
+
+The spot color found after fitting the background is shown in the middle plot below. The values of <img src="https://i.upmath.me/svg/C_b" alt="C_b" /> for all channels, b, are kept constant after this initial fitting which differs from the usual OMP method where they are re-fit after each subsequent gene is added. The reason for this is that sometimes an unusual background can be fit to justify further genes. 
+
+<p float="left">
+<img src="MathsImages/BackgroundResult.png" width = "700"> 
+</p>
+
+## Fitting Genes
+After fitting the background, we need to decide which gene to fit next. This is done by the function [```o.get_weight_gene_dot_product2```](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/@iss_OMP_ConstantBackground_WeightDotProduct/get_weight_gene_dot_product2.m). It finds a modified dot product <img src="https://i.upmath.me/svg/DP_g" alt="DP_g" /> for each gene, g, and then the next gene to be fit is the gene with the largest value. 
+
+For the spot color shown above, the next gene to be fit is Aldoc, with a bled code shown below.
+
+<p float="left">
+<img src="MathsImages/AldocCode.png" width = "450"> 
+</p>
+
+The below plot illustrates the procedure for finding <img src="https://i.upmath.me/svg/DP_g" alt="DP_g" /> for Aldoc to be 6.098, with a particular focus on the contribution from round 7. The basic procedure is to find a dot product between the spot color and the gene code for each round and then summing these individual dot products with a weighting indicating the strength of the gene in each round.
+
+<p float="left">
+<img src="MathsImages/AldocFit.png" width = "1000"> 
+</p>
+
+First, for each gene, we need to find a weight for each round. This is based on the [gene efficiency](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/@iss_OMP/get_gene_efficiencies.m) as shown in the top left plot above. The [formula](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_coefs.m#L34-L36) is:
+
+<img src="https://i.upmath.me/svg/w_%7Bgr%7D%20%3D%20%5Csqrt%7B%5Cfrac%7B1%7D%7B1%2Be%5E%7B-%5Calpha(%5Cvarepsilon_%7Bg%2Cr%7D-%5Cbeta)%7D%7D%7D" alt="w_{gr} = \sqrt{\frac{1}{1+e^{-\alpha(\varepsilon_{g,r}-\beta)}}}" />
+
+<img src="https://i.upmath.me/svg/%5Cvarepsilon_%7Bg%2Cr%7D" alt="\varepsilon_{g,r}" /> is the gene efficiency for gene g in round r. <img src="https://i.upmath.me/svg/%5Calpha" alt="\alpha" /> is [```ompNormBledCodeScale```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L32), the larger this, the sharper the step function. <img src="https://i.upmath.me/svg/%5Cbeta" alt="\beta" /> is [```ompNormBledCodeShift```](https://github.com/jduffield65/iss/blob/0f7a804ea1b9f3d845788b826476ab459ba17388/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L31), this controls where the step function is centered. For the plot shown, <img src="https://i.upmath.me/svg/%5Calpha%3D7" alt="\alpha=7" /> and <img src="https://i.upmath.me/svg/%5Cbeta%3D0.5" alt="\beta=0.5" />.
+
+We next square and [normalise this](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/%40iss_OMP_ConstantBackground_WeightDotProduct/get_weight_gene_dot_product2.m#L14-L16) as shown in the top right plot. The formula is:
+
+<img src="https://i.upmath.me/svg/W_%7Bgr%7D%5E2%20%3D%20%5Cfrac%7BnR%20%5Ctimes%20w_%7Bgr%7D%5E2%7D%7B%5Csum_%7Br%3D1%7D%5E%7BnR%7Dw_%7Bgr%7D%5E2%7D" alt="W_{gr}^2 = \frac{nR \times w_{gr}^2}{\sum_{r=1}^{nR}w_{gr}^2}" />
+
+Here, nR = o.nRounds, and it is normalised such that <img src="https://i.upmath.me/svg/%5Csum_%7Br%3D1%7D%5E%7BnR%7DW_%7Bgr%7D%5E2%3DnR" alt="\sum_{r=1}^{nR}W_{gr}^2=nR" />.
+
+Now we need to find the dot product for each round. For a particular round R, this is:
+
+<img src="https://i.upmath.me/svg/DP_%7Bg%2CR%7D%20%3D%20%5Cfrac%7B%5Csum_%7Bb%3D1%7D%5E7s''_%7Bb%2CR%7Dg_%7Bb%2CR%7D%7D%7B%5CBigg(%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bs''_%7Bb%2CR%7D%5E2%7D%7D%2B%5Clambda%5CBigg)%5E%7B%5Csigma%7D%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bg_%7Bb%2CR%7D%5E2%7D%7D%7D" alt="DP_{g,R} = \frac{\sum_{b=1}^7s''_{b,R}g_{b,R}}{\Bigg(\sqrt{\sum_{b=1}^7{s''_{b,R}^2}}+\lambda\Bigg)^{\sigma}\sqrt{\sum_{b=1}^7{g_{b,R}^2}}}" />
+
+Here, <img src="https://i.upmath.me/svg/s''" alt="s''" /> refers to the current spot residual, so for this example it is the spot color - background but if we are on the next iteration it would be spot color - background - first gene. We include both <img src="https://i.upmath.me/svg/%5Clambda" alt="\lambda" /> and <img src="https://i.upmath.me/svg/%5Csigma" alt="\sigma" /> again to stop a blow up and to give slightly greater contribution to the more intense rounds. If <img src="https://i.upmath.me/svg/%5Clambda%3D0" alt="\lambda=0" /> and <img src="https://i.upmath.me/svg/%5Csigma%3D1" alt="\sigma=1" />, then we are just finding the [cosine of the angle between the vectors](https://proofwiki.org/wiki/Cosine_Formula_for_Dot_Product).
+
+In the procedure shown, the second row shows <img src="https://i.upmath.me/svg/s''_R" alt="s''_R" /> and <img src="https://i.upmath.me/svg/g_R" alt="g_R" /> with R=7. The third row shows the [spot weight](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/%40iss_OMP_ConstantBackground_WeightDotProduct/get_weight_gene_dot_product2.m#L42-L54) which is:
+
+<img src="https://i.upmath.me/svg/%5Cfrac%7B1%7D%7B%5CBigg(%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bs''_%7Bb%2CR%7D%5E2%7D%7D%2B%5Clambda%5CBigg)%5E%7B%5Csigma%7D%7D" alt="\frac{1}{\Bigg(\sqrt{\sum_{b=1}^7{s''_{b,R}^2}}+\lambda\Bigg)^{\sigma}}" /> 
+
+and the [gene weight](https://github.com/jduffield65/iss/blob/6b5e51b1bcc4f11ef7221cd2ffca18a2b45cbabf/%40iss_OMP_ConstantBackground_WeightDotProduct/get_weight_gene_dot_product2.m#L28-L40) which is:
+
+<img src="https://i.upmath.me/svg/%5Cfrac%7B1%7D%7B%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bg_%7Bb%2CR%7D%5E2%7D%7D%7D" alt="\frac{1}{\sqrt{\sum_{b=1}^7{g_{b,R}^2}}}" />.
+
+The next row shows the two preceding rows multiplied by each other i.e.
+
+<img src="https://i.upmath.me/svg/%5Cfrac%7Bs''_R%7D%7B%5CBigg(%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bs''_%7Bb%2CR%7D%5E2%7D%7D%2B%5Clambda%5CBigg)%5E%7B%5Csigma%7D%7D" alt="\frac{s''_R}{\Bigg(\sqrt{\sum_{b=1}^7{s''_{b,R}^2}}+\lambda\Bigg)^{\sigma}}" /> and <img src="https://i.upmath.me/svg/%5Cfrac%7Bg_R%7D%7B%5Csqrt%7B%5Csum_%7Bb%3D1%7D%5E7%7Bg_%7Bb%2CR%7D%5E2%7D%7D%7D" alt="\frac{g_R}{\sqrt{\sum_{b=1}^7{g_{b,R}^2}}}" />.
+
+The bottom left plot then shows these two multiplied by each other. Summing over all values in this image then gives <img src="https://i.upmath.me/svg/DP_%7Bg%2CR%7D%20%3D%200.894" alt="DP_{g,R} = 0.894" />. 
+
+The final dot product is then given by:
+
+<img src="https://i.upmath.me/svg/DP_g%20%3D%20%5Csum_%7Br%3D1%7D%5E7W_%7Bgr%7D%5E2DP_%7Bgr%7D" alt="DP_g = \sum_{r=1}^7W_{gr}^2DP_{gr}" />
+
+In the bottom right plot shown, NormRoundWeight is <img src="https://i.upmath.me/svg/W_%7Bgr%7D%5E2" alt="W_{gr}^2" />, RoundDotProduct is <img src="https://i.upmath.me/svg/DP_%7Bgr%7D" alt="DP_{gr}" /> and RoundContribution is <img src="https://i.upmath.me/svg/W_%7Bgr%7D%5E2DP_%7Bgr%7D" alt="W_{gr}^2DP_{gr}" />.
+
+
+
+
+
+
 
 
 
