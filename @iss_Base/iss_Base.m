@@ -359,7 +359,7 @@ classdef iss_Base
         ChannelNormValue1 = 1;
         ChannelNormValue2 = 0.5;  %ChannelNormValue2<ChannelNormValue1 (Not sharp gradient at lower intensities)
         ChannelNormValue3 = 5;    %ChannelNormValue3>ChannelNormValue1 (Few outliers)
-        ChannelNormThresh1 = 1e-3;
+        ChannelNormThresh1 = 5e-4;
         ChannelNormThresh2 = 1e-2;
         ChannelNormThresh3 = 1e-5;
         
