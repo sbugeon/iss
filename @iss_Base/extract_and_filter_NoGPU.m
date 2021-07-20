@@ -113,7 +113,6 @@ for r = 1:o.nRounds+o.nExtraRounds
                     o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
                 end
             end
-            o.TilePosYX = o.TileInitialPosYX;
             %Below is a safeguard incase wrong positions found - can do
             %this as we knwo what the answer should be.
             MaxY = max(o.TileInitialPosYX(:,1));
@@ -128,6 +127,7 @@ for r = 1:o.nRounds+o.nExtraRounds
                     , nSeries, MaxY, MaxX)
                 break
             else
+                o.TilePosYX = zeros(size(xypos));
                 TilePosY = flip(repelem(1:MaxY,MaxX));
                 o.TilePosYX(:,1) = TilePosY;
                 TilePosX = repmat([flip(1:MaxX),1:MaxX],1,ceil(MaxY/2));
