@@ -56,9 +56,6 @@ end
 %% Get dot product for each gene
 AllSpotScore = zeros(nSpots,nCodes);
 for g=1:nCodes
-    %Overall weight factor is combination of:
-    %SpotWeightFactor: Need contribution from every round.
-    %BledCodeWeight: For some genes, some rounds failed so ignore these. 
     gBledCode = repmat(o.ompBledCodes(g,:)',[1,nSpots]);
     gBledCode = gBledCode.*W_gb(g,:)'.*W_gr(g,:)';
     
@@ -97,5 +94,169 @@ if nargin>=4 && size(AlreadyAddedGenes,1)==nSpots
 end
 [~,BestGeneNo] = max(abs(AllSpotScore),[],2);
 
+ShowDotProductFitting = false;
+if ShowDotProductFitting && nSpots==1
+    %Graphically show how dot product is found for a particular round.
+    gPlot=1;
+    rPlot=7;
+    ImageIndex = (rPlot-1)*o.nBP+1:(rPlot-1)*o.nBP+o.nBP;
+    figure;
+    
+    subplot(5,2,1);
+    x=0:0.01:round(max(o.GeneEfficiency(:)),2)+0.1;
+    BledCodeWeightPlot = ...
+        1./(1+exp(-o.ompNormBledCodeScale*(x-o.ompNormBledCodeShift)));
+    BledCodeWeightPlot = sqrt(BledCodeWeightPlot);
+    plot(x,BledCodeWeightPlot);
+    hold on;
+    gPlotEff = round(o.GeneEfficiency(gPlot,rPlot),2);
+    gRoundWeight = BledCodeWeight(gPlot,rPlot);
+    PlotRoundColor = 'r';
+    scatter(gPlotEff,gRoundWeight,'x','MarkerEdgeColor',PlotRoundColor);
+    NonPlotRoundColor = [0.7,0.7,0.7];
+    for r=setdiff(o.UseRounds,rPlot)
+        scatter(o.GeneEfficiency(gPlot,r),BledCodeWeight(gPlot,r),...
+            '+','MarkerEdgeColor',NonPlotRoundColor);
+    end
+    text(gPlotEff,gRoundWeight-0.1,...
+        [o.GeneNames{gPlot},' Round ', num2str(rPlot)],'Color',PlotRoundColor);
+    xlabel('Gene Efficiency');
+    ylabel('Round Weight');
+    title('How Round Weight is Derived');
+    set(gca,'TickLength',[0.001,0.001]);
+    
+    subplot(5,2,2);
+    x=0:0.01:1;
+    RoundWeightsNorm = vecnorm(BledCodeWeight(gPlot,:),2,2);
+    NormRoundWeight = (x./RoundWeightsNorm).^2*o.nRounds;
+    plot(x,NormRoundWeight);
+    hold on
+    gNormRoundWeight = W_gr(gPlot,rPlot*o.nBP).^2;
+    scatter(gRoundWeight,gNormRoundWeight,'rx');
+    for r=setdiff(o.UseRounds,rPlot)
+        scatter(BledCodeWeight(gPlot,r),W_gr(gPlot,r*o.nBP).^2,...
+            '+','MarkerEdgeColor',[0.7,0.7,0.7]);
+    end
+    xlabel('Round Weight');
+    ylabel('Norm Round Weight');
+    title(sprintf('Norm Round Weight = %.2f',gNormRoundWeight));
+    set(gca,'TickLength',[0.0001,0.0001]);
+    
+    subplot(5,2,3);
+    bImage = zeros(o.nBP,o.nRounds);
+    bImage(:,rPlot) = z_scoredSpotColors(ImageIndex,1);
+    imagesc(bImage);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    caxis([min(z_scoredSpotColors(:)),max(z_scoredSpotColors(:))]);
+    colormap(gca,bluewhitered);
+    colorbar;
+    title('Spot Residual');
+    
+    subplot(5,2,4);
+    A_Image = zeros(o.nBP,o.nRounds);
+    A_Image(:,rPlot) = o.ompBledCodes(gPlot,ImageIndex);
+    imagesc(A_Image);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    colorbar;
+    title([o.GeneNames{gPlot},' Code']);
+    
+    subplot(5,2,5);
+    SpotWeightImage = zeros(o.nBP,o.nRounds);
+    SpotWeightImage(:,rPlot) = W_sg_rb(ImageIndex,1);
+    imagesc(SpotWeightImage);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    colorbar;
+    title('Spot Weight');
+    
+    subplot(5,2,6);
+    GeneWeightImage = zeros(o.nBP,o.nRounds);
+    GeneWeightImage(:,rPlot) = W_gb(gPlot,ImageIndex);
+    imagesc(GeneWeightImage);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    colorbar;
+    title([o.GeneNames{gPlot},' Weight']);
+    
+    subplot(5,2,7);
+    bWeightImage = bImage.*SpotWeightImage;
+    imagesc(bWeightImage);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    colormap(gca,bluewhitered);
+    colorbar;
+    title('Weighted Spot Residual');
+    
+    subplot(5,2,8);
+    A_WeightImage = A_Image.*GeneWeightImage;
+    imagesc(A_WeightImage);
+    yticks(1:o.nBP);
+    yticklabels([]);
+    xticks(1:o.nRounds);
+    xticklabels([]);
+    colorbar;
+    title(['Weighted ',o.GeneNames{gPlot},' Code']);
+    
+    subplot(5,2,9);
+    rDotProductImage = bWeightImage.*A_WeightImage;
+    imagesc(rDotProductImage);
+    yticks(1:o.nBP);
+    yticklabels(o.bpLabels);
+    ylabel('Channel');
+    xticks(1:o.nRounds);
+    xlabel('Round');
+    colormap(gca,bluewhitered);
+    colorbar;
+    title(sprintf('Round %.0f Dot Product, Sum = %.3f',...
+        rPlot,sum(rDotProductImage(:))));
+    
+    subplot(5,2,10);
+    gPlotBledCode = repmat(o.ompBledCodes(gPlot,:)',[1,nSpots]);
+    gPlotBledCode = gPlotBledCode.*W_gb(gPlot,:)'.*W_gr(gPlot,:)';
+    gPlotSpotColorsWeight = z_scoredSpotColors.*W_sg_rb.*W_gr(gPlot,:)';
+    hold on;
+    rDotProduct = zeros(o.nRounds,1);
+    rRoundWeight = zeros(o.nRounds,1);
+    for r=1:o.nRounds
+        rIndex = (r-1)*o.nBP+1:(r-1)*o.nBP+o.nBP;
+        rRoundWeight(r) = W_gr(gPlot,r*o.nBP).^2;
+        rDotProduct(r) = sum(gPlotBledCode(rIndex).*gPlotSpotColorsWeight(rIndex))./rRoundWeight(r);
+    end
+    rContribution = rRoundWeight.*rDotProduct;
+    NonPlotRounds = setdiff(1:o.nRounds,rPlot);
+    scatter(NonPlotRounds, rRoundWeight(NonPlotRounds),...
+        'x','MarkerEdgeColor',NonPlotRoundColor,'HandleVisibility','off');
+    scatter(NonPlotRounds, rDotProduct(NonPlotRounds),...
+        '+','MarkerEdgeColor',NonPlotRoundColor,'HandleVisibility','off');
+    scatter(NonPlotRounds, rContribution(NonPlotRounds),...
+        'o','MarkerEdgeColor',NonPlotRoundColor,'HandleVisibility','off');
+    scatter(rPlot, rRoundWeight(rPlot),...
+        'x','MarkerEdgeColor',PlotRoundColor);
+    scatter(rPlot, rDotProduct(rPlot),...
+        '+','MarkerEdgeColor',PlotRoundColor);
+    scatter(rPlot, rContribution(rPlot),...
+        'o','MarkerEdgeColor',PlotRoundColor);
+    legend('NormRoundWeight','RoundDotProduct','RoundContribution',...
+        'FontSize',7,'Location','northwest');
+    xticks(1:o.nRounds);
+    xlabel('Round');
+    xlim([0,o.nRounds+1]);
+    title(sprintf('TotalDotProduct = ∑RoundContribution = %.3f',...
+        sum(rContribution)));  
+    sgtitle(sprintf('Procedure to fit %s with TotalDotProduct = %.3f, highlighting Round %.0f contribution of %.3f',...
+        o.GeneNames{gPlot},AllSpotScore(gPlot),rPlot,rContribution(rPlot)));
 end
 
+end

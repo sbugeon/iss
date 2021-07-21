@@ -30,7 +30,22 @@ classdef iss_OMP_ConstantBackground_WeightDotProduct < iss_OMP
         %contribute less. 
         ompNormBledCodeShift = 0.5;
         ompNormBledCodeScale = 7;
-        ompNormBledCodeUnbledBoost = 1;
+        ompNormBledCodeUnbledBoost = 1;       
+        
+        %ompGetCoefMethod = 1 means get_omp_coefs is used.
+        %ompGetCoefMethod = 2 means get_omp_coefs2 is used.
+        ompGetCoefMethod = 1;
+        
+        %If ompGetCoefMethod = 2:
+        %For a particular gene, if after the first gene has been added to every pixel,
+        %there are a group of ompIntenseClusterNo pixels, each with
+        %Coef>ompIntenseCoefThresh and are closer than ompIntenseClusterDist
+        %to each other then all pixels closer than ompIntenseDistThresh
+        %will also be assigned this gene.
+        ompIntenseCoefThresh = 0.6;
+        ompIntenseClusterNo = 3;
+        ompIntenseClusterDist = 2;
+        ompIntenseDistThresh = 8;
         
     end
 end
