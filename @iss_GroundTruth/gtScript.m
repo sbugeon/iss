@@ -28,6 +28,14 @@ if max(UseRoundsOrig)>o.nRounds
     warning('o.UseRounds contains round outside 1:o.nRounds so setting o.UseRounds=1:o.nRounds');
 end
 o.UseRounds = o.gtRounds;
+o.gtChannels = cell(o.nRounds+o.nExtraRounds,1);
+for r=o.gtRounds
+    o.gtChannels{r} = find(o.gtGeneNo(r,:));
+    if r==o.AnchorRound
+        o.gtChannels{r} = unique([o.gtChannels{r},o.AnchorChannel]);
+    end
+end
+
 
 %% Get ground truth Round spots
 %Find spots using same size radius as PixelBased method
@@ -56,7 +64,7 @@ for t=NonemptyTiles
     for r=o.gtRounds
         FileName = o.TileFiles{r,t};
         TifObj = Tiff(FileName);
-        for b=o.UseChannels
+        for b=o.gtChannels{r}
             TifObj.setDirectory(o.FirstBaseChannel + b - 1);
             ReferenceIm = int32(TifObj.read())-o.TilePixelValueShift;
             if o.AutoThresh(t,b,r)==0
@@ -73,14 +81,20 @@ for t=NonemptyTiles
                 %intensity above o.gtColorFalsePositiveThresh.
                 o.AutoThresh(t,b,r) = min(o.AutoThresh(t,b,r),o.gtColorFalsePositiveMinThresh);
             end
-            if o.SmoothSize
-                SE = fspecial('disk', o.SmoothSize);
-                ReferenceImSm = imfilter(ReferenceIm ,SE);
+            
+            if r==o.AnchorRound && b ==o.AnchorChannel
+                o.gtRawLocalYX{t,b,r} = o.RawLocalYX{t,b};
+                o.gtRawIsolated{t,b,r} = o.RawIsolated{t,b};
             else
-                ReferenceImSm = ReferenceIm;
+                if o.SmoothSize
+                    SE = fspecial('disk', o.SmoothSize);
+                    ReferenceImSm = imfilter(ReferenceIm ,SE);
+                else
+                    ReferenceImSm = ReferenceIm;
+                end
+                [o.gtRawLocalYX{t,b,r}, o.gtRawIsolated{t,b,r}] = ...
+                    o.detect_spots(ReferenceImSm,t,b,r);
             end
-            [o.gtRawLocalYX{t,b,r}, o.gtRawIsolated{t,b,r}] = ...
-                o.detect_spots(ReferenceImSm,t,b,r);
         end
     end
 end
@@ -125,7 +139,7 @@ o.gtBigImFiles = cell(o.nRounds+o.nExtraRounds,o.nBP);
 gtTileOrigin = zeros([size(o.TileOrigin),o.nBP]);
 LocalTileOrigin = [0-o.TileCentre(1),0-o.TileCentre(2)];
 for r=o.UseRounds
-    for b=1:o.nBP
+    for b=o.gtChannels{r}
         if o.gtGeneNo(r,b)==0; continue; end  
         fprintf('Making %s stitched image \n',o.GeneNames{o.gtGeneNo(r,b)});
         for t=NonemptyTiles
@@ -135,7 +149,11 @@ for r=o.UseRounds
         AnchorOrigin = round(gtTileOrigin(:,:,r,b));
         MaxTileLoc = max(AnchorOrigin);
         NegOriginShift = abs(min(min(AnchorOrigin(:)),1)-1); 
-        MissedSpotsShift = abs(min(min(ceil((MaxTileLoc + o.TileSz) - max(o.pxSpotGlobalYX))),0));
+        try
+            MissedSpotsShift = abs(min(min(ceil((MaxTileLoc + o.TileSz) - max(o.ompSpotGlobalYX))),0));
+        catch
+            MissedSpotsShift = abs(min(min(ceil((MaxTileLoc + o.TileSz) - max(o.dpSpotGlobalYX))),0));
+        end
         gtBigIm = zeros(ceil((MaxTileLoc + o.TileSz + NegOriginShift+MissedSpotsShift)), 'uint16');
         
         for t=NonemptyTiles

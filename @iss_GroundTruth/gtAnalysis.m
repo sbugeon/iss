@@ -110,12 +110,12 @@ end
 
 i = size(TruePosData.Summary,1)+1;      %INDEX OF DATA TO BE ADDED
 TruePosData.Summary(i,'FileLocation') = ...
-    {fullfile(o.OutputDirectory, 'oOMP_NewScore_NewPCR_ConstantBackgroundWeightDotProduct_DotProduct2')};
+    {fullfile(o.OutputDirectory, 'oOMP_SetNearIntenseCoefs')};
 %Method = 'Pixel: pLogThresh, ProbMethod = 1, GammaShape=3, NoFilter, Smooth, pQualThresh3=100, pQualThresh=-25';
 %Method = 'Pixel: pQualThresh, ProbMethod = 1, pQualThresh3=51, Median BleedMatrix, Used GeneEfficiencies, Used get_secondary_gene_prob with remove_full_code';
 %Method = 'MP_Weights: Use DotProduct>2 as only thresh in OMP. Stop MP iteration when any artificial gene found, SpotIntensity is median(Z_scored in Unbled code) and no subtraction, weight by round, FinalThresholding was QualOK = quality_threshold(o,Method), o.ompNeighbThresh2=5. Proper initial OMP, 7 Background Channel Strips, Gene Efficiencies found from Mean Code';
 %Method = 'Spatial With ompBledCodes(ompBledCodes<0.1)=0';
-Method = 'OMP: Fit background first and use better get_weighted_gene_dot_product2. o.ompNormBledCodeUnbledBoost=1.';
+Method = 'OMP: All Pixels near pixel with coef>0.6 in 1st run used in subsequent runs. Fit background first and use better get_weighted_gene_dot_product2. o.ompNormBledCodeUnbledBoost=1. Use New HistCounts Channel Norm';
 %Method = 'Spatial';
 Intensity_Method = 'Median Unbled Z_scored';
 %Intensity_Method = 'Mean Unbled';
@@ -357,9 +357,9 @@ SpotCoef = o.ompCoefs(SpotInd);
 % NeighbThresh = 1:4:33;
 % QualParam2 = -2:0.5:3;
 %ScoreThresh = -4:4:24;
-NeighbThresh = 9:1:14;
-QualParam2 = 0.4:0.1:0.8;
-ScoreThresh = 3:0.1:3.7;
+NeighbThresh = 14:1:16;
+QualParam2 = 0.5:0.1:0.7;
+ScoreThresh = 3.8:0.1:4.2;
 % ScoreThresh = 3.2:0.1:3.8;
 % ScoreThresh = 0:0.001:0.9;
 %ScoreThresh = 4:0.1:6;
@@ -404,9 +404,9 @@ NeighbThresh(a)
 QualParam2(b)
 ScoreThresh(c)
 %% Change Thresh2
-NeighbThresh = 3:1:9;
-QualParam2 = 0.001:0.001:0.007;
-ScoreThresh = 0.3:0.1:0.8;
+NeighbThresh = 9:1:11;
+QualParam2 = 0.001:0.001:0.005;
+ScoreThresh = 0.3:0.1:0.5;
 ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh));
         
 for n=1:length(NeighbThresh)
@@ -441,10 +441,10 @@ QualParam2(b)
 ScoreThresh(c)
 
 %% Change Thresh3
-NeighbThresh = 15:1:21;
+NeighbThresh = 13:1:15;
 QualParam2 = 0.009:0.001:0.011;
-ScoreThresh = 5.8:0.1:6.4;
-CoefFactor = 0.23:0.01:0.29;
+ScoreThresh = 6.0:0.1:6.4;
+CoefFactor = 0.23:0.01:0.28;
 ScoreImage = zeros(length(NeighbThresh),length(QualParam2),length(ScoreThresh),length(CoefFactor));
         
 for n=1:length(NeighbThresh)

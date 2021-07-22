@@ -44,7 +44,11 @@ Shift_median1 = zeros(size(BadMatches));
 Shift_median2 = zeros(size(BadMatches));
 for t=NonemptyTiles
     for r = o.UseRounds
-        Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r)))');
+        if sum(~PcFailed(t,:,r))==1
+            Shift_t = squeeze(D(3,:,t,r,~PcFailed(t,:,r)));
+        else
+            Shift_t = median(squeeze(D(3,:,t,r,~PcFailed(t,:,r))),2);
+        end
         Shift_median1(t,:,r) = Shift_t(1);
         Shift_median2(t,:,r) = Shift_t(2);
     end

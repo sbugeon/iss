@@ -19,6 +19,7 @@ classdef iss_GroundTruth < iss_PixelBased
                       %round r. If it is 0, that means there is no ground truth data
                       %for round r, channel b. 
         gtRounds;               %Rounds that contain ground truth data.
+        gtChannels;             %gtChannels{r} is the channels to use in round r.
         gtReferenceChannel;     %gtReferenceChannel(r): Channel in ground truth 
                                 %round r to register to. 0 if no ground
                                 %truth in round r. 

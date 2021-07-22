@@ -23,7 +23,6 @@ end
 if isempty(o.TileCentre)
     o.TileCentre = 0.5*[o.TileSz+1,o.TileSz+1];
 end
-UseChannelsOrig = o.UseChannels;
 
 %Centre SpotYX
 x0(NonemptyTiles,o.ReferenceSpotChannels) = cellfun(@(x0) x0(:,1:2)-o.TileCentre,...
@@ -45,7 +44,7 @@ end
 D = o.D;
 for t=NonemptyTiles
     for r = o.UseRounds
-        for b=o.UseChannels
+        for b=o.gtChannels{r}
             if r==o.AnchorRound&&(b==o.DapiChannel||b==o.AnchorChannel)
                 D(:,:,t,r,b) = eye(3,2);
             else
@@ -63,7 +62,7 @@ fprintf('\nPCR - Finding well isolated points');
 y = y0;
 for t=NonemptyTiles
     for r=o.UseRounds
-        for b=o.UseChannels
+        for b=o.gtChannels{r}
             
             % make kd tree - default options!
             k0 = KDTreeSearcher(y0{t,b,r});
@@ -81,7 +80,7 @@ fprintf('\nPCR - Making kd trees');
 k = cell(nTiles,o.nBP,o.nRounds);
 for t=NonemptyTiles
     for r=o.UseRounds
-        for b=o.UseChannels
+        for b=o.gtChannels{r}
             k(t,b,r) = {KDTreeSearcher(y{t,b,r})};
         end
     end
@@ -122,11 +121,11 @@ for i=1:o.PcIter+100
         for r=o.UseRounds     
             if r==o.AnchorRound
                 %If anchor forget dapi and anchor channels.
-                o.UseChannels = setdiff(UseChannelsOrig,[o.AnchorChannel,o.DapiChannel]);
+                gtUseChannels = setdiff(o.gtChannels{r},[o.AnchorChannel,o.DapiChannel]);
             else
-                o.UseChannels = UseChannelsOrig;
+                gtUseChannels = o.gtChannels{r};
             end
-            for b=o.UseChannels
+            for b=gtUseChannels
                 if IsConverged(t,b,r); continue; end
                 Neighbor(t,b,r) = {k{t,b,r}.knnsearch(xM{t,b,r})};
                 [~,Dist] = k{t,b,r}.knnsearch(xM{t,b,r});
@@ -148,7 +147,6 @@ for i=1:o.PcIter+100
             end
         end
     end
-    o.UseChannels = UseChannelsOrig;
         
     if isempty(o.ToPlot) == 0
         t = o.ToPlot(1);
