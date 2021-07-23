@@ -67,7 +67,7 @@ for g=1:nCodes
     ZeroSpotInd = find(IterCoefs(:,g)==0);
     tree = KDTreeSearcher(SpotYX(IntenseSpotInd,:));
     %Only keep pixels in cluster
-    [~,NeighbDist] = tree.knnsearch(SpotYX(IntenseSpotInd,:),'K',3);
+    [~,NeighbDist] = tree.knnsearch(SpotYX(IntenseSpotInd,:),'K',o.ompIntenseClusterNo);
     IntenseSpotInd = IntenseSpotInd(NeighbDist(:,o.ompIntenseClusterNo)<=...
         o.ompIntenseClusterDist);
     tree = KDTreeSearcher(SpotYX(IntenseSpotInd,:));
