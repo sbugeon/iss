@@ -255,8 +255,6 @@ classdef iss_OMP < iss_GroundTruth
         % These are the gene bled codes used in the final omp search.
         z_scoreBledCodes;
         
-
-        
     end
 end
 

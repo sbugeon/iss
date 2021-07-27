@@ -42,7 +42,7 @@ classdef iss_OMP_ConstantBackground_WeightDotProduct < iss_OMP
         %Coef>ompIntenseCoefThresh and are closer than ompIntenseClusterDist
         %to each other then all pixels closer than ompIntenseDistThresh
         %will also be assigned this gene.
-        ompIntenseCoefThresh = 0.6;
+        ompIntenseCoefThresh = 0.3;
         ompIntenseClusterNo = 3;
         ompIntenseClusterDist = 2;
         ompIntenseDistThresh = 8;

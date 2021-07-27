@@ -96,7 +96,7 @@ CodeShapeSqueeze = size(cSpotColor);
 cPredCode = squeeze(cPredCode);
 Error = cSpotColor - cPredCode;
 ScoreMatrix = get_omp_score(o,(double(SpotColor)-o.z_scoreSHIFT)./o.z_scoreSCALE,...
-    SpotCoefs,CodeNo);
+    SpotGlobalYX,SpotCoefs,CodeNo);
 v0 = min(-0.2,min(cSpotColor(:)));
 v1 = max(0.2,max(cSpotColor(:)));
 caxis_lims = [v0 v1];

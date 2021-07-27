@@ -1,4 +1,4 @@
-function NormExpScore = get_omp_score(o,z_scoredSpotColors,OriginalCoefs,SpotCodeNo)
+function NormExpScore = get_omp_score(o,z_scoredSpotColors,SpotGlobalYX,OriginalCoefs,SpotCodeNo)
 %% ModScore = o.get_omp_score(z_scoredSpotColors,OriginalCoefs,SpotCodeNo)
 % omp score is based on the reduction in error caused by introduction of gene in
 % rounds/channels where there is not already a gene.
@@ -20,15 +20,18 @@ if nargin==1
     z_scoredSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
     OriginalCoefs = o.([pf,'Coefs']);
     SpotCodeNo = o.([pf,'SpotCodeNo']);
+    SpotGlobalYX = o.([pf,'SpotGlobalYX']);
     clearvars SpotColors
 end
 
 %% Overall score is difference between the residual after all genes 
 % added to when all but gene specified by SpotCodeNo(s) added.
 nSpots = length(SpotCodeNo);
+nCodes = length(o.CharCodes);
 FinalPredCodes = OriginalCoefs*o.ompBledCodes(:,:);
 BestGeneIndex = sub2ind(size(OriginalCoefs),(1:nSpots)',SpotCodeNo);
 RemoveGeneCoefs = OriginalCoefs;
+OriginalCoefs = OriginalCoefs(:,1:nCodes);
 RemoveGeneCoefs(BestGeneIndex) = 0;
 RemoveGenePredCodes = RemoveGeneCoefs*o.ompBledCodes(:,:);
 clear RemoveGeneCoefs BestGeneIndex
@@ -45,7 +48,6 @@ clearvars FinalError
 % unbled code but gene efficiency very low (i.e. RCPs failed in that
 % round) then don't include. 
 
-nCodes = length(o.CharCodes);
 %Need AllChannels for nRoundsUsedNorm calculation - exclude rounds with
 %channel not in UseChannels.
 GeneMultiplierKeepAllChannels = zeros(o.nRounds*o.nBP,nCodes);
@@ -93,10 +95,51 @@ clear RemoveGeneError
 %% Now want to modify this so neglect rounds which already have a
 %positive gene in. Every gene needs to explain something on their own independent 
 %of what other genes present
+% %Also neglect rounds where obvious gene is near but not in that specific
+% %pixel:
+% BestGeneIndex = sub2ind(size(OriginalCoefs),(1:nSpots)',SpotCodeNo);
+% QualOK = find(o.ompSpotScore>10 & o.ompNeighbNonZeros>20 &...
+%     OriginalCoefs(BestGeneIndex)>1 & o.ompSpotIntensity2>0.1);
+% SpotCodeNoQualOK = o.ompSpotCodeNo(QualOK);
+% NearIndex = rangesearch(o.ompSpotGlobalYX,o.ompSpotGlobalYX(QualOK,:),3);
+% clear QualOK
+% %Get rid of first index which refers to itself.
+% NearIndex = cellfun(@(v) v(2:end), NearIndex, 'UniformOutput', false);
+% nSpotsUpdate = sum(cell2mat(cellfun(@(v) length(v),...
+%     NearIndex, 'UniformOutput', false)));
+% SpotUpdateCoefNo = zeros(nSpotsUpdate,1);
+% GeneUpdateCoefNo = ones(nSpotsUpdate,1);
+% j=1;
+% for i=1:length(NearIndex)
+%     nNear = length(NearIndex{i});
+%     SpotUpdateCoefNo(j:j+nNear-1) = NearIndex{i};
+%     GeneUpdateCoefNo(j:j+nNear-1) = GeneUpdateCoefNo(j:j+nNear-1)*SpotCodeNoQualOK(i);
+%     j = j+nNear;
+% end
+% OriginalCoefs = full(OriginalCoefs);  %Bad for memory, try to replace
+% OriginalCoefs(sub2ind(size(OriginalCoefs),SpotUpdateCoefNo,GeneUpdateCoefNo)) = 1;
+% clear NearIndex SpotUpdateCoefNo GeneUpdateCoefNo
+
+%Only consider overlap with genes that pass low quality threshold and
+%within o.ExtractR1 (i.e. positive region of main gene).
+QualOK = o.ompNeighbNonZeros>o.ompNeighbThresh2 & ...
+    o.ompSpotIntensity2>o.ompIntensityThresh2;
+NearIndex = rangesearch(o.ompSpotGlobalYX(QualOK,:),SpotGlobalYX,o.ExtractR1);
+KeepCoefs = false(nSpots,nCodes);
+BestGeneIndex = sub2ind(size(OriginalCoefs),(1:nSpots)',SpotCodeNo);
+SpotCodeNoQualOK = o.ompSpotCodeNo(QualOK);
+KeepCoefs(BestGeneIndex)=true;
+for i=1:length(NearIndex)
+    %KeepCoefs(i,o.ompSpotCodeNo(NearIndex{i})) = true;
+    KeepCoefs(i,SpotCodeNoQualOK(NearIndex{i})) = true;
+end
+OriginalCoefs(~KeepCoefs)=0;
+clear NearIndex SpotUpdateCoefNo GeneUpdateCoefNo
+
 [CoefValues,SortedCoefs]=sort(OriginalCoefs(:,1:nCodes),2,'descend');
 clear OriginalCoefs
 SortedCoefs(CoefValues<=0) = nCodes+1;
-clear CoefValues
+%clear CoefValues
 %Deal with each overlapping genes in turn until no spot has any more genes
 MinCodeNo = 1;
 nOverlaps = 0;
@@ -105,6 +148,16 @@ while MinCodeNo<nCodes+1
     nOverlaps=nOverlaps+1;
     ScoreMultiplierOverlaps = ScoreMultiplierOverlaps+...
         GeneMultiplier(:,SortedCoefs(:,nOverlaps));
+%     if min(CoefValues(SortedCoefs==SpotCodeNo))>0
+%         %If bleedthrough into unbled channel of SpotCodeNo is large from another gene
+%         %then reject that round.
+%         ExcludeSpotCodeNo = repelem(SortedCoefs(:,nOverlaps)~=SpotCodeNo,1,o.nRounds*o.nBP);
+%         OverlapBledCode = o.ompBledCodes(SortedCoefs(:,nOverlaps),:).*CoefValues(:,nOverlaps);
+%         SpotCodeNoBledCode = o.ompBledCodes(SpotCodeNo,:).*CoefValues(SortedCoefs==SpotCodeNo);
+%         LargeBleedThrough = OverlapBledCode>CoefValues(:,nOverlaps)*0.05 &...
+%             OverlapBledCode>1000*SpotCodeNoBledCode;
+%         ScoreMultiplierOverlaps(ExcludeSpotCodeNo&LargeBleedThrough)=2;
+%     end
     MinCodeNo=min(SortedCoefs(:,nOverlaps));
 end
 clear SortedCoefs
