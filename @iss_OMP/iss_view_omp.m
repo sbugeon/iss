@@ -311,11 +311,11 @@ if strcmp(click_type,'normal')
     if CodeNo ~= OrigCodeNo
         if Coefs(CodeNo)==0
             ScoreMatrix = get_omp_score(o,(double(o.([pf,'SpotColors'])(SpotNo,:,:))-o.z_scoreSHIFT)./o.z_scoreSCALE,...
-                o.([pf,'Coefs'])(SpotNo,:),OrigCodeNo);
+                o.([pf,'SpotGlobalYX'])(SpotNo,:),o.([pf,'Coefs'])(SpotNo,:),OrigCodeNo);
             CodeNoPrint = OrigCodeNo;
         else
             ScoreMatrix = get_omp_score(o,(double(o.([pf,'SpotColors'])(SpotNo,:,:))-o.z_scoreSHIFT)./o.z_scoreSCALE,...
-                o.([pf,'Coefs'])(SpotNo,:),CodeNo);
+                o.([pf,'SpotGlobalYX'])(SpotNo,:),o.([pf,'Coefs'])(SpotNo,:),CodeNo);
             CodeNoPrint = CodeNo;
         end
         SpotScore = sum(ScoreMatrix(:));
