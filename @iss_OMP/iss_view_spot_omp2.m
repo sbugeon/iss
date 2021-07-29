@@ -123,7 +123,18 @@ for r=1:o.nRounds
         y2 = min(o.TileSz,y0 + ImSz);
         x1 = max(1,x0 - ImSz);
         x2 = min(o.TileSz,x0 + ImSz);
-        BaseIm = int32(imread(o.TileFiles{r,t}, b, 'PixelRegion',...
+        BaseIm = nan(ImSz*2+1,ImSz*2+1);
+        YBaseIm_Ind = 1:y2-y1+1;
+        XBaseIm_Ind = 1:x2-x1+1;
+        %If overlapping with tile to left or below, then set pixels to the
+        %left or below as nan.
+        if x1==1
+            XBaseIm_Ind = ImSz*2+1-x2+1:ImSz*2+1;
+        end
+        if y1==1
+            YBaseIm_Ind = ImSz*2+1-x2+1:ImSz*2+1;
+        end
+        BaseIm(YBaseIm_Ind,XBaseIm_Ind) = int32(imread(o.TileFiles{r,t}, b, 'PixelRegion',...
             {[y1 y2], [x1 x2]}))-o.TilePixelValueShift;
         if o.SmoothSize
             SE = fspecial3('ellipsoid',o.SmoothSize);
