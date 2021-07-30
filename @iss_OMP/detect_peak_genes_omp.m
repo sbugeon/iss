@@ -55,11 +55,21 @@ for GeneNo = 1:nCodes
     PeakLocalYX{GeneNo} = AllLocalYX(PeakInd,:);
     PeakCoefs{GeneNo} = coefs(PeakInd,:);    
     OriginalTile{GeneNo} = ones(nPeaks,1)*t;
+    
     %Find number of non zero coefs in neighbourhood around each peak
     NonZeroIm = int8(abs(GeneIm)>0);
-    NeighNonZeros = imfilter(NonZeroIm,double(se1.Neighborhood));
+    PosIm = int8(GeneIm>0);
+    PosFilter = zeros(size(se1.Neighborhood));
+    NearFilterIndex = o.PixelDetectRadius-1:o.PixelDetectRadius+1;
+    PosFilter(NearFilterIndex,NearFilterIndex)=1;
+    NeighbPosNear = imfilter(PosIm,PosFilter,'symmetric');
+    AnnulusFilter = double(se1.Neighborhood);
+    AnnulusFilter(NearFilterIndex,NearFilterIndex)=0;
+    NeighbPosAnnulus = imfilter(NonZeroIm,AnnulusFilter,'symmetric');
+    %NeighbNonZeros = imfilter(NonZeroIm,double(se1.Neighborhood),'symmetric');
+    NeighbNonZeros = NeighbPosNear+NeighbPosAnnulus;
     ImagePeakInd = sub2ind(size(GeneIm),AllLocalYX(PeakInd,1),AllLocalYX(PeakInd,2)); %Different from MaxPixels
-    PeakNeighbourhoodNonZeros{GeneNo} = NeighNonZeros(ImagePeakInd);
+    PeakNeighbourhoodNonZeros{GeneNo} = NeighbNonZeros(ImagePeakInd);
     
     %Only save spots in group of > 2 pixels
     Use = PeakNeighbourhoodNonZeros{GeneNo}>o.ompInitialNeighbThresh;
