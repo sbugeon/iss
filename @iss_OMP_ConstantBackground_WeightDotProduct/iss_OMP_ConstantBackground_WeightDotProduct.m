@@ -47,6 +47,11 @@ classdef iss_OMP_ConstantBackground_WeightDotProduct < iss_OMP
         ompIntenseClusterDist = 2;
         ompIntenseDistThresh = 8;
         
+        %For quality thresholding, NeighbNonZeros =
+        %o.ompNeighbNonZeros(:,1)*ompNearPosNeighbMultiplier + o.ompNeighbNonZeros(:,2)
+        %I.e. central positive pixels contribute more.
+        ompNeighbNearPosNeighbMultiplier = 2;
+        
     end
 end
 

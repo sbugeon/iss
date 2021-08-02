@@ -119,7 +119,7 @@ for GeneNo = 1:nCodes
     ndSpotColors{GeneNo} = PeakSpotColors{GeneNo}(NotDuplicate,:,:);
     ndGlobalYX{GeneNo} = PeakGlobalYX{GeneNo}(NotDuplicate,:);
     ndCoefs{GeneNo} = PeakCoefs{GeneNo}(NotDuplicate,:);
-    ndNeighbNonZeros{GeneNo} = PeakNeighbNonZeros{GeneNo}(NotDuplicate);
+    ndNeighbNonZeros{GeneNo} = PeakNeighbNonZeros{GeneNo}(NotDuplicate,:);
     ndOriginalTile{GeneNo} = OriginalTile{GeneNo}(NotDuplicate);
 
     if o.Graphics==2

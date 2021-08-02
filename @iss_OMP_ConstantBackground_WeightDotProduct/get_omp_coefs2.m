@@ -1,5 +1,5 @@
 function FinalCoefs = get_omp_coefs2(o,z_scoredSpotColors, SpotYX)
-%% coefs = get_omp_coefs(o,z_scoredSpotColors)
+%% coefs = get_omp_coefs2(o,z_scoredSpotColors)
 % coefs(s,g) is the weighting of spot s for gene g. Most are zero.
 % The last o.nBackground are background codes and are always non zero.
 % o: iss_OMP object
