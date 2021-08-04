@@ -121,4 +121,7 @@ else
     end
 end
 
+%Save o object so keep ExtractScale values
+save(fullfile(o.OutputDirectory, 'oExtract'), 'o', '-v7.3');
+
 end
