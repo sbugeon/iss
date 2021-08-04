@@ -149,6 +149,15 @@ for r = 1:o.nRounds+o.nExtraRounds
         SE = ftrans2(h');
         SE = single(SE);
         
+        if (min(size(o.EmptyTiles))==1 && min(o.EmptyTiles)~=0) || ...
+                (min(size(o.EmptyTiles)==[MaxY, MaxX]) && min(o.EmptyTiles(:))==0 && ...
+                max(o.EmptyTiles(:)==1))
+            UsedEmptyTiles = true;
+            if min(o.EmptyTiles(:))==0
+                o.EmptyTiles = find(o.EmptyTiles(:)==0);
+            end
+            EmptyTilesOrig = o.EmptyTiles;
+        end        
     end
     
     % set up filename grid for this round
@@ -162,12 +171,7 @@ for r = 1:o.nRounds+o.nExtraRounds
     
     %Tile index in nd2 file different to index in o.EmptyTiles
     t_save_value = sub2ind([max(o.TilePosYX(:,1)),max(o.TilePosYX(:,2))],...
-        o.TilePosYX(:,1),o.TilePosYX(:,2));
-    if min(size(o.EmptyTiles))==1 && max(ismember(1:nSerieswPos,o.EmptyTiles))
-        UsedEmptyTiles = true;
-        EmptyTilesOrig = o.EmptyTiles;
-    end
-    
+        o.TilePosYX(:,1),o.TilePosYX(:,2));    
     
     %Get auto value for extract scale
     if strcmpi(o.ExtractScaleTile, 'auto')
