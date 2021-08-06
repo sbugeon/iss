@@ -203,7 +203,7 @@ for r = 1:o.nRounds+o.nExtraRounds
         
         if exist(fName{t}, 'file')
             fprintf('Round %d tile %d already done.\n', r, t);
-            if o.AutoThresh(t,o.AnchorChannel,r) == 0
+            if (o.AnchorChannel < nChannels) && (o.AutoThresh(t,o.AnchorChannel,r) == 0)
                 TifObj = Tiff(fName{t});
                 for c=1:nChannels
                     if c ~= o.AnchorChannel && r == o.AnchorRound; continue; end

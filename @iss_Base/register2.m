@@ -315,14 +315,22 @@ for t=NonemptyTiles
     MyOrigin = AnchorOrigin(t,:);
     if mod(t,10)==0; fprintf('Loading tile %d DAPI image\n', t); end
     if ~isfinite(MyOrigin(1)); continue; end
-    LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,t}, o.DapiChannel);
-    BigDapiIm(floor(MyOrigin(1))+(1:o.TileSz), ...
-        floor(MyOrigin(2))+(1:o.TileSz)) ...
-        = imresize(LocalDapiIm, 1);
-    LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,t}, o.AnchorChannel);
-    BigAnchorIm(floor(MyOrigin(1))+(1:o.TileSz), ...
-        floor(MyOrigin(2))+(1:o.TileSz)) ...
-        = LocalAnchorIm;
+    if o.DapiChannel <= o.nBP
+        LocalDapiIm = imread(o.TileFiles{o.ReferenceRound,t}, o.DapiChannel);
+        BigDapiIm(floor(MyOrigin(1))+(1:o.TileSz), ...
+            floor(MyOrigin(2))+(1:o.TileSz)) ...
+            = imresize(LocalDapiIm, 1);
+        o.BigDapiFile = fullfile(o.OutputDirectory, 'background_image.tif');
+        imwrite(BigDapiIm, o.BigDapiFile);
+    end
+    if o.AnchorChannel <= o.nBP
+        LocalAnchorIm = imread(o.TileFiles{o.ReferenceRound,t}, o.AnchorChannel);
+        BigAnchorIm(floor(MyOrigin(1))+(1:o.TileSz), ...
+            floor(MyOrigin(2))+(1:o.TileSz)) ...
+            = LocalAnchorIm;
+        o.BigAnchorFile = fullfile(o.OutputDirectory, 'anchor_image.tif');
+        imwrite(BigAnchorIm, o.BigAnchorFile);
+    end
 end
 
 %Plot stitched anchor image
@@ -349,7 +357,7 @@ end
 
 if o.ReferenceRound == o.AnchorRound
     %Plot DapiImage showing tiling
-    if o.Graphics
+    if o.Graphics && (exist("BigDapiIm") == 1)
         figure(53278);imagesc(BigDapiIm);
         hold on
         for t=NonemptyTiles
@@ -364,11 +372,8 @@ if o.ReferenceRound == o.AnchorRound
         title('Stitched Dapi Image');
         hold off
     end
-    o.BigDapiFile = fullfile(o.OutputDirectory, 'background_image.tif');
-    imwrite(BigDapiIm, o.BigDapiFile);
 end
-o.BigAnchorFile = fullfile(o.OutputDirectory, 'anchor_image.tif');
-imwrite(BigAnchorIm, o.BigAnchorFile);
+
 
 return
 end
