@@ -5,7 +5,7 @@ function FinalCoefs = get_omp_coefs2(o,z_scoredSpotColors, SpotYX)
 % o: iss_OMP object
 % z_scoredSpotColors: spot colors that have been z-scored by channel and
 % round.
-% This froces intese genes found in the first iteration to be subsequently
+% This forces intese genes found in the first iteration to be subsequently
 % added in the next iterations. 
 
 
