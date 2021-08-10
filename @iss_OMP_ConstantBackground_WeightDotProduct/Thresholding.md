@@ -38,7 +38,7 @@ These are then combined in a way to put more emphasis on the nearer positive coe
 <img src="ThresholdImages/SpotScore1.png" width = "950"> 
 </p>
 
-I.e. for the plot on the left, the predicted code has the Aldoc coefficient, as shown by the white circle below, set to 0 while all other coefficients remain the same. For the second plot above, all coefficients are exactly those indicated below.
+I.e. for the plot on the left, the predicted code has the Aldoc coefficient, as shown by the white circle below, set to 0 while all other coefficients remain those indicated below. For the second plot above, all coefficients are exactly those indicated below.
 
 
 <p float="left">
@@ -55,11 +55,11 @@ The large positive OverallScore in round 2, channel 1 indicates that Aldoc is re
 <img src="ThresholdImages/SpotScore2.png" width = "950"> 
 </p>
 
-The third plot showing NormModScore is ModScore/AbsoluteErrorNoAldoc i.e. the second plot here divided by the first plot of the OverallScore image. We do this normalisation because we want a score independent of intensity, as the ```ompSpotIntensity2``` thresholding should deal with that. 
+The third plot showing NormModScore is ModScore/AbsoluteErrorNoAldoc i.e. the second plot here divided by the first plot of the OverallScore image. We do this normalisation because we want a score independent of intensity (we do intensity thresholding separately using ```ompSpotIntensity2```). 
 
 
 ### Weight larger errors more and exclude overlapping rounds/channels
-[The next part](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L84-L93) finds a multiplier so we get a boost for explaining rounds/channels with the largest error before we include Aldoc. This multiplier is AbsErrorFactor and is given by:
+[The next part](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L84-L93) finds a multiplier so we get a boost for explaining rounds/channels with the largest error before we include Aldoc. This multiplier, AbsErrorFactor is given by:
 
 ```AbsErrorFactor = AbsoluteErrorNoAldoc./prctile(AbsoluteErrorNoAldoc',```[```o.ompScore_LargeErrorPrcntileThresh```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP/iss_OMP.m#L97-L100)```)'```
 
@@ -69,7 +69,7 @@ This is shown in the first plot below, and we then clamp it between 1 and [```om
 <img src="ThresholdImages/SpotScore3.png" width = "950"> 
 </p>
 
-[We then](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L95-L177) modify this to neglect rounds that already have a positive gene in [which passes a low threshold](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L123-L139). For example, from the two coefficient images, it is clear that this Aldoc spot overalps with a Id2 spot. From the image below, showing the SpotColor with Id2 unbled code highlighted), we can see that the round 4, color channel 3 is in the unbled code of both Aldoc and Id2. Thus we set round 4, channel 3 to 0 in the Final AbsErrorFactor shown in the third plot above. The idea behind this is that each gene must have a unique contribution - it must explain something independent of what other genes are present.
+[We then](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L95-L177) modify this to neglect rounds that already have a positive gene [which passes a low threshold](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L123-L139). For example, from the two coefficient images, it is clear that this Aldoc spot overalps with an Id2 spot. From the image below, showing the SpotColor with Id2 unbled code highlighted), we can see that the round 4, color channel 3 is in the unbled code of both Aldoc and Id2. Thus we set round 4, channel 3 to 0 in the Final AbsErrorFactor shown in the third plot above. The idea behind this is that each gene must have a unique contribution - it must explain something independent of what other genes are present.
 
 <p float="left">
 <img src="ThresholdImages/Id2Overlap.png" width = "650"> 
@@ -77,7 +77,7 @@ This is shown in the first plot below, and we then clamp it between 1 and [```om
 
 
 ### Combine Factors
-Finally, [we combine all the factors](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L184-L193). We first take the expontial turn NormModScore into an exponential through: ```ExpNormModScore = (exp(NormModScore*log(2))-1)```, as shown in the first plot below. We do this to put a lower bound on how bad a single round can be (the log(2) factor is so maximum and minimum possible ExpNormModScore have the same absolute value).
+Finally, [we combine all the factors](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L184-L193). We first turn NormModScore into an exponential through: ```ExpNormModScore = (exp(NormModScore*log(2))-1)```, as shown in the first plot below. We do this to put a lower bound on how bad a single round can be (the log(2) factor is so maximum and minimum possible ExpNormModScore have the same absolute value).
 
 We then multiply this by the Final AbsErrorFactor to give the second plot. Lastly, we multiply this by a normalisation factor, [```nRoundsUsedNorm```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L178-L181) so as not to penalise spots where less rounds are used i.e. here only 4 of the 7 rounds are used so ```nRoundsUsedNorm = 7/4```. We also clamp the final score between ```-o.ompScore_LargeErrorMax``` and ```o.ompScore_LargeErrorMax```. This gives the final plot, and the sum of the final plot is 7.71 which is the final score.
 
