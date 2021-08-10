@@ -149,6 +149,8 @@ for r = 1:o.nRounds+o.nExtraRounds
         SE = ftrans2(h');
         SE = single(SE);
         
+        MaxY = max(o.TilePosYX(:,1));
+        MaxX = max(o.TilePosYX(:,2));
         if (min(size(o.EmptyTiles))==1 && min(o.EmptyTiles)~=0) || ...
                 (min(size(o.EmptyTiles)==[MaxY, MaxX]) && min(o.EmptyTiles(:))==0 && ...
                 max(o.EmptyTiles(:)==1))
