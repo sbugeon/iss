@@ -1,1 +1,51 @@
+# Post Orthogonal Matching Pursuit Thresholding
+The orthogonal matching pursuit (OMP) algorithm takes SpotColors [normalised by channel](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_Base/get_channel_norm.m) and fits the [background eigenvectors](https://github.com/jduffield65/iss/blob/6b5cd2336e56ad844be8fe54cc36c38f8e0deba3/@iss_OMP/get_background_codes.m) followed by successive genes, as long as they exceed a certain [threshold](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_coefs2.m#L15-L19). However, not all the [spots found by this method](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP/iss_OMP.m#L133-L135) should be used as genes for cell calling. We must perform further thresholding on these spots. 
+
+This thresholding is performed using three variables: [```ompSpotIntensity2```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP/iss_OMP.m#L141-L143), [```ompNeighbNonZeros```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP/iss_OMP.m#L160-L165) and [```ompSpotScore```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP/iss_OMP.m#L145-L148). It is required that [all three of these are above a low threshold](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_Base/quality_threshold.m#L53-L54) and [at least one is above a higher threshold](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_Base/quality_threshold.m#L51-L52). Also, for spots where the gene under consideration is not the gene with the largest coefficient, [stronger thresholds must be overcome](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_Base/quality_threshold.m#L55-L60). 
+
+## ompSpotIntensity2
+```ompSpotIntensity2``` is found using the function [```get_spot_intensity```](https://github.com/jduffield65/iss/blob/master/%40iss_Base/get_spot_intensity.m). It is median (4th largest value) of the SpotColor normalised by channel in the 7 rounds/channels indicated by the unbled code of the gene the spot was assigned to (```ompSpotCodeNo```). For example, the below (normalised) spot was assigned to Aldoc, which has an unbled code indicated by the green squares. The median of these 7 squares is round 6, channel 5 which has an intensity of 0.1388. 
+
+<p float="left">
+<img src="ThresholdImages/SpotIntensity.png" width = "450"> 
+</p>
+
+## ompNeighbNonZeros
+
+The OMP algorithm takes each pixel in the data and fits a coefficient for each gene (most of which will be zero). From these coefficients, we can build a coefficient image for each gene as shown below (red means positive and blue means negative coefficient, while white means 0):
+
+<p float="left">
+<img src="ThresholdImages/CoefIm.png" width = "650"> 
+</p>
+
+From this image, the final spots are the local maxima indicated by the green circles. Clearly, some of these (Aldoc and Id2) are much more obvious than others (Plp1, Enpp2). We quantify this obviousness by counting the number of pixels surrounding the local maxima that have a non zero coefficient for that gene. Specifically, we fit the filter shown below at each local maxima and then count the positive coefficients in the red region, ```ompNeighbNonZeros(:,1)``` and positive or negative coefficients in the blue region, ```ompNeighbNonZeros(:,2)```. 
+
+<p float="left">
+<img src="ThresholdImages/NeighbFilter.png" width = "450"> 
+</p>
+
+These are then combined in a way to put more emphasis on the nearer positive coefficients: 
+
+```NeighbNonZeros = o.ompNeighbNonZeros(:,1)*```[```o.ompNeighbNearPosNeighbMultiplier```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m#L50-L53)```+o.ompNeighbNonZeros(:,2);```
+
+## ompSpotScore
+```ompSpotScore``` is a bit more complicated but the basic idea is a score base on the difference between the fit with and without the gene under consideration. It is obtained using the function [```get_omp_score```](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/@iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m). 
+
+[The first step](https://github.com/jduffield65/iss/blob/e2d0e1358ce880239efee222012d0e7ac8dd30d9/%40iss_OMP_ConstantBackground_WeightDotProduct/get_omp_score.m#L27-L42) is to get the OverallScore which is the difference between the absolute L1 error (difference between SpotColor and predicted SpotColor) when the prediction does not use the gene under consideration (we are using the same spot shown in SpotIntensity so the gene is Aldoc) and when it does. OverallScore = AbsoluteErrorNoAldoc - AbsoluteErrorWithAldoc.
+
+<p float="left">
+<img src="ThresholdImages/SpotScore1.png" width = "950"> 
+</p>
+
+I.e. for the plot on the left, the predicted code has the Aldoc coefficient, as shown by the white circle below, set to 0 while all other coefficients remain the same. For the second plot above, all coefficients are exactly those indicated below.
+
+
+<p float="left">
+<img src="ThresholdImages/SpotGeneCoefs.png" width = "950"> 
+</p>
+
+The large positive OverallScore in round 2, channel 1 indicates that Aldoc is required to explain the intensity there. On the other hand, the negative OverallScore in round 4, channel 2 indicates that the intensity there is better explained without Aldoc.
+
+We next, 
+
 
