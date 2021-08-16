@@ -59,7 +59,7 @@ All tiles ```t```, such that ```o.EmptyTiles(t) = 1``` will be skipped. If you a
 | ```1 1```       | ```1 1```     |   ```1 1```   |  ```1 1```     
 |Tiles 2 and 5 | Tiles 1 and 2 |  Tiles 1,2 and 4 | Tiles 1 and 5
 
-The different line needed to specify tiles before extract_and_filter is beause the algorithm hasn't yet worked out the location of the tiles.
+The different line needed to specify tiles before extract_and_filter is because the algorithm hasn't yet worked out the location of the tiles.
 
 Running the full pipeline (post extract_and_filter) should take on the order of half an hour, if only one tile is selected.
 
