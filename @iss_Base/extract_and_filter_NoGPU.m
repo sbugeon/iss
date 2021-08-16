@@ -97,42 +97,7 @@ for r = 1:o.nRounds+o.nExtraRounds
             o.PixelsOutsideTiffRangeExtractScale = nan(nSerieswPos,nChannels,o.nRounds+o.nExtraRounds);
         end
         if isempty(o.TilePosYX)
-            % find x and y grid spacing as median of distances that are about
-            % right
-            dx = xypos(:,1)-xypos(:,1)'; % all pairs of x distances
-            xStep = median(dx(abs(1- dx(:)/o.MicroscopeStepSize)<.5));
-            dy = xypos(:,2)-xypos(:,2)'; % all pairs of y distances
-            yStep = median(dy(abs(1- dy(:)/o.MicroscopeStepSize)<.5));
-            
-            
-            % find coordinates for each tile
-            if isempty(o.TileInitialPosYX)
-                if nSeries==1
-                    o.TileInitialPosYX = [1,1];
-                else
-                    o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
-                end
-            end
-            %Below is a safeguard incase wrong positions found - can do
-            %this as we knwo what the answer should be.
-            MaxY = max(o.TileInitialPosYX(:,1));
-            MaxX = max(o.TileInitialPosYX(:,2));
-            %Sometimes get Nan, if only one Nan, then check if all tiles 
-            %arranged along only one direction i.e. Nan should be 1.
-            if max(isnan([MaxX,MaxY])) && nanmax(MaxX,MaxY)==nSeries
-                if isnan(MaxX); MaxX=1; else; MaxY=1; end
-            end
-            if MaxY*MaxX ~= nSeries
-                warning('Number of tiles (%d) is not equal to maximum Y position (%d) multiplied by maximum X position (%d)'...
-                    , nSeries, MaxY, MaxX)
-                break
-            else
-                o.TilePosYX = zeros(size(xypos));
-                TilePosY = flip(repelem(1:MaxY,MaxX));
-                o.TilePosYX(:,1) = TilePosY;
-                TilePosX = repmat([flip(1:MaxX),1:MaxX],1,ceil(MaxY/2));
-                o.TilePosYX(1:nSeries,2) = TilePosX(1:nSeries);
-            end
+            o = o.get_TilePos(xypos,nSeries);            
         end
         
         %New filter
