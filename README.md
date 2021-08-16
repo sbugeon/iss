@@ -46,10 +46,11 @@ Running the pipeline with the whole set of tiles can be quite time consuming so 
 ```matlab
 o.EmptyTiles(:) = 1;
 UseTiles = [1,2];
-o.EmptyTiles(UseTiles) = 0;
+o.EmptyTiles(UseTiles) = 0;    %If after extract_and_filter
+% o.EmptyTiles = UseTiles      %If before extract_and_filter
 ```
 
-All tiles ```t```, such that ```o.EmptyTiles(t) = 1``` will be skipped. You can add this at any stage of the pipeline, after [```extract_and_filter```](https://github.com/jduffield65/iss/blob/9b863b1ff3589794334479cad0f31ce3db3698e3/bridge_process_template.m#L59). If you add it before the [registration step](https://github.com/jduffield65/iss/blob/9b863b1ff3589794334479cad0f31ce3db3698e3/bridge_process_template.m#L99), then if more than one tile is specified, they should each have at least one neighbour. An example showing three valid entries and one incorrect entry of ```o.EmptyTiles```, for a dataset consisting of 6 tiles is shown below.
+All tiles ```t```, such that ```o.EmptyTiles(t) = 1``` will be skipped. If you add it before the [registration step](https://github.com/jduffield65/iss/blob/9b863b1ff3589794334479cad0f31ce3db3698e3/bridge_process_template.m#L99), then if more than one tile is specified, they should each have at least one neighbour. An example showing three valid entries and one incorrect entry of ```o.EmptyTiles```, for a dataset consisting of 6 tiles is shown below.
 
 :heavy_check_mark: | :heavy_check_mark: |  :heavy_check_mark: | :x:
 :------------ | :-------------| :-------------| :-------------
@@ -57,6 +58,8 @@ All tiles ```t```, such that ```o.EmptyTiles(t) = 1``` will be skipped. You can 
 | ```0 0```       | ```0 1```     |   ```0 1```   |  ```1 0```      
 | ```1 1```       | ```1 1```     |   ```1 1```   |  ```1 1```     
 |Tiles 2 and 5 | Tiles 1 and 2 |  Tiles 1,2 and 4 | Tiles 1 and 5
+
+The different line needed to specify tiles before extract_and_filter is beause the algorithm hasn't yet worked out the location of the tiles.
 
 Running the full pipeline (post extract_and_filter) should take on the order of half an hour, if only one tile is selected.
 
