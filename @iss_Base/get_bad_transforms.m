@@ -25,8 +25,8 @@ function [A, D, D_average, PcFailed] = get_bad_transforms(o,NonemptyTiles,nMatch
 BadMatches = nMatches<o.PcMinSpots | o.AllBaseSpotNo<o.PcMinSpots;
 PcFailed = BadMatches;
 
-CA_Scale1 = permute(squeeze(D(1,1,:,:,:)),[1,3,2]);
-CA_Scale2 = permute(squeeze(D(2,2,:,:,:)),[1,3,2]);
+CA_Scale1 = permute(D(1,1,:,:,:),[3,5,4,2,1]);
+CA_Scale2 = permute(D(2,2,:,:,:),[3,5,4,2,1]);
 Scale_median1 = zeros(size(BadMatches));
 Scale_median2 = zeros(size(BadMatches));
 for b=o.UseChannels
@@ -57,8 +57,8 @@ for t=NonemptyTiles
         Shift_median2(t,:,r) = Shift_t(2);
     end
 end
-BadShift = abs(permute(squeeze(D(3,1,:,:,:)),[1,3,2])-Shift_median1)>o.PcMaxShiftDev |...
-           abs(permute(squeeze(D(3,2,:,:,:)),[1,3,2])-Shift_median2)>o.PcMaxShiftDev;
+BadShift = abs(permute(D(3,1,:,:,:),[3,5,4,1,2])-Shift_median1)>o.PcMaxShiftDev |...
+           abs(permute(D(3,2,:,:,:),[3,5,4,1,2])-Shift_median2)>o.PcMaxShiftDev;
        
 PcFailed = BadMatches | BadCA | BadShift;
 
