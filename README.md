@@ -78,7 +78,7 @@ end
 ```
 
 ## Visualising results
-The pipeline runs two different algorithms for assigning genes to spots. The following will give instructions explaining how to view the distribution of assigned genes in both cases.
+The pipeline can run three different algorithms for assigning genes to spots. The following will give instructions explaining how to view the distribution of assigned genes in each case.
 
 ### Dot product method
 To visualise the results, load in the final saved iss object which should be named [```oCallSpots.mat```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L111). Then, load in the  background dapi image and run [```o.plot```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L116-L117). This will show you the gene assignments (saved as [```o.SpotCodeNo```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L519)) given by the file [```o.call_spots```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L109) which is achieved by taking the dot product of the [normalised spot](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L552) and [gene codes](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L551). Only the results where this dot product (saved as [```o.SpotScore```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L524)) is above [```o.CombiQualThresh```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L115) will be shown. An example plot is given below with ```o.CombiQualThresh = 0.7```.
@@ -111,6 +111,18 @@ As with the other method, to change the value of the threshold, simply set ```o.
 <p float="left">
 <img src="DebugImages/README/Score20Intensity1000.png" width = "450"> 
 </p>
+
+### OMP method
+Start off as before, running [```o.plot```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L116-L117). Then run ```iss_change_plot(o,'OMP')```. These are the gene assignments (saved as [```o.ompSpotCodeNo```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/%40iss_OMP/iss_OMP.m#L150-L151)) given by [```o.call_spots_omp```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/bridge_process_template.m#L164).
+
+This method works by dealing with each pixel separately, first some [background vectors](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/@iss_OMP/get_background_codes.m) [are fit](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L49-L51) to explain the non-gene variation in the pixel. These are usually just 7 codes, each being a strip in a colour channel, as shown below.
+
+<p float="left">
+<img src="DebugImages/README/ompBackgroundVectors.png" width = "450"> 
+</p>
+
+Next, a [gene is selected](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L61-L65) that best explains the [residual](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L69) (pixel signal once background removed). Next, the [coefficient of this gene is found](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L68) (i.e. how intense this gene is in this pixel). If the difference in the L2 norm of the residual before and after fitting the gene is [less than a threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L71-L78), the gene is rejected and we say this pixel contains no genes. If it [exceeds the threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L79-L83), the gene is accepted and a new iteration starts, fitting the best gene that can explain the new residual. This process continues until the residual difference falls below the threshold. At each step of the iteration, the coefficient of previously added genes is also updated to account for the new gene. 
+
 
 ### Which method to use?
 The dot product method involves relative normalisation between rounds and colour channels to make them more equal and thus have a more equal contribution to the dot product. However, this sometimes causes the worse colour channels (usually one and three) to be boosted too much, causing false assignments. An example of this is given below (codes and spots are normalised so have L2 norm of 1).
