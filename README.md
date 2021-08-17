@@ -112,6 +112,11 @@ As with the other method, to change the value of the threshold, simply set ```o.
 <img src="DebugImages/README/Score20Intensity1000.png" width = "450"> 
 </p>
 
+### Pixel based results
+To view the [results from the pixel based method](https://github.com/jduffield65/iss/blob/849350e6f0a4742d8fd6a3e083b0ffcd81914e31/%40iss/iss.m#L743-L771), run ```iss_change_plot(o,'Pixel')```. In this case, the spots are detected differentely, but the gene assignments are still carried out using the probability method. The thresholds to use are thus: ```o.pScoreThresh``` and ```o.pIntensityThresh```. The results saved have analagous names and meanings as with the probability method, except the prefix is ```px``` instead of ```p``` e.g. ```o.pxSpotScore```.
+
+Also, the pixel based method allows for the possibility of multiple genes assigned to the same pixel. To view these overlapping genes, you can set ```o.pScoreThresh2``` to a value below 0. It has a default value of 0 meaning only genes that are the best match at each pixel can be shown. If you set it to ```o.pScoreThresh2 = -0.001;```, then it allows for spots for which ```o.pxSpotScore = 0``` i.e. the second best match at that pixel.
+
 ### OMP method
 Start off as before, running [```o.plot```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L116-L117). Then run ```iss_change_plot(o,'OMP')```. These are the gene assignments (saved as [```o.ompSpotCodeNo```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/%40iss_OMP/iss_OMP.m#L150-L151)) given by [```o.call_spots_omp```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/bridge_process_template.m#L164).
 
@@ -134,11 +139,6 @@ The dot product method involves relative normalisation between rounds and colour
 Here, because round 7, channel 6  is particularly low intensity, when it is normalised it gets boosted resulting in this square dominating the whole code. Then to have a high dot product, this spot must match to a gene which is also high in round 7, channel 6 even though it doesn't match any other squares.
 
 The probability method does not involve any such normalisation so is probably the better method to use. Also, with the recommended threshold values (first plot of each method), much more spots overcome the thresholding than the dot product method (38% more in this example).
-
-### Pixel based results
-To view the [results from the pixel based method](https://github.com/jduffield65/iss/blob/849350e6f0a4742d8fd6a3e083b0ffcd81914e31/%40iss/iss.m#L743-L771), run ```iss_change_plot(o,'Pixel')```. In this case, the spots are detected differentely, but the gene assignments are still carried out using the probability method. The thresholds to use are thus: ```o.pScoreThresh``` and ```o.pIntensityThresh```. The results saved have analagous names and meanings as with the probability method, except the prefix is ```px``` instead of ```p``` e.g. ```o.pxSpotScore```.
-
-Also, the pixel based method allows for the possibility of multiple genes assigned to the same pixel. To view these overlapping genes, you can set ```o.pScoreThresh2``` to a value below 0. It has a default value of 0 meaning only genes that are the best match at each pixel can be shown. If you set it to ```o.pScoreThresh2 = -0.001;```, then it allows for spots for which ```o.pxSpotScore = 0``` i.e. the second best match at that pixel.
 
 ### Viewing specific genes
 To see the distribution of a specific gene or specific set of genes, run ```iss_change_plot(o,CallSpotsMethod,'Neuron',GeneNames)``` with the plot open, where ```CallSpotsMethod``` is ```'Prob'```, ```'DotProduct'```, ```'Pixel'``` or ```'OMP'``` as before. 'Neuron' is there just to specify that the genes are of neuron type. Some CodeFiles also contain non-neurons in which case, changing this argument to 'NonNeuron' will show different genes. GeneNames is a cell array containing the names of the genes of interest, so to see Plp1 and somatostatin  with the probability method, run ```iss_change_plot(o,'Prob','Neuron',[{'Plp1'},{'Sst'}])```. The result is shown below.
