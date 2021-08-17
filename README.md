@@ -84,13 +84,13 @@ The pipeline can run three different algorithms for assigning genes to spots. Th
 To visualise the results, load in the final saved iss object which should be named [```oCallSpots.mat```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L111). Then, load in the  background dapi image and run [```o.plot```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L116-L117). This will show you the gene assignments (saved as [```o.SpotCodeNo```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L519)) given by the file [```o.call_spots```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L109) which is achieved by taking the dot product of the [normalised spot](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L552) and [gene codes](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L551). Only the results where this dot product (saved as [```o.SpotScore```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L524)) is above [```o.CombiQualThresh```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L115) will be shown. An example plot is given below with ```o.CombiQualThresh = 0.7```.
 
 <p float="left">
-<img src="DebugImages/README/CombiThresh0.7.png" width = "450"> 
+<img src="DebugImages/README/CombiThresh0.7.png" width = "650"> 
 </p>
 
 To change the value of the threshold, simply set ```o.CombiQualThresh = NewValue``` and then run ```iss_change_plot(o)```. The above data with ```o.CombiQualThresh = 0.9``` is shown below:
 
 <p float="left">
-<img src="DebugImages/README/CombiThresh0.9.png" width = "450"> 
+<img src="DebugImages/README/CombiThresh0.9.png" width = "650"> 
 </p>
 
 With [```o.CallSpotsCodeNorm = 'WholeCode'```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L108), each spot and gene code has L2 norm of 1 so the maximum value of the dot product hence ```o.CombiQualThresh``` is 1 (Recommend ```o.CombiQualThresh ~ 0.7```). However, with ```o.CallSpotsCodeNorm = 'Round'```, each round in each code has L2 norm of 1 so each code has L2 norm of [```o.nRounds```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L5). So in this case, the max value of the dot product hence ```o.CombiQualThresh``` would be ```o.nRounds``` (Recommend ```o.CombiQualThresh ~ 4``` for ```o.nRounds=7```). Note that if you change ```o.CallSpotsCodeNorm```, then you need to run [```o.call_spots```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L109) again. The justification for setting ```o.CallSpotsCodeNorm = 'Round'``` is that with no bleed through, we expect each spot to appear in one colour channel in each round so we want to give each round equal weighting, but with ```o.CallSpotsCodeNorm = 'WholeCode'```, a particularly intense round would dominate the others.
@@ -103,13 +103,13 @@ This method works by finding the probability, in each round and channel, that th
 Spots for which ```o.pSpotScore>o.pScoreThresh``` or ```o.pSpotIntensity>o.pIntensityThresh``` are then shown. For spot s, [```o.pSpotIntensity(s)```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L639) is the mean spot intensity of the ```o.nRounds``` spot intensities specified by [```o.CharCodes(o.pSpotNo(s))```](https://github.com/jduffield65/iss/blob/59a7583fef8bd0231cbc0182394fcdcff0c84a9c/%40iss/iss.m#L536) minus the mean of all of the other ```o.nRounds*o.nBP-o.nRounds``` spot intensities in the code. This is used as the probability method tends to penalise the score if the intensity of the spot is higher than expected by the gene code. This feature is not desirable, but ```o.pSpotIntensity``` would benefit from such anomalously large intensities but only if they are in the rounds/channels predicted by the gene it was assigned to. The plot for the same data set shown for the dot product method is given below, with ```o.pScoreThresh=10``` and ```o.pIntensityThresh=100``` (I would recommend to use values near these).
 
 <p float="left">
-<img src="DebugImages/README/Score10Intensity100.png" width = "450"> 
+<img src="DebugImages/README/Score10Intensity100.png" width = "650"> 
 </p>
 
 As with the other method, to change the value of the threshold, simply set ```o.pScoreThresh = NewValue``` and  ```o.pIntensityThresh = NewValue```and then run ```iss_change_plot(o)```. The above data with ```o.pScoreThresh = 20``` and ```o.pIntensityThresh = 1000``` is shown below:
 
 <p float="left">
-<img src="DebugImages/README/Score20Intensity1000.png" width = "450"> 
+<img src="DebugImages/README/Score20Intensity1000.png" width = "650"> 
 </p>
 
 ### Pixel based results
@@ -126,7 +126,7 @@ This method works by performing an orthogonal matching pursuit algorithm on each
 <img src="DebugImages/README/ompBackgroundVectors.png" width = "450"> 
 </p>
 
-Next, a [gene is selected](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L61-L65) that best explains the [residual](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L69) (pixel signal once background removed). Next, the [coefficient of this gene is found](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L68) (i.e. how intense this gene is in this pixel). If the difference in the L2 norm of the residual before and after fitting the gene is [less than a threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L71-L78), the gene is rejected and we say this pixel contains no genes. If it [exceeds the threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L79-L83), the gene is accepted and a new iteration starts, fitting the best gene that can explain the new residual. This process continues until the residual difference falls below the threshold. At each step of the iteration, the coefficient of previously added genes is also updated to account for the new gene. 
+Next, a [gene is selected](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L61-L65) that best explains the [residual](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L69) (pixel signal once background removed). Next, the [coefficient of this gene is found](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L68) (i.e. how intense this gene is in this pixel). If the difference in the L2 norm of the residual before and after fitting the gene is [less than a threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L71-L78), the gene is rejected and we say this pixel contains no genes. If it [exceeds the threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L79-L83), the gene is accepted and a new iteration starts, fitting the best gene that can explain the new residual. This process continues until the residual difference falls below the threshold. At each step of the iteration, the coefficients of the previously added genes are also updated to account for the new gene. 
 
 The OMP plot shows spots which pass quite a complicated thresholding process as described in the document [Thresholding.md](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/Thresholding.md). Thresholding is done on three variables: ```o.ompNeighbNonZeros```, ```o.ompSpotIntensity``` and ```o.ompSpotScore```. There are three thresholds for each of these parameters. Using the default thresholds, the plot is the one below.
 
@@ -134,7 +134,7 @@ The OMP plot shows spots which pass quite a complicated thresholding process as 
 <img src="DebugImages/README/ompResultsDefault.jpg" width = "650"> 
 </p>
 
-The threshold to change to see the most obvious change is ```o.ompIntensityThresh2```, increasing this from 0.001 to 0.1 and then running ```iss_change_plot(o)``` gives the following plot:
+The threshold to alter to see the most obvious change is ```o.ompIntensityThresh2```. Increasing this from 0.001 to 0.1 and then running ```iss_change_plot(o)``` gives the following plot:
 
 <p float="left">
 <img src="DebugImages/README/ompResultsIncreaseIntensityThresh.jpg" width = "650"> 
@@ -159,6 +159,8 @@ The OMP method does allow for overlapping spots by fitting multiple genes to eac
 </p>
 
 Overall, the OMP method seems to be the best. There are two slightly different OMP methods: [iss_OMP](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP/iss_OMP.m) and [iss_OMP_ConstantBackground_WeightDotProduct](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m). The major differences are that for every iteration, iss_OMP, refits the coefficient for each background vector as well as for each gene already added, whereas iss_OMP_ConstantBackground_WeightDotProduct fits the background at the beginning and doesn't update it thereafter. Also, the score used to find the next best gene is different in iss_OMP_ConstantBackground_WeightDotProduct, and is explained in this document: [OMP Maths.md](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/OMP%20Maths.md). These couple of tweaks seem to make iss_OMP_ConstantBackground_WeightDotProduct the better choice.
+
+By default, bridge_process_template.m uses iss_OMP. To use iss_OMP_ConstantBackground_WeightDotProduct, change the [first line](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/bridge_process_template.m#L8) from ```o = iss_OMP;``` to ```o = iss_OMP_ConstantBackground_WeightDotProduct;```. The default thresholds for this method are also different. 
 
 ### Viewing specific genes
 To see the distribution of a specific gene or specific set of genes, run ```iss_change_plot(o,CallSpotsMethod,'Neuron',GeneNames)``` with the plot open, where ```CallSpotsMethod``` is ```'Prob'```, ```'DotProduct'```, ```'Pixel'``` or ```'OMP'``` as before. 'Neuron' is there just to specify that the genes are of neuron type. Some CodeFiles also contain non-neurons in which case, changing this argument to 'NonNeuron' will show different genes. GeneNames is a cell array containing the names of the genes of interest, so to see Plp1 and somatostatin  with the probability method, run ```iss_change_plot(o,'Prob','Neuron',[{'Plp1'},{'Sst'}])```. The result is shown below.
