@@ -177,7 +177,7 @@ elseif o.ompGetCoefMethod == 2
     coefs = o.get_omp_coefs2(S.NormSpotColors, GlobalYX);
 end
     
-PlotGenes = find(sum(coefs~=0,1)>0);
+PlotGenes = find(sum(coefs~=0,1)>ImSz/2);
 climits = [min(coefs(:)),max(coefs(:))];
 
 InRoi = all(int64(round(o.ompSpotGlobalYX))>=min(GlobalYX,[],1) &...

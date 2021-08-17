@@ -162,7 +162,7 @@ S.x0 = ImSz+1;
 S.y0 = ImSz+1;
 
 
-PlotGenes = find(sum(coefs~=0,1)>0);
+PlotGenes = find(sum(coefs~=0,1)>ImSz/2);
 climits = [min(coefs(:)),max(coefs(:))];
 
 %Get Spots Found by Algorithm
