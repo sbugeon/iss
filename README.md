@@ -334,7 +334,7 @@ An example with ```Norm = 2``` is shown below:
 
 The top plot just shows the spot color after the specified normalisation. The bottom plot shows the coefficients found by the OMP method for each of the genes as well as the background for this pixel. The second plot shows the predicted code which is the sum of all these coefficients multiplied by the bled codes. The third plot shows the breakdown of the score i.e. ompSpotScore is the sum of all squares in this image. For more details about ompScore look [here](https://github.com/jduffield65/iss/blob/1e2a7e610b14e98d1859000396718c456c6324ef/@iss_OMP_ConstantBackground_WeightDotProduct/Thresholding.md). If you left click on a gene in the bottom plot, the third plot will show the score due to that gene. If you right click, the second plot will change to the predicted code without that gene and the third plot will show the error (difference between top two plots) without that gene.
 
-The OMP algorithm finds the coefficient of every gene at every pixel of the image, from which you can produce an image for each gene. ```iss_view_spot_omp2``` shows these coefficient images. It is run through ```iss_view_spot_omp2(o, 234321, ImSz, SpotLocation, ScoreMethod, Track, SpotNo)``` with the ```o.plot()``` window open. ```ImSz``` is the radius of the image produced. ```SpotLocation``` is true if you want the image to be centered on the closest spot to the crosshair and false if you want the exact position of the crosshair. ```ScoreMethod``` is the same as ```CallSpotsMethod``` in ```iss_change_plot```. It is only used to find the location, most likely it will be 'OMP'. ```Track``` can be set to true to give some extra plots if the class is iss_OMP but cannot be used if the class is iss_OMP_ConstantBackground_WeightDotProduct. ```SpotNo``` is the same as with ```iss_view_omp```.
+The OMP algorithm finds the coefficient of every gene at every pixel of the image, from which you can produce an image for each gene. ```iss_view_spot_omp2``` shows these coefficient images. It is run through ```iss_view_spot_omp2(o, 234321, ImSz, SpotLocation, ScoreMethod, Track, SpotNo)``` with the ```o.plot()``` window open. ```ImSz``` is the radius of the image produced. ```SpotLocation``` is true if you want the image to be centered on the closest spot to the crosshair and false if you want the exact position of the crosshair. ```ScoreMethod``` is the same as ```CallSpotsMethod``` in ```iss_change_plot```. It is only used to find the location, most likely it will be ```'OMP'```. ```Track``` can be set to true to give some extra plots if the class is ```iss_OMP``` but cannot be used if the class is ```iss_OMP_ConstantBackground_WeightDotProduct```. ```SpotNo``` is the same as with ```iss_view_omp```.
 
 The plot for the same spot shown above is shown here:
 
@@ -342,7 +342,7 @@ The plot for the same spot shown above is shown here:
 <img src="DebugImages/README/ompCoefImage.png" width = "650"> 
 </p>
 
-Red is a positive coefficient, blue is negative. A green circle is a local maxima, a grey x is a spot found by the omp algorithm and saved to o.ompSpotGlobalYX but failed the thresholding. A grey + is a saved spot that passed the thresholding. 
+Red is a positive coefficient, blue is negative. A green circle is a local maxima, a grey ```x``` is a spot found by the omp algorithm and saved to ```o.ompSpotGlobalYX``` but failed the thresholding. A grey ```+``` is a saved spot that passed the thresholding. 
 
 
 ## View round/channel images of spot
