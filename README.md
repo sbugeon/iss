@@ -117,16 +117,28 @@ To view the [results from the pixel based method](https://github.com/jduffield65
 
 Also, the pixel based method allows for the possibility of multiple genes assigned to the same pixel. To view these overlapping genes, you can set ```o.pScoreThresh2``` to a value below 0. It has a default value of 0 meaning only genes that are the best match at each pixel can be shown. If you set it to ```o.pScoreThresh2 = -0.001;```, then it allows for spots for which ```o.pxSpotScore = 0``` i.e. the second best match at that pixel.
 
-### OMP method
+### OMP (Orthogonal Matching Pursuit) method
 Start off as before, running [```o.plot```](https://github.com/jduffield65/iss/blob/eb6d7c23acf2b59a18903511b25b34ecd756c05b/bridge_process_template.m#L116-L117). Then run ```iss_change_plot(o,'OMP')```. These are the gene assignments (saved as [```o.ompSpotCodeNo```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/%40iss_OMP/iss_OMP.m#L150-L151)) given by [```o.call_spots_omp```](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/bridge_process_template.m#L164).
 
-This method works by dealing with each pixel separately, first some [background vectors](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/@iss_OMP/get_background_codes.m) [are fit](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L49-L51) to explain the non-gene variation in the pixel. These are usually just 7 codes, each being a strip in a colour channel, as shown below.
+This method works by performing an orthogonal matching pursuit algorithm on each pixel separately. First some [background vectors](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/@iss_OMP/get_background_codes.m) [are fit](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L49-L51) to explain the non-gene variation in the pixel. These are usually just 7 codes, each being a strip in a colour channel, as shown below.
 
 <p float="left">
 <img src="DebugImages/README/ompBackgroundVectors.png" width = "450"> 
 </p>
 
 Next, a [gene is selected](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L61-L65) that best explains the [residual](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L69) (pixel signal once background removed). Next, the [coefficient of this gene is found](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L68) (i.e. how intense this gene is in this pixel). If the difference in the L2 norm of the residual before and after fitting the gene is [less than a threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L71-L78), the gene is rejected and we say this pixel contains no genes. If it [exceeds the threshold](https://github.com/jduffield65/iss/blob/4e0d03d53ad006c92073db3f20b9f6fd21557f0a/omp_free_background.m#L79-L83), the gene is accepted and a new iteration starts, fitting the best gene that can explain the new residual. This process continues until the residual difference falls below the threshold. At each step of the iteration, the coefficient of previously added genes is also updated to account for the new gene. 
+
+The OMP plot shows spots which pass quite a complicated thresholding process as described in the document [Thresholding.md](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/Thresholding.md). Thresholding is done on three variables: ```o.ompNeighbNonZeros```, ```o.ompSpotIntensity``` and ```o.ompSpotScore```. There are three thresholds for each of these parameters. Using the default thresholds, the plot is the one below.
+
+<p float="left">
+<img src="DebugImages/README/ompResultsDefault.jpg" width = "650"> 
+</p>
+
+The threshold to change to see the most obvious change is ```o.ompIntensityThresh2```, increasing this from 0.001 to 0.1 and then running ```iss_change_plot(o)``` gives the following plot:
+
+<p float="left">
+<img src="DebugImages/README/ompResultsIncreaseIntensityThresh.jpg" width = "650"> 
+</p>
 
 
 ### Which method to use?
@@ -138,7 +150,15 @@ The dot product method involves relative normalisation between rounds and colour
 
 Here, because round 7, channel 6  is particularly low intensity, when it is normalised it gets boosted resulting in this square dominating the whole code. Then to have a high dot product, this spot must match to a gene which is also high in round 7, channel 6 even though it doesn't match any other squares.
 
-The probability method does not involve any such normalisation so is probably the better method to use. Also, with the recommended threshold values (first plot of each method), much more spots overcome the thresholding than the dot product method (38% more in this example).
+The probability method does not involve any such normalisation so is probably the better method to use. The main advantages of the probability method is that it uses the actual measured background distribution and it allows for variation in intensity between rounds i.e. just because spot is intense in one round doesn't mean it is intense in all other rounds. However, it has a problem that it doesn't really allow for overlapping spots. 
+
+The OMP method does allow for overlapping spots by fitting multiple genes to each pixel. It doesn't use the measured background distribution but the use of the background vectors helps get around this issue in practise. Neither does it allow for variation in intensity between rounds for a particular gene as just a single coefficient is found for each gene. To get around this, we [find some initial spots for each gene](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP/call_spots_omp_initial.m) and use these to find the mean bled code for each gene. Using these mean codes, we can determine how [intense each gene is expected to be in each round compared to the bleed matrix prediction](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP/get_gene_efficiencies.m). This gives us an updated codebook which accounts for round to round and gene to gene intensity variation. For example, the plot below shows that the OMP method accounts for the fact that Aldoc is especially weak in round 5:
+
+<p float="left">
+<img src="DebugImages/README/ompGeneEfficiencyExample.png" width = "450"> 
+</p>
+
+Overall, the OMP method seems to be the best. There are two slightly different OMP methods: [iss_OMP](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP/iss_OMP.m) and [iss_OMP_ConstantBackground_WeightDotProduct](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/iss_OMP_ConstantBackground_WeightDotProduct.m). The major differences are that for every iteration, iss_OMP, refits the coefficient for each background vector as well as for each gene already added, whereas iss_OMP_ConstantBackground_WeightDotProduct fits the background at the beginning and doesn't update it thereafter. Also, the score used to find the next best gene is different in iss_OMP_ConstantBackground_WeightDotProduct, and is explained in this document: [OMP Maths.md](https://github.com/jduffield65/iss/blob/a8c4d104274775dae67c2bace447476f40f0f355/@iss_OMP_ConstantBackground_WeightDotProduct/OMP%20Maths.md). These couple of tweaks seem to make iss_OMP_ConstantBackground_WeightDotProduct the better choice.
 
 ### Viewing specific genes
 To see the distribution of a specific gene or specific set of genes, run ```iss_change_plot(o,CallSpotsMethod,'Neuron',GeneNames)``` with the plot open, where ```CallSpotsMethod``` is ```'Prob'```, ```'DotProduct'```, ```'Pixel'``` or ```'OMP'``` as before. 'Neuron' is there just to specify that the genes are of neuron type. Some CodeFiles also contain non-neurons in which case, changing this argument to 'NonNeuron' will show different genes. GeneNames is a cell array containing the names of the genes of interest, so to see Plp1 and somatostatin  with the probability method, run ```iss_change_plot(o,'Prob','Neuron',[{'Plp1'},{'Sst'}])```. The result is shown below.
