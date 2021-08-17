@@ -329,7 +329,7 @@ The first is run through ```iss_view_omp(o, 234321, Norm, IncludeGT, SpotNo)``` 
 An example with ```Norm = 2``` is shown below:
 
 <p float="left">
-<img src="DebugImages/README/ompView.png" width = "450"> 
+<img src="DebugImages/README/ompView.png" width = "650"> 
 </p>
 
 The top plot just shows the spot color after the specified normalisation. The bottom plot shows the coefficients found by the OMP method for each of the genes as well as the background for this pixel. The second plot shows the predicted code which is the sum of all these coefficients multiplied by the bled codes. The third plot shows the breakdown of the score i.e. ompSpotScore is the sum of all squares in this image. For more details about ompScore look [here](https://github.com/jduffield65/iss/blob/1e2a7e610b14e98d1859000396718c456c6324ef/@iss_OMP_ConstantBackground_WeightDotProduct/Thresholding.md). If you left click on a gene in the bottom plot, the third plot will show the score due to that gene. If you right click, the second plot will change to the predicted code without that gene and the third plot will show the error (difference between top two plots) without that gene.
