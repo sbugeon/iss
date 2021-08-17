@@ -78,7 +78,7 @@ end
 ```
 
 ## Loading old data and changing classes
-The master branch of the pipeline has been so there are different classes relating to the different gene calling algorithms described in the next section. As a result, iss objects saved using an older version cannot be loaded into this branch directly.
+The master branch of the pipeline has been changed so there are different classes relating to the different gene calling algorithms described in the next section. As a result, iss objects saved using an older version cannot be loaded into this branch directly.
 
 To use this branch with old data, you can do the fllowing:
 * Add both the new master branch and the old branch (the version of the iss object that the old data was run with) to the path.
