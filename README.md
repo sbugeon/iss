@@ -77,6 +77,25 @@ for r = o.UseRounds
 end
 ```
 
+## Loading old data and changing classes
+The master branch of the pipeline has been so there are different classes relating to the different gene calling algorithms described in the next section. As a result, iss objects saved using an older version cannot be loaded into this branch directly.
+
+To use this branch with old data, you can do the fllowing:
+* Add both the new master branch and the old branch (the version of the iss object that the old data was run with) to the path.
+* Load in the old data
+* Run [```o = convert_iss_data(o);```](https://github.com/jduffield65/iss/blob/1dab53fdecf5312aeae33034a50061bcb7fb44e9/convert_iss_data.m)
+
+This will convert it to an object of the class [iss_PixelBased](https://github.com/jduffield65/iss/blob/master/%40iss_PixelBased/iss_PixelBased.m). If you then want to run the OMP algorithm on this data, you will need to change the class to one of the OMP classes. To change class, you run [```o = switch_class(o, NewClass);```](https://github.com/jduffield65/iss/blob/1dab53fdecf5312aeae33034a50061bcb7fb44e9/@iss_Base/switch_class.m) where NewClass can be ```iss_Base, iss_GroundTruth, iss_OMP, iss_OMP, iss_OMP_ConstantBackground_WeightDotProduct, iss_PixelBased``` or ```iss_Spatial```. If the class change is such that data will be lost, an error will stop it from happening. If you still want to proceed, you can run ```o = switch_class(o, NewClass, true);```.
+
+So, to run the OMP algorithm with old data you run:
+
+```matlab
+o = convert_iss_data(o);
+o = switch_class(o, iss_OMP);
+o = o.call_spots_omp;
+```
+
+
 ## Visualising results
 The pipeline can run three different algorithms for assigning genes to spots. The following will give instructions explaining how to view the distribution of assigned genes in each case.
 
