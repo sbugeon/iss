@@ -1,7 +1,6 @@
 function [AllSpotScore,BestGeneNo] = get_weight_gene_dot_product(o,...
 z_scoredSpotColors,BledCodeWeight,AlreadyAddedGenes)
-%GET_WEIGHT_GENE_DOT_PRODUCT Summary of this function goes here
-%   Detailed explanation goes here
+%% OLD VERSION, superseded by get_weight_gene_dot_product2
 
 %% Normalise BledCodes
 % Need to use GeneEfficiency information to preferentially weight rounds which 

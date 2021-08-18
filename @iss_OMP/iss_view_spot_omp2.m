@@ -151,7 +151,6 @@ S.ImSz = ImSz;
 S.ImShape = [2*S.ImSz+1,2*S.ImSz+1];
 S.NormSpotColors = (double(SpotColors)-o.z_scoreSHIFT)./o.z_scoreSCALE;
 S.NormSpotColors = S.NormSpotColors(:,:);
-coefs = o.get_omp_coefs(S.NormSpotColors);
 S.nCodes = length(o.CharCodes);
 S.nBackground = o.nBackground;
 S.GeneNames = o.GeneNames;
@@ -162,8 +161,8 @@ S.x0 = ImSz+1;
 S.y0 = ImSz+1;
 
 
-PlotGenes = find(sum(coefs~=0,1)>ImSz/2);
-climits = [min(coefs(:)),max(coefs(:))];
+%PlotGenes = find(sum(coefs~=0,1)>0);
+%climits = [min(coefs(:)),max(coefs(:))];
 
 %Get Spots Found by Algorithm
 y_range = xy(2)-ImSz:xy(2)+ImSz;
@@ -171,6 +170,20 @@ x_range = xy(1)-ImSz:xy(1)+ImSz;
 [A,B] = meshgrid(y_range,x_range);
 c=cat(2,A',B');
 GlobalYX=reshape(c,[],2);
+
+if isprop(o,'ompGetCoefMethod')
+    if o.ompGetCoefMethod == 1
+        coefs = o.get_omp_coefs(S.NormSpotColors);
+    elseif o.ompGetCoefMethod == 2
+        coefs = o.get_omp_coefs2(S.NormSpotColors, GlobalYX);
+    end
+else
+    coefs = o.get_omp_coefs(S.NormSpotColors);
+end
+    
+PlotGenes = find(sum(coefs~=0,1)>ImSz/2);
+climits = [min(coefs(:)),max(coefs(:))];
+
 InRoi = all(int64(round(o.ompSpotGlobalYX))>=min(GlobalYX,[],1) &...
     round(o.ompSpotGlobalYX)<=max(GlobalYX,[],1),2);
 AlgFoundGenes = unique(o.ompSpotCodeNo(InRoi))';

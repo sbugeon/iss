@@ -63,7 +63,12 @@ CodeShape = size(SpotColor);
 SpotGlobalYX = o.([pf,'SpotGlobalYX'])(SpotNo,:);
 SpotCoefs = full(o.([pf,'Coefs'])(SpotNo,:));
 SpotScore = o.([pf,'SpotScore'])(SpotNo);
-SpotNeighbNonZero = o.([pf,'NeighbNonZeros'])(SpotNo);
+if isprop(o,'ompNeighbNearPosNeighbMultiplier') && size(o.ompNeighbNonZeros,2)==2
+    SpotNeighbNonZero = o.ompNeighbNearPosNeighbMultiplier*...
+        o.([pf,'NeighbNonZeros'])(SpotNo,1) + o.([pf,'NeighbNonZeros'])(SpotNo,2);
+else
+    SpotNeighbNonZero = o.([pf,'NeighbNonZeros'])(SpotNo);
+end
 SpotIntensity = o.([pf,'SpotIntensity2'])(SpotNo);
 %PredCode is scaled and shifted (Norm 2)
 PredCode = SpotCoefs*o.([pf,'BledCodes'])(:,:);

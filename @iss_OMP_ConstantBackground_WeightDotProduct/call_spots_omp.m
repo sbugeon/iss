@@ -30,18 +30,18 @@ if o.LogToFile
     cleanup = onCleanup(@()diary('off'));
 end
 %% Set up normalisation paramaters
-% o.ompBleedMatrixEigMethod = 'Mean';
-% o = o.get_initial_bled_codes;
-% 
-% %% Get gene efficiencies and background eigenvectors
-% o = o.call_spots_omp_initial;
-% o = o.get_gene_efficiencies;
-% o.ompBledCodes = o.z_scoreBledCodes;
+o.ompBleedMatrixEigMethod = 'Mean';
+o = o.get_initial_bled_codes;
+
+%% Get gene efficiencies and background eigenvectors
+o = o.call_spots_omp_initial;
+o = o.get_gene_efficiencies;
+o.ompBledCodes = o.z_scoreBledCodes;
 nCodes = length(o.CharCodes);
-% o.ompBledCodes = zeros(nCodes+o.nBackground,o.nRounds*o.nBP);
-% o.ompBledCodes(1:nCodes,:) = o.z_scoreBledCodes;
-% o.ompBledCodes(nCodes+1:nCodes+o.nBackground,:) = ...
-%     o.BackgroundEigenvectors(o.UseBackgroundEigenvectors,:);
+o.ompBledCodes = zeros(nCodes+o.nBackground,o.nRounds*o.nBP);
+o.ompBledCodes(1:nCodes,:) = o.z_scoreBledCodes;
+o.ompBledCodes(nCodes+1:nCodes+o.nBackground,:) = ...
+    o.BackgroundEigenvectors(o.UseBackgroundEigenvectors,:);
 %% Load in images, run OMP on each pixel, find local maxima in omp coefficient 
 % images for each gene.
 NonemptyTiles = find(~o.EmptyTiles)';

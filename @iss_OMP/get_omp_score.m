@@ -122,7 +122,13 @@ clear RemoveGeneError
 
 %Only consider overlap with genes that pass low quality threshold and
 %within o.ExtractR1 (i.e. positive region of main gene).
-QualOK = o.ompNeighbNonZeros>o.ompNeighbThresh2 & ...
+if isprop(o,'ompNeighbNearPosNeighbMultiplier') && size(o.ompNeighbNonZeros,2)==2
+    NeighbNonZeros = o.ompNeighbNonZeros(:,1)*o.ompNeighbNearPosNeighbMultiplier+...
+        o.ompNeighbNonZeros(:,2);
+else
+    NeighbNonZeros = o.ompNeighbNonZeros;
+end
+QualOK = NeighbNonZeros>o.ompNeighbThresh2 & ...
     o.ompSpotIntensity2>o.ompIntensityThresh2;
 NearIndex = rangesearch(o.ompSpotGlobalYX(QualOK,:),SpotGlobalYX,o.ExtractR1);
 KeepCoefs = false(nSpots,nCodes);

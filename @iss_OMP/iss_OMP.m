@@ -77,6 +77,7 @@ classdef iss_OMP < iss_GroundTruth
         %ompMaxGenes is the maximum number of genes that can be assigned to
         %each pixel.
         ompMaxGenes = 6;
+        %ompMaxGenes = 30; %THIS IS BEST FOR CONSTBACKGROUND_WEIGHTED VERSION
         
         % Only save to oObject spots with more than ompInitialNeighbThresh
         % non zero pixels near it.
