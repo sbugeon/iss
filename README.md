@@ -351,7 +351,7 @@ Another function that is useful for evaluating the gene calling results is ```is
 It is particularly useful to use and compare with the ```iss_view_spot_omp2```, and the corresponding plot is shown below with ```Norm = false``` and ```Filter = true```:
 
 <p float="left">
-<img src="DebugImages/README/ompViewSpot.png" width = "650"> 
+<img src="DebugImages/README/ompViewSpot.png" width = "950"> 
 </p>
 
 By comparing the two images, you can see the channel 0 background spot in the south-east quadrant as well as the background spot towards the centre in channels 1, 2, 4 and 5. The spot shape in these channels appears to be the same in all rounds, indicating they are background not genes. 
