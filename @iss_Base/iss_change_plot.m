@@ -9,7 +9,7 @@ function iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 % o: iss object
 % Method: 'DotProduct','Prob' or 'Pixel' to consider gene assignments given
 % by o.SpotCodeNo, o.pSpotCodeNo and o.pxSpotCodeNo respectively.
-% GeneType: Neuron or Non-Neuron
+% GeneType: 'Neuron' or 'NonNeuron'
 % GenesToShow: cell of gene names that you want to see e.g.
 % [{'Npy'},{'Pvalb'}]. It is case sensitive.
 % If GenesToShow is 'Neuron' or 'NonNeuron', then all neurons/ non-neurons

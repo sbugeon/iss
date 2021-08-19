@@ -48,16 +48,21 @@ elseif strcmpi('OMP',Method)
      %New method, found using PyTorch
      %Use median SpotIntensity2 not mean SpotIntensity as more robust to
      %cases where OMP is bad with one good round. 
-     QualOK = o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
+     if isprop(o,'ompNeighbNearPosNeighbMultiplier') && size(o.ompNeighbNonZeros,2)==2
+        NeighbNonZeros = o.ompNeighbNearPosNeighbMultiplier*o.ompNeighbNonZeros(:,1)+o.ompNeighbNonZeros(:,2);
+     else
+         NeighbNonZeros = o.ompNeighbNonZeros;
+     end
+     QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
          o.([pf,'SpotScore'])>o.ompScoreThresh;
      QualOK = QualOK & o.([pf,'SpotIntensity2'])>o.ompIntensityThresh2 & ...
-         o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh2 & o.([pf,'SpotScore'])>o.ompScoreThresh2;
+         NeighbNonZeros>o.ompNeighbThresh2 & o.([pf,'SpotScore'])>o.ompScoreThresh2;
      %Spots assigned to genes that are not max coefficient have stronger
      %thresholds:
      NotBestGene = MaxCoef>SpotCoef;
      QualOK(NotBestGene) = QualOK(NotBestGene) & (o.ompSpotIntensity2(NotBestGene)>...
          o.ompIntensityThresh3.*(1+round((MaxCoef(NotBestGene)-SpotCoef(NotBestGene))./o.ompIntensityThresh3_CoefDiffFactor)) | ...
-         o.ompSpotScore(NotBestGene)>o.ompScoreThresh3 | o.ompNeighbNonZeros(NotBestGene)>o.ompNeighbThresh3);
+         o.ompSpotScore(NotBestGene)>o.ompScoreThresh3 | NeighbNonZeros(NotBestGene)>o.ompNeighbThresh3);
 %      CoefInd = sub2ind(size(o.ompCoefs),[1:length(o.([pf,'SpotCodeNo']))]',o.([pf,'SpotCodeNo']));
 %      QualOK = o.([pf,'NeighbNonZeros'])>o.ompNeighbThresh | o.([pf,'Coefs'])(CoefInd)>o.ompIntensityThresh |...
 %          o.([pf,'SpotScore'])>o.ompScoreThresh;
