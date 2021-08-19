@@ -361,13 +361,13 @@ The Aldoc gene can be seen along the diagonal, in the plots with the green cross
 You can see the Cadps2 (```CharCode = 2345601```) spot emerging in the south-east especially well in (round 2, channel 3); (round 5, channel 6) and (round 7, channel 1). The only other signal of note in the ```iss_view_spot_omp2``` plot is Gda (```CharCode = 1526304```) in the south-east quadrant. The signal in (round 4, channel 6) and maybe (round 5, channel 3) seem to differ from that expected from background and have a spot in the location of the supposed Gda. In all the other rounds though, either there is no spot or it coincides with background. Thus it is hard to determine if this spot is real. As can be seen from the grey ```x``` in the ```iss_view_spot_omp2``` plot, this spot did not pass the thresolding process, which I think is fair enough.
 
 ### ```iss_view_spot_omp3```
-The functions ```iss_view_spot_omp2``` and ```iss_view_spot``` are explicitly combined in the function [```iss_view_spot_omp3```](https://github.com/jduffield65/iss/blob/c00c764053f6230adb44eb242ffc8bb4317aadff/@iss_OMP/iss_view_spot_omp3.m).  It is run through: ```iss_view_spot_omp2(o, 234321, ImSz, SpotLocation, ScoreMethod, Track, SpotNo, Norm)``` and both the two above plots will open. The arguments are all the same as for ```iss_view_spot_omp2``` except for the additional argument ```Norm``` which can be ```true``` or ```false``` as with ```iss_view_spot```. The default value is ```true``` for this function as it shows the effect of removing genes more clearly. The SpotColor image with ```Norm=true``` is shown below:
+The functions ```iss_view_spot_omp2``` and ```iss_view_spot``` are explicitly combined in the function [```iss_view_spot_omp3```](https://github.com/jduffield65/iss/blob/c00c764053f6230adb44eb242ffc8bb4317aadff/@iss_OMP/iss_view_spot_omp3.m).  It is run through: ```iss_view_spot_omp3(o, 234321, ImSz, SpotLocation, ScoreMethod, Track, SpotNo, Norm)``` and both the two above plots will open. The arguments are all the same as for ```iss_view_spot_omp2``` except for the additional argument ```Norm``` which can be ```true``` or ```false``` as with ```iss_view_spot```. The default value is ```true``` for this function as it shows the effect of removing genes more clearly. The SpotColor image with ```Norm=true``` is shown below:
 
 <p float="left">
 <img src="DebugImages/README/ompViewSpot3_Original.png" width = "950"> 
 </p>
 
-If you then left click on a gene image in the coefficient image that also opened, then the SpotColor image will adjust to remove the gene you clicked on. Clicking on any background gene will remove all background genes. Right clicking will reinstate the gene. The SpotColor without background and then without background and Aldoc are shown below.
+If you then left click on a gene image in the coefficient plot that also opened, then the SpotColor image will adjust to remove the gene you clicked on. Clicking on any background gene will remove all background genes. Right clicking will reinstate the gene. The SpotColor without background and then without background and Aldoc are shown below:
 
 <p float="left">
 <img src="DebugImages/README/ompViewSpot3_RemoveBackground.png" width = "950"> 
@@ -376,3 +376,5 @@ If you then left click on a gene image in the coefficient image that also opened
 <p float="left">
 <img src="DebugImages/README/ompViewSpot3_RemoveBackgroundAldoc.png" width = "950"> 
 </p>
+
+So in a perfect example, each of the images will go completely white (to 0) after we have clicked on all the genes that are actually there. 
