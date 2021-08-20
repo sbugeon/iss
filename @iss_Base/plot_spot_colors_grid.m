@@ -1,5 +1,24 @@
 function plot_spot_colors_grid(o, SpotColors, PointCorrectedLocalYX, ImSz, Dist,...
     SpotCodeNo, Clim, IncludeGT, Filter)
+%% plot_spot_colors_grid(o, SpotColors, PointCorrectedLocalYX, ImSz, Dist,...
+%    SpotCodeNo, Clim, IncludeGT, Filter)
+% Once SpotColors found for a subset of pixels by get_spot_colors_grid,
+% this produces the plot of each round and channel.
+% o: iss object
+% SpotColors(s,b,r): gives intensity for spot s in channel b, round r.
+% PointCorrectedLocalYX(s,:,r,b): gives local coordinate of spot s but
+%   transformed to round r, channel b according to o.D(:,:,t,r,b).
+% ImSz: radius of image that is plotted for each round and channel.
+% Dist: distance of nearest spot to cross-hair
+% SpotCodeNo: gene assigned to nearest spot
+% Clim(1,b,r) gives the minimum intensity to be shown by the image of
+%   channel b, round r. Clim(2,b,r) gives the maximum. If not given, then
+%   will use min/max of SpotColors(:,b,r).
+% IncludeGT: true if also want to plot the SpotColors in the ground
+%   truth rounds as indicated by o.gtRounds.
+% Filter: true if SpotColors from the filtered images i.e. the
+%   tiles in o.TileDirectory. false if from the raw images i.e. directly
+%   from the nd2 file (and then focus-stacked).
 
 if nargin<7
     Clim = [];

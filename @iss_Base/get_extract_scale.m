@@ -4,6 +4,8 @@ function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_i
 % This finds the scale by which to multiply each filtered image. This is
 % based on the max intensity of tile t round r across all color channels.
 % It also writes the images for this tile and round to o.TileDirectory
+% This is performed once for the imaging rounds and once for the anchor
+% round as doesn't matter if anchor and imaging rounds scaling different.
 %
 % o: iss object
 % nChannels: number of color channels
@@ -13,7 +15,7 @@ function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_i
 % DapiSE: filter for Dapi image.
 % r: round
 % t_index: tile index in nd2 file
-% t: tile number as saved in o object.
+% t: tile number as saved in tile directory.
 
 %%
 fName = fullfile(o.TileDirectory, ...

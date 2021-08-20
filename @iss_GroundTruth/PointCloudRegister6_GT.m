@@ -5,6 +5,12 @@ function o = PointCloudRegister6_GT(o, y0, x0, nTiles)     %MADE A THE SAME FOR 
 % iterative closest point: repeatedly finding the best y for each x, 
 % and doing linear regression to find the M that maps best maps x to y
 %
+% PCR6 finds an affine separate affine transform for each round, channel, tile
+% as given by D(:,:,t,r,b). It also tries to provide a regularisation so for
+% a particular tile, for a particular round, shifts are similar across all 
+% colour channels and for a particular tile, for a particular channel,
+% scalings are the similar across all rounds.
+%
 % inputs:
 % y0 is a cell containig the YX location of all spots in all rounds 
 % and colour channels for all tiles
@@ -12,7 +18,11 @@ function o = PointCloudRegister6_GT(o, y0, x0, nTiles)     %MADE A THE SAME FOR 
 % x0{t,b} is a cell containing the YX location of spots in the 
 % reference round for tile t, channel b
 %
-% ToPlot: array of form [t,b,r] of specific example case to show plot of
+% A0 are the initial scaling values for each colour channel 
+% taking account of chromatic aberration. All default to 1 if not
+% specified
+%
+% o.ToPlot: array of form [t,b,r] of specific example case to show plot of
 % for debugging purposes
 %
 %%

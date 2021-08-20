@@ -4,10 +4,10 @@ function SpotNo = iss_view_codes(o, FigNo, Norm, SpotNum)
 % tool that lets you display gene expression profile of a spot
 %
 % o: iss object
-% FigNo: figure number (default, current figure)
+% FigNo: o.plot figure number (default, current figure)
 % Norm: normalization option (described below)
-% SpotNum: number of spot to analyze (default is to click)
-% SpotNo: returns the number of the spot analyzed.
+% SpotNum: number of spot to analyze (default if not given is to click)
+% SpotNo: returns the index of the spot analyzed.
 %
 % Norm = 1: Raw Colors
 % Norm = 2: Normalised by percentile for each round and color channel

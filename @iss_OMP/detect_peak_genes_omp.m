@@ -1,27 +1,27 @@
 function [PeakLocalYX,PeakSpotColors,PeakCoefs,PeakNeighbourhoodNonZeros,OriginalTile] = ...
     detect_peak_genes_omp(o,coefs,AllSpotColors,AllLocalYX,t)
-%% [PeakLocalYX,PeakSpotColors,PeakCoefs,OriginalTile] = ...
-%  detect_peak_genes_omp(o,coefs,GoodSpotColors,GoodLocalYX,t)
+%% [PeakLocalYX,PeakSpotColors,PeakCoefs,PeakNeighbourhoodNonZeros,OriginalTile] = ...
+%    detect_peak_genes_omp(o,coefs,AllSpotColors,AllLocalYX,t)
 %
 % This finds the local maxima in omp coefficients for each gene
 % 
 % Input
 % o: iss object
-% coefs(S,G) is the weighting of gene G for spot S. coefs(S,74:80) are the
-% background weightings. Most are zero.
-% AllSpotColors(S,b,r) is the intensity for spot S in channel b, round r.
-% S should cover all pixel values that don't go off edge of tile in any b,r.
-% AllSpotColors has been z-scored. 
-% AllLocalYX(S,:) is the corresponding pixel location.
-% t is the current tile of interest
+% coefs(S,G): the weighting of gene G for spot S. coefs(S,nCodes+1:end) are the
+%   background weightings. Most are zero.
+% AllSpotColors(S,b,r): the intensity for spot S in channel b, round r.
+%   S should cover all pixel values that don't go off edge of tile in any b,r.
+%   AllSpotColors has been z-scored. 
+% AllLocalYX(S,:): the corresponding pixel location.
+% t: the current tile of interest
 %
 % Output
-% PeakLocalYX{G} contains the YX position of local maxima of gene G.
-% PeakSpotColors{G} contains the corresponding spot colors.
-% coefs{G} contains corresponding gene and background weightings
+% PeakLocalYX{G}: contains the YX position of local maxima of gene G.
+% PeakSpotColors{G}: contains the corresponding spot colors.
+% PeakCoefs{G}: contains corresponding gene and background weightings
 % PeakNeighbourhoodNonZeros{G}: In the neighbourhood defined by 
-% se1 = strel('disk', o.PixelDetectRadius); around each peak, this
-% specifies the number of pixels that have non zero weightings for gene G.
+%   se1 = strel('disk', o.PixelDetectRadius); around each peak, this
+%   specifies the number of pixels that have non zero weightings for gene G.
 % OriginalTile{G} = t
 
 %% For each gene, find peaks in omp coef images. Keep these as spots going forward

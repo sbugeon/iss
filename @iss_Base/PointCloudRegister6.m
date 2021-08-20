@@ -1,9 +1,15 @@
 function [o,x] = PointCloudRegister6(o, y0, x0, A0, nTiles)     %MADE A THE SAME FOR ALL TILES
-% o = o.PointCloudRegister(y, x, A0, Options)
+% o = o.PointCloudRegister6(o, y0, x0, A0, nTiles)
 % 
 % Perform point cloud registration to map points x onto points y by
 % iterative closest point: repeatedly finding the best y for each x, 
 % and doing linear regression to find the M that maps best maps x to y
+%
+% PCR6 finds an affine separate affine transform for each round, channel, tile
+% as given by D(:,:,t,r,b). It also tries to provide a regularisation so for
+% a particular tile, for a particular round, shifts are similar across all 
+% colour channels and for a particular tile, for a particular channel,
+% scalings are the similar across all rounds.
 %
 % inputs:
 % y0 is a cell containig the YX location of all spots in all rounds 
@@ -12,18 +18,17 @@ function [o,x] = PointCloudRegister6(o, y0, x0, A0, nTiles)     %MADE A THE SAME
 % x0{t,b} is a cell containing the YX location of spots in the 
 % reference round for tile t, channel b
 %
-% ToPlot: array of form [t,b,r] of specific example case to show plot of
+% A0 are the initial scaling values for each colour channel 
+% taking account of chromatic aberration. All default to 1 if not
+% specified
+%
+% o.ToPlot: array of form [t,b,r] of specific example case to show plot of
 % for debugging purposes
 %
 % Output: x is new reference round YX local coordinates. They are different
 % from x0 as they are adjusted as PCR proceeds to take account of chromatic
 % aberration.
 %
-% PCR6 tries to provide a regularisation so for a particular tile, for a
-% particular round, shifts are similar across all colour channels.
-% For a particular tile, for a particular channel, scalings are the same
-% across all rounds. BUT DOESN'T DO SINGLE TILE ALTOGETHER AND TAKES MEAN
-% FROM THE GOOD TRANSFORMS.
 %%
 NonemptyTiles = find(~o.EmptyTiles)';
 if size(NonemptyTiles,2)==1

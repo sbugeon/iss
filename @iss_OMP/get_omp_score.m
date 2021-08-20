@@ -1,5 +1,5 @@
 function NormExpScore = get_omp_score(o,z_scoredSpotColors,SpotGlobalYX,OriginalCoefs,SpotCodeNo)
-%% ModScore = o.get_omp_score(z_scoredSpotColors,OriginalCoefs,SpotCodeNo)
+%% NormExpScore = get_omp_score(o,z_scoredSpotColors,SpotGlobalYX,OriginalCoefs,SpotCodeNo)
 % omp score is based on the reduction in error caused by introduction of gene in
 % rounds/channels where there is not already a gene.
 % It is normalised so independent of spot intensity
@@ -7,12 +7,12 @@ function NormExpScore = get_omp_score(o,z_scoredSpotColors,SpotGlobalYX,Original
 % (Can get a better than this but just to give a order of magnitude
 % for good spots. Actual best score is o.ompScore_LargeErrorMax*o.nRounds). 
 %
-% z_scoredSpotColors: spot colors that have been z-scored by channel and
-% round.
+% z_scoredSpotColors: spot colors that have been z-scored by channel and round.
+% SpotGlobalYX(s,:): yx location of spot in reference image.
 % OriginalCoefs(s,g) is the coefficient of spot s for gene g found by the
-% OMP algorithm.
+%   OMP algorithm.
 % SpotCodeNo(s): the gene g that OriginalCoefs(s,g) was a peak for in the
-% whole tile image. 
+%   whole tile image. 
 
 if nargin==1
     pf = o.CallMethodPrefix('OMP'); 

@@ -1,16 +1,16 @@
 function SpotNo = iss_view_omp(o, FigNo, Norm, IncludeGT, SpotNum)
-%% SpotNo = iss_view_omp2(o, FigNo, Norm, SpotNum)
+%% SpotNo = iss_view_omp(o, FigNo, Norm, IncludeGT, SpotNum)
 %
 % This function lets you view the spot code, predicted code and ompScore in
 % each channel of UnbledCode of selected genes. Also shows you the omp
 % coefficients for each gene and background code. 
 %
 % o: iss object
-% FigNo: figure number (default, current figure)
+% FigNo: o.plot figure number (default, current figure)
 % Norm: normalization option (described below)
 % IncludeGT: if true, will also plot the ground truth rounds.
-% SpotNum: number of spot to analyze or is yx location want to look
-% at.(default is to click)
+% SpotNum: number of spot to analyze or yx location want to look
+%   at. (default is to click)
 % SpotNo: returns the number of the spot analyzed.
 %
 % Norm = 1: Raw Colors
@@ -21,40 +21,21 @@ function SpotNo = iss_view_omp(o, FigNo, Norm, IncludeGT, SpotNum)
 
 
 %%
-pf = o.CallMethodPrefix('OMP');  
-
-if nargin>=5
-    if length(SpotNum)==1
-        SpotNo = SpotNum;
-    elseif length(SpotNum)==2
-        xy = [SpotNum(2),SpotNum(1)];
-        [~,SpotNo] = min(sum(abs(o.([pf,'SpotGlobalYX'])-SpotNum),2));
-    end
-    if nargin>=2 && ishandle(FigNo)
-        figure(FigNo);
-        xlim([o.([pf,'SpotGlobalYX'])(SpotNo,2)-20,o.([pf,'SpotGlobalYX'])(SpotNo,2)+20]);
-        ylim([o.([pf,'SpotGlobalYX'])(SpotNo,1)-20,o.([pf,'SpotGlobalYX'])(SpotNo,1)+20]);
-        rectangle('Position',[o.([pf,'SpotGlobalYX'])(SpotNo,2)-5,...
-            o.([pf,'SpotGlobalYX'])(SpotNo,1)-5,10,10],'EdgeColor','g','LineWidth',4);
-        drawnow;
-    end
-else
-    if nargin>=2
-        figure(FigNo);
-    end
-    CrossHairColor = [1,1,1];   %Make white as black background
-    xy = ginput_modified(1,CrossHairColor);
-    S = evalin('base', 'issPlot2DObject');
-    InRoi = all(int64(round(S.SpotYX))>=S.Roi([3 1]) & round(S.SpotYX)<=S.Roi([4 2]),2);
-    PlotSpots = find(InRoi & S.QualOK);         %Only consider spots that can be seen in current plot
-    [~,SpotIdx] = min(sum(abs(S.SpotYX(PlotSpots,:)-[xy(2),xy(1)]),2));
-    SpotNo = PlotSpots(SpotIdx);      
+if nargin<3 || isempty(Norm)
+    Norm = 2;
 end
 
 if nargin<4 || isempty(IncludeGT)
     IncludeGT = false;
 end
 
+if nargin<5
+    SpotNum = [];
+end
+
+[~, ~, ~, SpotNo, ~]  = get_crosshair_location(o, FigNo, true, 'OMP', SpotNum);
+
+pf = o.CallMethodPrefix('OMP');  
 %Different parameters for different methods
 CodeNo = o.([pf,'SpotCodeNo'])(SpotNo);
 %SpotColor is raw values (Norm 1)
@@ -74,9 +55,6 @@ SpotIntensity = o.([pf,'SpotIntensity2'])(SpotNo);
 PredCode = SpotCoefs*o.([pf,'BledCodes'])(:,:);
 PredCode = reshape(PredCode,CodeShape);
 
-if nargin<3 || isempty(Norm)
-    Norm = 2;
-end
 
 %Different Normalisations
 if Norm == 1

@@ -1,9 +1,15 @@
-function [o,x] = PointCloudRegister2(o, y0, x0, A0, nTiles)     %MADE A THE SAME FOR ALL TILES
-% o = o.PointCloudRegister(y, x, A0, Options)
+function [o,x] = PointCloudRegister2(o, y0, x0, A0, nTiles)   
+%% [o,x] = PointCloudRegister2(o, y0, x0, A0, nTiles)
 % 
 % Perform point cloud registration to map points x onto points y by
 % iterative closest point: repeatedly finding the best y for each x, 
 % and doing linear regression to find the M that maps best maps x to y
+%
+% This version finds a shift between tiles and rouds as given by
+% o.FindSpotsInfo.D_fromPCR2(:,:,t,r) and a cromatic aberration scaling
+% between color channels as given by o.A(b). Best method to use if no
+% anchor as can combine different colour channels in a single round to
+% produce a proxy anchor using o.A(b). Otherwise use PointCloudRegister6.
 %
 % inputs:
 % y0 is a cell containig the YX location of all spots in all rounds 
@@ -15,9 +21,6 @@ function [o,x] = PointCloudRegister2(o, y0, x0, A0, nTiles)     %MADE A THE SAME
 % A0 are the initial scaling values for each colour channel 
 % taking account of chromatic aberration. All default to 1 if not
 % specified
-%
-% ToPlot: array of form [t,b,r] of specific example case to show plot of
-% for debugging purposes
 %
 % Output: x is new reference round YX local coordinates. They are different
 % from x0 as they are adjusted as PCR proceeds to take account of chromatic

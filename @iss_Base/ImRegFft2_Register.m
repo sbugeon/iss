@@ -1,5 +1,5 @@
 function [shift, cc, fa1, fa2] = ImRegFft2_Register(o,Im1, Im2, CorrThresh, MinSize,Direction)
-% [shift, cc, f1, ft2] = ImRegFft2(Im1, Im2, CorrThresh)
+%% [shift, cc, fa1, fa2] = ImRegFft2_Register(o,Im1, Im2, CorrThresh, MinSize, Direction)
 %
 % do image registration via fft convolution, finding match as point of 
 % maximum correlation in the unwhitened images
@@ -23,7 +23,11 @@ function [shift, cc, fa1, fa2] = ImRegFft2_Register(o,Im1, Im2, CorrThresh, MinS
 % If instead of a matrix you pass a 2-element cell array for Im1 or Im2,
 % this contains the fft and energy arrays, to save time. These are
 % optionally returned as fa1 and fa2.
-% 
+%
+% Direction can be 'South' or 'East' and we use the fact that we know in
+% which direction the tiles should overlap to restrict the shifts we can
+% accept. 
+%
 % Kenneth D. Harris, 9/8/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
  

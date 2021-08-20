@@ -1,20 +1,19 @@
 function o = find_spots_FFt(o)        
-% o = o.find_spots_FFt;
+%% o = o.find_spots_FFt;
 %
 % finds spots in all tiles using the reference channel, removes
-% duplicates in overlap regions and returns nSpots x 2 array o.SpotGlobalYX of
+% duplicates in overlap regions and returns nSpots x 2 array o.dpSpotGlobalYX of
 % coordinates in global frame
 % 
-% Looks up colors from apporpriate files and makes nSpots x nBP x nRounds
-% array o.SpotColors
+% Looks up colors from apporpriate files and makes nSpots x o.nBP x o.nRounds
+% array o.dpSpotColors
 %
-% o.Isolated is a nSpots x 1 binary array giving 1 for
+% o.dpSpotIsolated is a nSpots x 1 binary array giving 1 for
 % well-isolated spots
 %
 % NB spots that can't be read in all rounds are discarded
 % 
-% This finds initial shifts between rounds using point cloud not by finding 
-% the max correlation between images
+% This finds initial shifts between rounds using the max correlation between images
 %
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html

@@ -1,22 +1,19 @@
-function o=register2(o)
-% SEEMS SLOWER THAN register.m SO WOULDN'T RECOMMEND USING
-% o=iss_register2(o)
+function o = register2(o)
+%% o = o.register2;
+% This finds spots on the reference image. Then it finds overlaps between
+% tiles using point clouds by searching all possible shifts about the expected
+% overlap as given by o.RegSearch.
+% It uses this to produce a global coordinate system as given by 
+% o.TileOrigin(:,:,o.ReferenceRound).
+% It also produces a stitched DAPI and anchor image.
 % 
-% register images based on tile files
-% creates arrays o.RefPos(y, x): origin of tile (y,x) in pixels on
-% reference round relative to global coordinate frame
-% 
-% o.RelativePos(r, 1:2, t1, t2): origin of tile t2 on 
-% reference round minus origin of tile t1 round r. In other words,
-% Im2(x;rr) = Im1(x + RelativePos; r). Nan if not defined
-% t1 and t2 are linear indices for the tile (y,x)
-%
-% also makes a global DAPI image 
-% 
-% This finds shifts between tiles using point cloud not by finding the max
-% correlation between images. IN 2D, THIS APPEARS TO BE MUCH SLOWER THAN
-% register.m
-%
+% Things added to iss object:
+%   o.RawLocalYX: location of spots in o.ReferenceRound.
+%   o.RegInfo: debugging info for overlaps found between tiles.
+%   o.TileOrigin(t,:,o.ReferenceRound): YX origin of tile t in
+%       o.ReferenceRound, from which global coordinates based. 
+%   o.BigDapiFile/o.BigAnchorFile: file locations of stitched DAPI/anchor
+%       images
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
  

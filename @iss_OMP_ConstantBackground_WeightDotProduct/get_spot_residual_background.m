@@ -1,15 +1,19 @@
 function [r_norm,x_ls,r] = get_spot_residual_background(o,A,b)
-
-% Orthogonal Matching Pursuit (OMP)
-% https://github.com/seunghwanyoo/omp
-% Input for data of dimension n:
-%   A: dictionary (matrix) [n x nAtoms]
-%   b: signals [n x nData]
+%% [r_norm,x_ls,r] = get_spot_residual_background(o,A,b)
+% Extended from: https://github.com/seunghwanyoo/omp
+% This determines the coefficient of the background vectors for each pixel.
+% Coefficients determined using a weighted dot product as to avoid over
+% fitting and accounting for the fact that background vectors are not
+% updated after this. 
+%
+% Input for data of dimension n = o.nBP*o.nRounds
+%   A: dictionary of gene codes [n x nGenes]
+%   b: signals i.e. NormSpotColors [n x nData]
 % Output:
-%   r_norm: norm of residual after removing codes specified by
-%   code_indices.
-%   x_ls(:,i): coef vector for code A(:,code_indices(i)) [nData x nAtoms]
-% Background vectors are just strip in each colour channel so only use one
+%   r_norm: norm of residual after removing background genes [n x nData]
+%   x_ls(:,i): coef vector for code A(:,code_indices(i)) [nData x nBackground]
+
+%% Background vectors are just strip in each colour channel so only use one
 % color channel in each round to find WeightFactor, not all 7. 
 % Also, they are orthogonal hence can find x_ls independently for each
 % background vector. 

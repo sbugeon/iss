@@ -1,5 +1,5 @@
 function o = call_cells(o, gSet, Method, BackgroundImage)
-% o = o.call_cells(gSet,'Method')
+%% o = o.call_cells(gSet,'Method')
 %  
 % Cell calling via negative binomial model
 % 

@@ -5,21 +5,23 @@ function [BackgroundEigenvectors,BackgroundEigenvalues,BackgroundMaxGeneDotProdu
 % Find vectors to best represent background
 % Finds covariance matrix of background pixels. Then takes eigenvectors of
 % this. 
-% If o.ompBackgroundChannelStrips, then will just return 7 background
-% eigenvectors which are just strips in each color channel. 
+% If o.ompBackgroundChannelStrips is true, then will just return o.nBP background
+% eigenvectors which are just strips in each color channel. This is the
+% default.
+%
 % Input: 
 % o: iss_OMP object.
 % SpotColors: Raw SpotColors of pixels representative of background
 %
 % Output:
 % BackgroundEigenvectors(i,b,r): intensity in channel b, round
-% r for the ith eigenvector of the covariance matrix comprised of
-% background pixels
+%   r for the ith eigenvector of the covariance matrix comprised of
+%   background pixels
 % BackgroundEigenvalues(i): corresponding eigenvalue.
 % BackgroundMaxGeneDotProduct(i): the absolute dot product of
-% BackgroundEigenvectors(i,:) with
-% o.iompBledCodes(BackgroundMaxGeneDotProductGene(i),:).
-% This is the largest dot product of any gene with BackgroundEigenvectors(i,:)
+%   BackgroundEigenvectors(i,:) with
+%   o.iompBledCodes(BackgroundMaxGeneDotProductGene(i),:).
+%   This is the largest dot product of any gene with BackgroundEigenvectors(i,:)
 %%
 if o.ompBackgroundChannelStrips 
     %Eigenvector b only has intensity in channel b for all rounds. 

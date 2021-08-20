@@ -2,13 +2,13 @@ function o = find_spots2(o, AllBaseLocalYX, SkipRegistration)
 %% o = o.find_spots2(AllBaseLocalYX, SkipRegistration);
 %
 % finds spots in all tiles using the reference channel, removes
-% duplicates in overlap regions and returns nSpots x 2 array o.SpotGlobalYX of
+% duplicates in overlap regions and returns nSpots x 2 array o.dpSpotGlobalYX of
 % coordinates in global frame
 % 
-% Looks up colors from apporpriate files and makes nSpots x nBP x nRounds
-% array o.cSpotColors
+% Looks up colors from apporpriate files and makes nSpots x o.nBP x o.nRounds
+% array o.dpSpotColors
 %
-% o.Isolated is a nSpots x 1 binary array giving 1 for
+% o.dpSpotIsolated is a nSpots x 1 binary array giving 1 for
 % well-isolated spots
 %
 % NB spots that can't be read in all rounds are discarded

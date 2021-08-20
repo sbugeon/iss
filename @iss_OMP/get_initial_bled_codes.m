@@ -1,11 +1,12 @@
 function o = get_initial_bled_codes(o)
-% o = o.get_initial_bled_codes
+%% o = o.get_initial_bled_codes
 % This finds o.z_scoreBleedMatrix(o.nBP,o.nBP) using the initial
 % dpSpotColors from all rounds. It then uses this to produce
 % iompBledCodes(nGenes,o.nBP*o.nRounds). 
 %
-% Only difference between this bleed matrix and o.BleedMatrix is that here
-% we force o.BleedMatrixType = 'Single'. 
+% Only differences between this bleed matrix and o.BleedMatrix is that here
+% we force o.BleedMatrixType = 'Single' and don't set any values of
+% o.BleedMatrix to 0.
 % 
 % Using o.UseChannels and o.UseRounds, you can do spot calling
 % without using certain rounds and colour channels.

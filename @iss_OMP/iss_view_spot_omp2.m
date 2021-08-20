@@ -4,17 +4,18 @@ function [SpotNo,ViewOMP3_Info] = iss_view_spot_omp2(o, FigNo, ImSz, SpotLocatio
 % Gives the final OMP coefficients as produced by call_spots_omp about a
 % chosen location. 
 %
-% FigNo: figure number (default, current figure)
+% FigNo: o.plot figure number (default, current figure)
 % ImSz: radius of image that is plotted for each round and channel.
-% Default value is 7 pixels.
+%   Default value is 7 pixels.
 % SpotLocation: logical,  if true, will use location of spot closest to
-% crosshair, otherwise will use actual position of crosshair. Default is false.
+%   crosshair, otherwise will use actual position of crosshair. Default is false.
 % Track: gives plots of residual and gene coefficients at each stage of
-% iteration for central pixel. 
+%   iteration for central pixel. 
 % SpotNum: spot to look at is o.pfSpotGlobalYX(SpotNum,:) where pf
-% corresponds to ScoreMethod. Can also be yx location of interest.
+%   corresponds to ScoreMethod. Can also be yx location of interest.
+%
 % You can change o.ResidualThreshParam, o.ResidualThreshMin and
-% o.ResidualThreshMax to produce different coefficients. 
+% o.ResidualThreshMax, o.ompMaxGenes to produce different coefficients. 
 
 
 %%

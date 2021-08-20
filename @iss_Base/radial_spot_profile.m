@@ -5,24 +5,22 @@ function [RadialProfile,PlotLogical,OutSpotImages] = radial_spot_profile(o,GeneN
 % This gives the radial intensity profile about a spot of a given gene in
 % each round/channel.
 % Inputs
-% o: iss object
-% GeneNo: list of genes want profile of (If have multiple Sets, only
-% allowed one gene).
-% ImRad: Max radius of radial profile plot.
-% Method: 'DotProduct', 'Prob' or 'Pixel' i.e. which spot data the SetInput
-% logical is referring to.
-% SetInput: SetInput(:,i) is the ith logical set of spots to build plot
-% from. Will produce plot for each i. If multiple genes, only allowed one
-% Set.
-% OutImageRound, OutImageChannel: Can specify a round/channel you would
-% like to retrieve all the spot images from.
-% AllBaseLocalYX: Saved in find_spots_workspace, need for registration.
+%   o: iss object
+%   GeneNo: list of genes want profile of (If have multiple Sets, only
+%       allowed one gene).
+%   ImRad: Max radius of radial profile plot.
+%   Method: 'DotProduct', 'Prob' or 'Pixel' i.e. which spot data the SetInput
+%       logical is referring to.
+%   SetInput: SetInput(:,i) is the ith logical set of spots to build plot
+%       from. Will produce plot for each i. If multiple genes, only allowed one Set.
+%   OutImageRound, OutImageChannel: Can specify a round/channel you would
+%       like to retrieve all the spot images from.
+%   AllBaseLocalYX: Saved in find_spots_workspace, need for registration.
 % Outputs
-% RadialProfile(s,b,r,:) is the radial profile for spot s.
-% PlotLogical(s,i) indicates whether spot s was included in the ith plot. i
-% refers either to different genes or different SetInput.
-% OutSpotImages: the output spots if OutImageRound and OutImageChannel
-% specified.
+%   RadialProfile(s,b,r,:) is the radial profile for spot s.
+%   PlotLogical(s,i) indicates whether spot s was included in the ith plot. i
+%       refers either to different genes or different SetInput.
+%   OutSpotImages: the output spots if OutImageRound and OutImageChannel specified.
 
 
 if nargin<3 || isempty(ImRad)

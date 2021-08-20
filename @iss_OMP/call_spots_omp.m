@@ -1,29 +1,26 @@
 function o = call_spots_omp(o)
-%% o = o.call_spots_omp
+%% o = o.call_spots_omp;
 % 
-% This is another probability method for gene calling.
-% The difference here, is that an image is built up for each gene and then
-% the spots are the local maxima on each gene image. This allows for
-% multiple gene matches at each location i.e. overlapping spots. 
+% This finds o.GeneEfficiency, uses it to update o.BledCodes to give
+% o.ompBledCodes. An omp algorithm is then run using o.ompBledCodes on
+% every pixel to give the coefficient of every gene present in every pixel.
+% From these, an image can be produced for each gene, the local maxima of
+% which are the spots for that gene. 
 %
 % o: iss object
-% LookupTable: should be returned from call_spots_prob. It
-% just gives the the probabilities that each spot score is explained by each
-% gene. It saves calculating the probabilities explicitly each time.
 %
 % produces 
-% pxSpotColors(Spot,b,r): intensity of Spot in channel b, round r
-% pxSpotGlobalYX(Spot,:): global yx coordinate for each spot
-% pxSpotCodeNo(Spot): gene index for each spot
-% pxLogProbOverBackground(Spot): log of probability spot can be explained
-% by gene relative to probability it can be explained by background.
-% pxSpotScore(Spot): pxLogProbOverBackground of best gene match relative to
-% second best gene match at that location.
-% pxSpotScoreDev(Spot): standard deviation in spot scores across all genes
-% at that location.
-% pxSpotIntensity(Spot): intensity of the spot. Takes into account
-% pxSpotCodeNo. Calculated by get_spot_intensity.
-% 
+% ompSpotColors(Spot,b,r): intensity of Spot in channel b, round r
+% ompSpotGlobalYX(Spot,:): global yx coordinate for each spot
+% ompSpotCodeNo(Spot): gene index for each spot
+% ompLocalTile(Spot): tile each spot was found on.
+% ompCoefs(Spot, Gene): coefficient of Gene in Spot. 
+% ompNeighbNonZeros(Spot): number of pixels near ompSpotGlobalYX(Spot,:)
+%   which have a non-zero coefficient for gene ompSpotCodeNo(Spot).
+% ompSpotIntensity2(Spot): mean intensity of normalised SpotColor in unbled
+%   code of ompSpotCodeNo(Spot).
+% ompSpotScore(Spot): Score quantifying how crucial the gene
+%   ompSpotCodeNo(Spot) is for explaining ompSpotColors(Spot,:,:).
 %% Logging
 if o.LogToFile
     diary(o.LogFile);

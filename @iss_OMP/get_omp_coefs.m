@@ -1,12 +1,16 @@
 function coefs = get_omp_coefs(o,z_scoredSpotColors)
 %% coefs = get_omp_coefs(o,z_scoredSpotColors)
-% coefs(s,g) is the weighting of spot s for gene g. Most are zero.
-% The last o.nBackground are background codes and are always non zero.
+% This performs omp on every pixel in z_scoredSpotColors, the stopping
+% criterion is that the residual reduction between iterations falls below
+% ResidualThresh or the number of genes added to the pixel exceeds
+% o.ompMaxGenes. 
+% 
 % o: iss_OMP object
-% z_scoredSpotColors: spot colors that have been z-scored by channel and
-% round.
+% z_scoredSpotColors: spot colors that have been z-scored by channel and round.
+% coefs(s,g) is the weighting of spot s for gene g found by the omp algorithm.
+%   Most are zero. The last o.nBackground genes are background codes and are always non zero.
 
-% OMP stops when reduction in residual drops below ResidualThresh.
+%% OMP stops when reduction in residual drops below ResidualThresh.
 % Prctile bit gets 2nd largest intensity for each spot.
 nCodes = length(o.CharCodes);
 ResidualThresh = o.ResidualThreshParam*prctile(abs(z_scoredSpotColors(:,:))',47.5*100/49.0)';

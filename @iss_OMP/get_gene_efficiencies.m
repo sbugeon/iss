@@ -1,15 +1,16 @@
 function o = get_gene_efficiencies(o)
 %% o = o.get_gene_efficiencies;
-%Finds Gene Efficiencies from average code of good genes as found by
-%call_spots_omp_initial. Then uses these to update iompBledCodes to
-%something more representative of genes encountered. 
-% Input:
-% o: iss object
-% Output:
-% o.GeneEfficiency(g,r): mean of o.iompSpotColors corresponding to gene g
-% in round r equals o.GeneEfficiency(g,r) x o.iompBledCodes(g,r).
-% o.z_scoreBledCodes(g,r) = o.GeneEfficiency(g,r) x o.iompBledCodes(g,r)
-% and then normalised so norm of o.z_scoreBledCodes(g,:) equals 1. 
+% Finds Gene Efficiencies from average code of good genes as found by
+% call_spots_omp_initial. Then uses these to update iompBledCodes to
+% something more representative of genes encountered.
+% Input
+%   o: iss object
+% Output
+%   o.GeneEfficiency(g,r): mean of o.iompSpotColors corresponding to gene g
+%       in round r equals o.GeneEfficiency(g,r) x o.iompBledCodes(g,r).
+%   o.z_scoreBledCodes(g,r) = o.GeneEfficiency(g,r) x o.iompBledCodes(g,r)
+%       and then normalised so norm of o.z_scoreBledCodes(g,:) equals 1. 
+%%
 nCodes = length(o.CharCodes);
 o.GeneEfficiency = ones(nCodes,o.nRounds);
 %Need median Intensity too to avoid spots with just one massive square.

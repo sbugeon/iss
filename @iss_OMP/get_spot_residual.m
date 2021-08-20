@@ -1,17 +1,21 @@
 function [r_norm,x_ls,r] = get_spot_residual(o,A,b,code_indices)
-
-%% Orthogonal Matching Pursuit (OMP)
-% https://github.com/seunghwanyoo/omp
-% Input for data of dimension n:
-%   A: dictionary (matrix) [n x nAtoms]
-%   b: signals [n x nData]
-%   SpotWeightFactor(o.nRounds x nData): The SpotWeighting used to normalise influence of
-%   rounds. Should be the value after background removal for all iterations. 
-% Output:
-%   r_norm: norm of residual after removing codes specified by
-%   code_indices.
-%   x_ls(:,i): coef vector for code A(:,code_indices(i)) [nData x nAtoms]
-
+%% [r_norm,x_ls,r] = get_spot_residual(o,A,b,code_indices)
+% Extended from: https://github.com/seunghwanyoo/omp
+% This is run from call_spots_omp_initial when know which genes to remove
+% and want to remove the same genes from every SpotColor.
+%
+% Input for data of dimension n = o.nBP*o.nRounds
+%   o: iss object
+%   A: dictionary of gene codes [n x nGenes]
+%   b: signals i.e. NormSpotColors [n x nData]
+%   code_indices: genes to be removed from signals (same for all signals).
+%       [1 x nGenesToRemove]
+% Output
+%   r_norm: norm of residual after removing genes specified by
+%       code_indices. [n x nData]
+%   x_ls(:,i): coef vector for code A(:,code_indices(i)) [nData x nGenes]
+%   r: residual after removing genes specified by code_indices [n x 1]
+%
 %% 
 A_omega = A(:,code_indices);
 %x_ls = sum(A_weight.*bWeight)./sum(WeightFactor.^2);

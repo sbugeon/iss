@@ -1,15 +1,21 @@
 function [BleedMatrix,DiagMeasure,BleedMatrixAllBleedThrough] = ...
     get_bleed_matrix(o,SpotColors,SpotIsolated,ScoreThresh,nTries)
-%% [BleedMatrix,DiagMeasure] = o.get_bleed_matrix(SpotColors,nTries)
-%Gets bleed matrix for SpotColors.
-%SpotColors: o.dpSpotColors normalised in some way to equalise channels
-%SpotIsolated: which spots are well isolated so used to compute bleed matrix.
-%e.g. z-scoring or dividing by percentile in each channel. 
-%ScoreThresh: spot round codes have to have DotProduct greater than this
-%with a bleed matrix column to contribute to BleedMatrix. 
-%nTries: current iteration for finding bleed matrix. 
-%BleedMatrix: the bleed matrix that was found.
-%DiagMeasure: should equal nChans if bleed matrix diagonal. 
+%% [BleedMatrix,DiagMeasure] = ...
+% o.get_bleed_matrix(SpotColors,SpotIsolated,ScoreThresh,nTries)
+% Gets bleed matrix for SpotColors.
+% Input
+%   SpotColors: o.dpSpotColors normalised in some way to equalise channels
+%       e.g. z-scoring or dividing by percentile in each channel. 
+%   SpotIsolated: which spots are well isolated so used to compute bleed matrix.
+%   ScoreThresh: spot round codes have to have DotProduct greater than this
+%       with a bleed matrix column to contribute to BleedMatrix. 
+%   nTries: current iteration for finding bleed matrix. 
+% Output
+%   BleedMatrix: BleedMatrixAllBleedThrough but with entries below a
+%       threshold determined by o.BleedThroughThresh set to 0. 
+%   DiagMeasure: should equal nChans if bleed matrix diagonal. 
+%   BleedMatrixAllBleedThrough(:,b,r) is the expected intensity in round r for a gene
+%       which has o.CharCodes{g}(r)+1 = b. 
 %%
 if nargin<5 || isempty(nTries)
     nTries = 0;

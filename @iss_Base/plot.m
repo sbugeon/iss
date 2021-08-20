@@ -1,8 +1,7 @@
 function plot(o, BackgroundImageFile, Roi, Method)
-% o.plot(BackgroundImage, Roi)
+%% o.plot(BackgroundImage, Roi, Method)
 %
 % plot the results of in situ sequencing spot detection. 
-% SpotYX gives coordinates; Gene is a list of strings; 
 % 
 % if BackgroundImage is empty or missing, loaded from file o.BigDapiFile
 % and subsetted to Roi (if present)
@@ -12,12 +11,9 @@ function plot(o, BackgroundImageFile, Roi, Method)
 % Roi = [xmin xmax ymin ymax] shows only this part. Whole thing
 % shown if empty or missing. Must be integers, xmin and ymin must be 1
 %
-% If Method == 'Prob', this changes the gene assignments to those given by
-% the probability method rather than the dot product. In this case
-% o.pScoreThresh is the threshold.
-%
-% sizes can be a vector or a scalar - only used for scatter, which isn't
-% called anyway.
+% Method is relavent gene calling method e.g. 'DotProduct', 'OMP',
+% this changes the gene assignments to those given by
+% that method. Default is 'DotProduct'.
 % 
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html

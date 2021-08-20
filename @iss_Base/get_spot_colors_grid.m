@@ -1,6 +1,22 @@
 function [SpotColors, PointCorrectedLocalYX] = get_spot_colors_grid(o, pf,...
     xy, ImSz, SpotNo, SpotLocation, IncludeGT, Filter)
-
+%% [SpotColors, PointCorrectedLocalYX] = get_spot_colors_grid(o, pf,...
+%    xy, ImSz, SpotNo, SpotLocation, IncludeGT, Filter)
+% For functions like iss_view_spot and iss_view_spot_omp2, need a grid of
+% spot colors around a central pixel. This finds that. 
+% Input
+%   o: iss object.
+%   pf: prefix of spot calling method, pf = o.CallMethodPrefix(Method);
+%   xy: global coordinate of central pixel.
+%   ImSz: radius of image that is found for each round and channel.
+%   SpotNo: Index of spot at location xy found using the pf gene calling
+%       method (If SpotLocation true else not used).
+%   SpotLocation: whether xy contains a spot.
+%   IncludeGT: true if also want to find the SpotColors in the ground
+%       truth rounds as indicated by o.gtRounds.
+%   Filter: true to get the SpotColors from the filtered images i.e. the
+%       tiles in o.TileDirectory. false to get the raw images i.e. directly
+%       from the nd2 file (and then focus-stack).
 if nargin<7 || isempty(IncludeGT)
     IncludeGT = false;
 end

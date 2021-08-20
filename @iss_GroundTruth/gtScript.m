@@ -1,3 +1,6 @@
+%% Script to find spots in ground truth round
+% Then use these to get the false and true positives found by the different
+% gene calling algorithms.
 %% Stuff to check
 %o.nExtraRounds: 1 if no anchor, 2 if using anchor. (I.e. number of
 %non-imaging rounds)

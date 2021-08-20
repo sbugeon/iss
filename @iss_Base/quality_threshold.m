@@ -1,11 +1,11 @@
 function QualOK = quality_threshold(o,Method,MaxCoef,SpotCoef)
-% QualOK = o.quality_threshold
+%% QualOK = o.quality_threshold
 % quick function that returns a binary saying which spots are above quality
 % threshold
-%Method = 'DotProduct','Prob','Pixel' or 'OMP' to consider gene assignments given
-%by o.dpSpotCodeNo, o.pSpotCodeNo, o.pxSpotCodeNo, o.ompSpotCodeNo respectively.
-%MaxCoef and SpotCoef can be provided to compute the QualOK('OMP') more
-%quickly if running in a for loop e.g. gtAnalysis.m
+% Method = 'DotProduct','Prob','Pixel' or 'OMP' to consider gene assignments given
+%   by o.dpSpotCodeNo, o.pSpotCodeNo, o.pxSpotCodeNo, o.ompSpotCodeNo respectively.
+% MaxCoef and SpotCoef can be provided to compute the QualOK('OMP') more
+%   quickly if running in a for loop e.g. gtAnalysis.m
 
 if nargin<2 || isempty(Method)
     Method = 'DotProduct';

@@ -4,7 +4,7 @@ function iss_view_spot_omp(o, FigNo, ImSz, SpotLocation,ScoreMethod, SpotNum)
 % Carry out in situ OMP, by clicking on a gene image, OMP will performed
 % for every pixel in image for that gene. 
 %
-% FigNo: figure number (default, current figure)
+% FigNo: o.plot figure number (default, current figure)
 % ImSz: radius of image that is plotted for each round and channel.
 % Default value is 7 pixels.
 % SpotLocation: logical,  if true, will use location of spot closest to

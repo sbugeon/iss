@@ -1,4 +1,13 @@
 function iss_view_plot_title(o, ScoreMethod, SpotLocation, SpotNo)
+%% iss_view_plot_title(o, ScoreMethod, SpotLocation, SpotNo)
+% This just adds a title to some of the iss_view_spot type plots 
+% (where you use cross-hair to select location in o.plot) indicating
+% the spot number and some of the variables associated with it.
+% o: iss object.
+% ScoreMethod: The set of spots to consider e.g. ScoreMethod = 'OMP'
+%   would find spot from the set o.ompSpotGlobalYX.
+% SpotLocation: whether pixel clicked on contains a spot.
+% SpotNo: index of nearest spot to cross-hair.
 pf = o.CallMethodPrefix(ScoreMethod);
 
 if SpotLocation

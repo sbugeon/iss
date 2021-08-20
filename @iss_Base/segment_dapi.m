@@ -1,5 +1,5 @@
 function [o, CellMap, DapiBoundaries] = segment_dapi(o, Dapi0)
-% [0 CellMap BoundaryImage] = o.segment_dapi(DapiIm)
+%% [o, CellMap, BoundaryImage] = o.segment_dapi(DapiIm)
 %
 % segments a DAPI image and assigns each pixel to a cell. Input is
 % optional, otherwise it will load from o.BigDapiFile

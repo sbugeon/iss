@@ -34,7 +34,7 @@ classdef iss_OMP_ConstantBackground_WeightDotProduct < iss_OMP
         
         %ompGetCoefMethod = 1 means get_omp_coefs is used.
         %ompGetCoefMethod = 2 means get_omp_coefs2 is used.
-        ompGetCoefMethod = 1;
+        ompGetCoefMethod = 2;
         
         %If ompGetCoefMethod = 2:
         %For a particular gene, if after the first gene has been added to every pixel,

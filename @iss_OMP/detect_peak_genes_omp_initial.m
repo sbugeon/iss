@@ -3,31 +3,31 @@ function [PeakLocalYX,PeakSpotColors,PeakResOverBackground,...
     detect_peak_genes_omp_initial(o,GoodSpotColors,GoodLocalYX,t)
 %% [PeakLocalYX,PeakSpotColors,PeakResOverBackground,...
 %    Peak2ndBestRes,PeakCoef,OriginalTile,PeakBestGene,BackgroundSpotColors] = ...
-%    detect_peak_genes_omp_initial(o,LookupTable,GoodSpotColors,GoodLocalYX,t)
+%    detect_peak_genes_omp_initial(o,GoodSpotColors,GoodLocalYX,t)
 %
 % This finds the local maxima in residual reduction compared to background
 % for each gene.
 % 
 % Input
 % o: iss object
-% GoodSpotColors(S,b,r) is the intensity for spot S in channel b, round r.
-% S should cover all pixel values that don't go off edge of tile in any b,r.
-% GoodLocalYX(S,:) is the corresponding pixel location.
-% t is the current tile of interest
+% GoodSpotColors(S,b,r): the intensity for spot S in channel b, round r.
+%   S should cover all pixel values that don't go off edge of tile in any b,r.
+% GoodLocalYX(S,:): the corresponding pixel location.
+% t: the current tile of interest
 %
 % Output
-% PeakLocalYX{G} contains the YX position of local maxima of gene G.
-% PeakSpotColors{G} contains the corresponding spot colors.
-% PeakResOverBackground{G} contains the corresponding 
-% Residual Reduction relative to the background.
-% Peak2ndBestRes{G} contains the Residual Reduction relative to the
-% background for the second best match at that location.
-% PeakCoef{G} is the omp coefficient of gene G at that location.
+% PeakLocalYX{G}: contains the YX position of local maxima of gene G.
+% PeakSpotColors{G}: contains the corresponding spot colors.
+% PeakResOverBackground{G}: contains the corresponding 
+%   Residual Reduction relative to the background.
+% Peak2ndBestRes{G}: contains the Residual Reduction relative to the
+%   background for the second best match at that location.
+% PeakCoef{G}: is the omp coefficient of gene G at that location.
 % OriginalTile{G} = t
-% PeakBestGene{G} contains the best gene at the location of local maxima of
-% gene G. I.e. most will be G but few will be overlapping. 
-% BackgroundSpotColors contains the spot colors of all pixels far from any
-% gene score maxima spots.
+% PeakBestGene{G}: contains the best gene at the location of local maxima of
+%   gene G. I.e. most will be G but few will be overlapping. 
+% BackgroundSpotColors: contains the spot colors of all pixels far from any
+%   gene score maxima spots.
 
 %% Use Channel strips as background for initial search
 nCodes = length(o.CharCodes);

@@ -1,12 +1,15 @@
-function [BestShift,BestScore,ChangedSearchRange] = get_initial_shift2(o, y, x,Search,section)
+function [BestShift,BestScore,ChangedSearchRange] = ...
+    get_initial_shift2(o, y, x,Search,section)
+%% [BestShift,BestScore,ChangedSearchRange] = ...
+%   get_initial_shift2(o, y, x,Search,section)
 % Finds the initial shifts to give to PCR algorithm between rounds for each
-% tile. Does this by finding the colour channel with the most spots for
-% each round. Then uses ImRegFft2 to find the shift between this base binary
-% image and the anchor channel binary image
+% tile. It looks at all shifts in range Search.Y and Search.X and returns
+% the shift which maximises a score, based on the number of neighbors
+% between x0 and y.
 %
 % inputs:
-% y is a cell containing the YX location of all spots in round r 
-% , colour channel c for all tiles in units of XY pixels in find_spots. In
+% y is a cell containing the YX location of all spots in o.InitialShiftChannel
+% of a particular tile and round in units of XY pixels in find_spots. In
 % register, y is equivalent to x0 but for another tile.
 %
 % x0 is a cell containing the YX location of spots in the 
@@ -15,8 +18,8 @@ function [BestShift,BestScore,ChangedSearchRange] = get_initial_shift2(o, y, x,S
 % Search.Y,Search.X and Search.Z are the ranges in XY and Z pixel size 
 % respectively of shifts to search.
 %
-% section specifies which part of the pipeline we are on: Register or
-% FindSpots
+% section specifies which part of the pipeline we are on: 'Register' or
+% 'FindSpots'
 %
 % Now searches a wide range with gaps then does a finer search with
 % no gaps about the maxima found.

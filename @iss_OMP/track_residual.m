@@ -1,22 +1,22 @@
 function track_residual(o,TrackInfo)
-%% o.track_residual;
+%% o.track_residual(TrackInfo);
 % Gives plots of residual spot color, residual in each round and gene
 % coefficients at each step of the omp iteration. 
 % o: iss object
 % TrackInfo contains:
 % thresh - omp stops when reduction in residual (norm(r)) falls below
-% thresh.
+%   thresh.
 % n_nonzero_coefs - a maximum of n_nonzero_coefs genes can be assigned to each pixel;
 % r - r(i,:) is the residual after iteration i.
-% i=1 is the initial residual i.e. the SpotColor, 
-% i=2 is the residual after all the background vectors have been removed. 
-% i=2+j is the residual after the jth gene has been removed. 
+%   i=1 is the initial residual i.e. the SpotColor, 
+%   i=2 is the residual after all the background vectors have been removed. 
+%   i=2+j is the residual after the jth gene has been removed. 
 % r_norm(i) - the norm of the residual after iteration i. 
 % coefs(i,g) - the coefficient for gene g in the iteration i.
 % A_omega(:,1:j) contains the gene codes for the genes removed after
-% iteration i=2+j.
+%   iteration i=2+j.
 % omega(1:j) contains the gene numbers for the genes removed after
-% iteration i=2+j. 
+%   iteration i=2+j. 
 %% Note that the final iteration is iteration i such that r_norm(i)-r_norm(i+1)<thresh
 % or if r_norm(i)-r_norm(i+1)>thresh ∀i, then it is i=n_nonzero_coefs+2. 
 ImShape = [o.nBP,o.nRounds];

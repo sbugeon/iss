@@ -1,7 +1,7 @@
 function o = GetNewSearchRange_Register(o,shifts,direction)
-
-%For a particular direction, this considers all shifts found so far
-%and adjusts the search range based on them.
+%% o = o.GetNewSearchRange_Register(shifts,direction)
+% For a particular direction, this considers all shifts found so far
+% and adjusts the search range based on them.
 
 %Find extremes of shifts found so far
 MinY = min(shifts(:,1));

@@ -1,12 +1,16 @@
 function [RoundTile,RoundYX] = get_SpotTileEachRound(o,SpotGlobalYX,LocalTile)
-%% decide which tile to read each spot off in each round. 
+%% [RoundTile,RoundYX] = get_SpotTileEachRound(o,SpotGlobalYX,LocalTile)
+% Decide which tile to read each spot off in each round. 
 % They are read of home tile if possible (always possible in ref round)
 % in other rounds might have to be a NWSE neighbor - but never a diagonal
 % neighbor
-% SpotGlobalYX: anchor round coordinates of spots
-% LocalTile: tile each spot was found on
-% ndRoundTile(s,r) stores appropriate tile for spot s on round r
-% ndRoundYX(s,:,r) stores YX coord on this tile
+% Inputs
+%   o: iss object
+%   SpotGlobalYX(s,:): position of spot s in reference round/channel.
+%   LocalTile(s): tile spot s was found on
+% Outputs
+%   RoundTile(s,r): stores appropriate tile for spot s on round r
+%   RoundYX(s,:,r) stores YX coord on this tile
 nSpots = size(LocalTile,1);
 [nY, nX] = size(o.EmptyTiles);
 nTiles = nY*nX;

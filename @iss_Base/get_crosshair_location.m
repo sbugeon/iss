@@ -1,6 +1,29 @@
 function [xy, SpotLocation, ScoreMethod, SpotNo, Dist]  = ...
     get_crosshair_location(o, FigNo, SpotLocation, ScoreMethod, SpotNum)
+%% [xy, SpotLocation, ScoreMethod, SpotNo, Dist]  = ...
+%    get_crosshair_location(o, FigNo, SpotLocation, ScoreMethod, SpotNum)
+% Functions to view specific spots e.g. iss_view_spot, require a spot to be
+% found using a cross-hair on the o.plot image. This function returns the
+% spot and other information found.
+% Input
+%   o: iss object.
+%   FigNo: o.plot figure number
+%   SpotLocation: true to get nearest spot to crosshair, false returns
+%       exact position of crosshair.
+%   ScoreMethod: The set of spots to consider e.g. ScoreMethod = 'OMP'
+%       would find spot from the set o.ompSpotGlobalYX. Defaults to value used
+%       in the plot image.
+%   SpotNum: if know spot index already, can specify and cross-hair won't
+%       be required.
+% Output
+%   xy: location of cross-hair or spot
+%   SpotLocation: same as input but might be set to true if click exactly
+%   on spot.
+%   SpotNo: index of nearest spot to cross-hair.
+%   Dist: distance of nearest spot to cross-hair, set to 0 if SpotLocation
+%   = true.
 
+%%
 if isempty(ScoreMethod)
     try
         S = evalin('base', 'issPlot2DObject');

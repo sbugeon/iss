@@ -1,18 +1,23 @@
-function [SpotIntensity, MedianIntensity] = get_spot_intensity(o,SpotCodeNo,SpotColors,NormFactor)
-%% [SpotIntensity, MedianIntensity] = o.get_spot_intensity(SpotCodeNo,SpotColors,z_score);
-%This gives a modified spot intensity taking account of the gene it is
-%assigned to.
-%NormFactor(1,b,r) is the value that SpotColors(:,b,r) is divided by to
-%give Normalised SpotColors.
-%If don't give NormFactor:
-% For spot s, matched to gene g = SpotCodeNo(s),
-% SpotIntensity(s) =
-% mean(SpotColors(s,InCharCode_gene_g))-mean(SpotColors(s,NotInCharCode_gene_g))
-%If give NormFactor == true:
-% We first normalise the spot color by o.BledCodesPercentile.
-% SpotIntensity(s) =
-% mean(NormSpotColors(s,InCharCode_gene_g))-mean(NormSpotColors(s,NotInCharCode_gene_g))
-%Hence a high SpotIntensity indicates a high intensity and a good match.
+function [SpotIntensity, MedianIntensity] = ...
+    get_spot_intensity(o,SpotCodeNo,SpotColors,NormFactor)
+%% [SpotIntensity, MedianIntensity] = o.get_spot_intensity(SpotCodeNo,SpotColors,NormFactor);
+% This gives a modified spot intensity taking account of the gene it is
+% assigned to.
+% If don't give NormFactor:
+%   For spot s, matched to gene g = SpotCodeNo(s),
+%   SpotIntensity(s) =
+%   mean(SpotColors(s,InCharCode_gene_g))-mean(SpotColors(s,NotInCharCode_gene_g))
+%   MedianIntensity(s) = median(SpotColors(s,InCharCode_gene_g))
+% If do give NormFactor:
+%   SpotIntensity(s) = mean(NormSpotColors(s,InCharCode_gene_g))
+%   MedianIntensity(s) = median(NormSpotColors(s,InCharCode_gene_g))
+% Hence a high SpotIntensity indicates a high intensity and a good match.
+% Inputs
+%   o: iss object.
+%   SpotCodeNo(s): gene that spot s was matched to.
+%   SpotColors(s,b,r): gives intensity for spot s in channel b, round r.
+%   NormFactor(1,b,r): the value that SpotColors(:,b,r) is divided by to
+%       give Normalised SpotColors (Optional).
 
 Norm = false;
 if nargin>=4
@@ -28,7 +33,8 @@ for g=1:nCodes
     GeneChannels(~ismember(GeneChannels,o.UseChannels)) = nan;
     CodeIndex(g,1:length(GeneChannels)) = sub2ind([o.nBP,o.nRounds],GeneChannels,1:length(GeneChannels));
     UnusedChannels = setdiff(o.UseChannels,GeneChannels);
-    UnusedChannelIndex = sub2ind([o.nBP,o.nRounds],repelem(UnusedChannels,1,o.nRounds),repmat(1:o.nRounds,1,length(UnusedChannels)));
+    UnusedChannelIndex = sub2ind([o.nBP,o.nRounds],repelem(UnusedChannels,1,o.nRounds),...
+        repmat(1:o.nRounds,1,length(UnusedChannels)));
     NonCodeIndex{g} = setdiff(1:o.nRounds*o.nBP,[CodeIndex(g,:),UnusedChannelIndex]);
 end
 

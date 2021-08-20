@@ -1,4 +1,5 @@
 function [NewShift,Outliers] = AmendShifts(o,shifts,score,section)
+%% [NewShift,Outliers] = o.AmendShifts(shifts,score,section)
 %For a particular set of shifts, this considers the score for each shift.
 %Then if a particular score is too low and the shift is an outlier, the
 %shift is changed to the average of all the other shifts.

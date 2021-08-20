@@ -1,7 +1,7 @@
 function o = GetNewSearchRange_FindSpots(o,t,r)
-
-%For a particular round r, this considers all shifts found so far up to
-%tile t and adjusts the search range based on them.
+%% o = o.GetNewSearchRange_FindSpots(t,r);
+% For a particular round r, this considers all shifts found so far up to
+% tile t and adjusts the search range based on them.
 
 %Find extremes of shifts found so far
 MinY = min(o.D0(1:t,1,r));

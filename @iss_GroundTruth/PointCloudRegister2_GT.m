@@ -1,9 +1,15 @@
-function o = PointCloudRegister2_GT(o, y0, x0, nTiles)     %MADE A THE SAME FOR ALL TILES
+function o = PointCloudRegister2_GT(o, y0, x0, nTiles)  
 % o = o.PointCloudRegister(y, x, A0, Options)
 % 
 % Perform point cloud registration to map points x onto points y by
 % iterative closest point: repeatedly finding the best y for each x, 
 % and doing linear regression to find the M that maps best maps x to y
+%
+% This version finds a shift between tiles and rouds as given by
+% o.FindSpotsInfo.D_fromPCR2(:,:,t,r) and a cromatic aberration scaling
+% between color channels as given by o.A(b). Best method to use if no
+% anchor as can combine different colour channels in a single round to
+% produce a proxy anchor using o.A(b). Otherwise use PointCloudRegister6.
 %
 % inputs:
 % y0 is a cell containig the YX location of all spots in all rounds 

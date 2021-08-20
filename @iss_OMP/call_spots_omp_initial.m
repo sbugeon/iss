@@ -1,31 +1,36 @@
 function o = call_spots_omp_initial(o)
-%% o = o.call_spots_omp_initial(LookupTable)
-% THIS ACCEPTS ALL GROUND TRUTH LOCAL MAXIMA EVEN DUPLICATES
-% This is another probability method for gene calling.
-% The difference here, is that an image is built up for each gene and then
-% the spots are the local maxima on each gene image. This allows for
-% multiple gene matches at each location i.e. overlapping spots. 
+%% o = call_spots_omp_initial(o)
+% To compute o.GeneEfficiency, we require some high confidence spots for
+% each gene. This function provides a relatively quick method of getting a
+% decent amount of such spots, saved using the iomp prefix.
+%
+% It basically, takes each pixel and finds how well each gene can explain
+% it over what can be explained by some background vectors. This gives a
+% number (ResOverBackground) for each gene for each pixel,
+% from which an image can be produced. The local maxima of which are the spots.
 %
 % o: iss object
-% LookupTable: should be returned from call_spots_prob. It
-% just gives the the probabilities that each spot score is explained by each
-% gene. It saves calculating the probabilities explicitly each time.
 %
 % produces 
-% pxSpotColors(Spot,b,r): intensity of Spot in channel b, round r
-% pxSpotGlobalYX(Spot,:): global yx coordinate for each spot
-% pxSpotCodeNo(Spot): gene index for each spot
-% pxLogProbOverBackground(Spot): log of probability spot can be explained
-% by gene relative to probability it can be explained by background.
-% pxSpotScore(Spot): pxLogProbOverBackground of best gene match relative to
-% second best gene match at that location.
-% pxSpotScoreDev(Spot): standard deviation in spot scores across all genes
-% at that location.
-% pxSpotIntensity(Spot): intensity of the spot. Takes into account
-% pxSpotCodeNo. Calculated by get_spot_intensity.
-% pxSpotBestGene(Spot): gene index of gene with highest probability at this
-% location.
-% 
+% o.BackgroundEigenvectors: background vectors used for the nex step of
+%   call_spots_omp. These are usually just a strip in each color channel.
+% iompSpotColors(Spot,b,r): intensity of Spot in channel b, round r
+% iompSpotGlobalYX(Spot,:): global yx coordinate for each spot
+% iompSpotCodeNo(Spot): gene index for each spot
+%   iompResOverBackground(Spot): How well the gene iompSpotCodeNo(Spot) can
+%   explain iompSpotColors(Spot,:,:) over what the background alone can.
+% iompSpotScore(Spot): How well the gene iompSpotCodeNo(Spot) can
+%   explain iompSpotColors(Spot,:,:) over what the second best gene can.
+% iompCoef(Spot): coefficient of the gene iompSpotCodeNo(Spot) used to
+%   explain iompSpotColors(Spot,:,:)
+% iompSpotIntensity(Spot): mean intensity of SpotColor in unbled
+%   code of iompSpotCodeNo(Spot) minus mean intensity not in unbled code.
+% iompSpotIntensity2(Spot): mean intensity of normalised SpotColor in unbled
+%   code of iompSpotCodeNo(Spot).
+% iompLocalTile(Spot): tile Spot was found on.
+% iompSpotBestGene(Spot): the gene with the best iompResOverBackground at
+%   the location iompSpotGlobalYX(Spot,:).
+
 %% Logging
 if o.LogToFile
     diary(o.LogFile);

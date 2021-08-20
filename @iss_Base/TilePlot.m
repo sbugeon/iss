@@ -1,4 +1,5 @@
 function [] = TilePlot(o,FilterImage,RawImage,r,nChannels)
+%% TilePlot(o,FilterImage,RawImage,r,nChannels)
 % Used for debugging in extract_and_filter. Plots result of filtering and
 % auto scaling for tile 1 of round 1 or anchor round.
 % You can only use the buttons and scrollers when whole thing finished

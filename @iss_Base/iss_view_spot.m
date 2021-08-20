@@ -1,20 +1,27 @@
-function SpotNo = iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod, IncludeGT, Filter, Norm, SpotNum)
-%% iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod, IncludeGT, SpotNum)
+function SpotNo = iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod,...
+    IncludeGT, Filter, Norm, SpotNum)
+%% SpotNo = iss_view_spot(o, FigNo, ImSz, SpotLocation, ScoreMethod,...
+% IncludeGT, Filter, Norm, SpotNum)
 %
 % Check PCR by plotting location of spot in each round and color channel
 %
-% FigNo: figure number (default, current figure)
+% o: iss object.
+% FigNo: o.plot figure number (default, current figure)
 % ImSz: radius of image that is plotted for each round and channel.
-% Default value is 7 pixels.
+%   Default value is 7 pixels.
 % SpotLocation: logical,  if true, will use location of spot closest to
-% crosshair, otherwise will use actual position of crosshair. Default is false.
-% ScoreMethod: 'DotProduct means use o.SpotCodeNo and ScoreMethod='Prob' means use
+%   crosshair, otherwise will use actual position of crosshair. Default is false.
+% ScoreMethod: The set of spots to consider e.g. ScoreMethod = 'OMP'
+%   would find spot from the set o.ompSpotGlobalYX. Defaults to value used
+%   in the plot image.
 % IncludeGT: if true, will also plot the ground truth rounds.
-% Filter: if true, will filter image (default), if false it will not and
-% just return the focus stacked images.
-% SpotCodeNo to highlight Gene squares. Set to 'Prob' by default
+% Filter: true to get the SpotColors from the filtered images i.e. the
+%   tiles in o.TileDirectory. false to get the raw images i.e. directly
+%   from the nd2 file (and then focus-stack).
+% Norm: true to normalise spot colors by round/channel. May be different
+%   for ScoreMethod = 'OMP' or other. false to see raw spot colors.
 % SpotNum: index of spot that you want to look at.
-
+% SpotNo: returns the index of the spot analyzed.
 
 %%
 if nargin<3 || isempty(ImSz)

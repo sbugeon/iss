@@ -1,17 +1,18 @@
 function p = get_channel_norm(o)
 %% p = o.get_channel_norm;
-%This finds the normalisations for each color channel such that if
-%bNormSpotColor = SpotColor(:,b,:)./p(:,b,:), then the probability that
-%bNormSpotColor>o.ChannelNormValue1 is approximately o.ChannelNormThresh1
-%for each channel, b. 
-%Probabilities are based on all pixels in image so can penalise a channel
-%if there are few spots. 
-%To ensure not sharp increase in probability at smaller intensity, also
-%require that probability bNormSpotColor>o.ChannelNormValue2 is less than
-%o.ChannelNormThresh2 where o.ChannelNormValue2<o.ChannelNormValue1.
-%To ensure not lots of high intensity outliers, also
-%require that probability bNormSpotColor>o.ChannelNormValue3 is less than
-%o.ChannelNormThresh3 where o.ChannelNormValue3>o.ChannelNormValue1.
+% p(1,b,r) is the normalisation for channel b, round r. 
+% This finds the normalisations for each color channel such that if
+% bNormSpotColor = SpotColor(:,b,:)./p(:,b,:), then the probability that
+% bNormSpotColor>o.ChannelNormValue1 is approximately o.ChannelNormThresh1
+% for each channel, b.
+% Probabilities are based on all pixels in image so can penalise a channel
+% if there are few spots.
+% To ensure not sharp increase in probability at smaller intensity, also
+% require that probability bNormSpotColor>o.ChannelNormValue2 is less than
+% o.ChannelNormThresh2 where o.ChannelNormValue2<o.ChannelNormValue1.
+% To ensure not lots of high intensity outliers, also
+% require that probability bNormSpotColor>o.ChannelNormValue3 is less than
+% o.ChannelNormThresh3 where o.ChannelNormValue3>o.ChannelNormValue1.
 
 p = zeros(1,o.nBP,o.nRounds);
 for b = 1:o.nBP

@@ -1,14 +1,14 @@
 function PCR_view(o,y0,x0,t_plot,b_plot,r_plot)
-%% PCR_view(t,b,r)
+%% PCR_view(o,y0,x0,t_plot,b_plot,r_plot)
 %
 % plots result of point cloud registration between (tile,channel,round) = 
-% (t,o.ReferenceChannel,o.ReferenceRound) to (t,b,r)
+% (t,o.ReferenceChannel,o.ReferenceRound) to (t_plot,b_plot,r_plot)
 %
 % o: iss object
 % y0 is a cell containig the YX location of all spots in all rounds 
-% and colour channels for all tiles (AllBaseLocalYX in FindSpotsWorkspace.m)
+%   and colour channels for all tiles (AllBaseLocalYX in FindSpotsWorkspace.m)
 % x0{t,b} is a cell containing the YX location of spots in the 
-% reference round for tile t, channel b. (o.RawLocalYX)
+%   reference round for tile t, channel b. (o.RawLocalYX)
 % t_plot: tile to plot
 % b_plot: channel
 % r_plot: round

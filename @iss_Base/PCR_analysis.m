@@ -6,9 +6,9 @@ function o = PCR_analysis(o,y0,x0)
 %
 % o: iss object
 % y0 is a cell containig the YX location of all spots in all rounds 
-% and colour channels for all tiles (AllBaseLocalYX in FindSpotsWorkspace.m)
+%   and colour channels for all tiles (AllBaseLocalYX in FindSpotsWorkspace.m)
 % x0{t,b} is a cell containing the YX location of spots in the 
-% reference round for tile t, channel b. (o.RawLocalYX)
+%   reference round for tile t, channel b. (o.RawLocalYX)
 % saves:
 % o.PcGrad
 % o.PcMean

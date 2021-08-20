@@ -1,7 +1,12 @@
 function o = extract_and_filter(o)
 %% o = extract_and_filter(o)
-% create tiff files for each tile that are top-hat filtered versions of
-% original czi/nd2 files
+% create tiff files for each tile that are filtered versions of
+% original czi/nd2 files.
+% Filter is a difference of two hanning windows:
+%   Inner positive window of radius o.ExtractR1
+%   Outer negative window of radius o.ExtractR2
+% Final images multiplied by o.ExtractScale so important that this is the
+% same for all tiles. 
 % Also produces HistCounts and AutoThresh.
 % Need bfmatlab in path.
 % This uses GPU for filtering

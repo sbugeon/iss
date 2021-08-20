@@ -1,5 +1,5 @@
 function [shift, cc, fa1, fa2] = ImRegFft2_FindSpots(o,Im1, Im2, CorrThresh, MinSize)
-% [shift, cc, f1, ft2] = ImRegFft2(Im1, Im2, CorrThresh)
+%% [shift, cc, fa1, fa2] = ImRegFft2_FindSpots(Im1, Im2, CorrThresh, MinSize)
 %
 % do image registration via fft convolution, finding match as point of 
 % maximum correlation in the unwhitened images

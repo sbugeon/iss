@@ -1,20 +1,26 @@
 function SpotNo = iss_view_spot_omp3(o, FigNo, ImSz, SpotLocation, ScoreMethod, Track, SpotNum, Norm)
 %% iss_view_spot_omp3(o, FigNo, ImSz, SpotLocation,ScoreMethod, Track, SpotNum, Norm)
 %
-% Gives the final OMP coefficients as produced by call_spots_omp about a
-% chosen location. 
+% Produces coefficient iss_view_spot_omp2 image as well as spot color
+% round/channel iss_view_spot image. Clicking on a gene plot in the coefficient
+% image will remove that gene from the spot color plots according to the
+% coefficients found. Clicking on any background gene will remove all
+% background genes. 
 %
-% FigNo: figure number (default, current figure)
+% FigNo: o.plot figure number (default, current figure)
 % ImSz: radius of image that is plotted for each round and channel.
-% Default value is 7 pixels.
+%   Default value is 7 pixels.
 % SpotLocation: logical,  if true, will use location of spot closest to
-% crosshair, otherwise will use actual position of crosshair. Default is false.
+%   crosshair, otherwise will use actual position of crosshair. Default is false.
 % Track: gives plots of residual and gene coefficients at each stage of
-% iteration for central pixel. 
+%   iteration for central pixel. 
 % SpotNum: spot to look at is o.pfSpotGlobalYX(SpotNum,:) where pf
-% corresponds to ScoreMethod. Can also be yx location of interest.
+%   corresponds to ScoreMethod. Can also be yx location of interest.
+% Norm: true to normalise spot colors by round/channel. May be different
+%   for ScoreMethod = 'OMP' or other. false to see raw spot colors.
+%
 % You can change o.ResidualThreshParam, o.ResidualThreshMin and
-% o.ResidualThreshMax to produce different coefficients. 
+% o.ResidualThreshMax, o.ompMaxGenes to produce different coefficients. 
 
 
 %%

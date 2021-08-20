@@ -1,22 +1,22 @@
 function iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
-%% iss_change_plot(o,Method,GenesToShow,UseSpots)
+%% iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 %
-% Given issPlot3DObject, this function lets you change the details
+% Given issPlot2DObject, this function lets you change the details
 % of the plot without closing the figure e.g. you can change
 % o.CombiQualThresh, o.pIntensityThresh, o.pScoreThresh, o.pScoreThresh2,
-% o.pLogProbThresh
+% o.pLogProbThresh, o.ompNeighbThresh etc.
 %
 % o: iss object
-% Method: 'DotProduct','Prob' or 'Pixel' to consider gene assignments given
-% by o.SpotCodeNo, o.pSpotCodeNo and o.pxSpotCodeNo respectively.
-% GeneType: 'Neuron' or 'NonNeuron'
+% Method: 'DotProduct','Prob', 'Pixel' or 'OMP' to consider gene assignments given
+%   by o.dpSpotCodeNo, o.pSpotCodeNo, o.pxSpotCodeNo or o.ompSpotCodeNo respectively.
+% GeneType: 'Neuron' or 'NonNeuron' (Too many genes to show both at once).
 % GenesToShow: cell of gene names that you want to see e.g.
-% [{'Npy'},{'Pvalb'}]. It is case sensitive.
-% If GenesToShow is 'Neuron' or 'NonNeuron', then all neurons/ non-neurons
-% will be selected
+%   [{'Npy'},{'Pvalb'}]. It is case sensitive.
+%   If GenesToShow is 'Neuron' or 'NonNeuron', then all neurons/ non-neurons
+%   will be selected
 % UseSpots: if you want to use your own thresholding, not
-% o.quality_threshold. Logical array e.g. o.pSpotScore>0 or
-% get_gene_clusters(o)
+%   o.quality_threshold. Logical array e.g. o.pSpotScore>0 or
+%   get_gene_clusters(o)
 
 %%
 S = evalin('base', 'issPlot2DObject');

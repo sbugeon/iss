@@ -1,19 +1,18 @@
 function [x,r,r_norm] = omp_free_background_track(o,A,b,n_nonzero_coefs,thresh,background_indices)
-
-%% Orthogonal Matching Pursuit (OMP)
-% https://github.com/seunghwanyoo/omp
-% Input:
+%% [x,r,r_norm] = omp_free_background_track(o,A,b,n_nonzero_coefs,thresh,background_indices)
+% Extended from https://github.com/seunghwanyoo/omp
+% Input for data of dimension n = o.nBP*o.nRounds
 %   o: iss object
-%   A: dictionary (matrix)
-%   b: signal 
+%   A: dictionary (matrix) [n x nGenes]
+%   b: signals i.e. NormSpotColors [n x 1]
 %   n_nonzero_coefs: max number of atoms from A (not including background)
-%                    that can be selected.
-%   thresh: OMP stops when reduction in residue drops below thresh.
+%       that can be selected.
+%   thresh: OMP stops when reduction in residual norm drops below thresh.
 %   background_indices: atoms at these indices will be selected first.
 % Output:
-%   x: coeff vector for sparse representation
-%   r: residual
-%   r_norm: norm of residual
+%   x: coeff vector for sparse representation [1 x nGenes]
+%   r: residual after removing genes specified by x [n x 1]
+%   r_norm: norm of residual [1 x 1]
 % This tracks the omp results at each stage of the process. It then gives
 % the results, TrackInfo, to the function track_residual for plotting. 
 %%

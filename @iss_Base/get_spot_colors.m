@@ -1,18 +1,21 @@
 function [SpotColors,PointCorrectedLocalYX] = get_spot_colors(o,LocalYX,LocalTile,...
     RoundTile,AllBaseLocalYX,nMatches,Error)
-%% GET_SPOT_COLORS Summary of this function goes here
+%% [SpotColors,PointCorrectedLocalYX] = get_spot_colors(o,LocalYX,LocalTile,...
+%    RoundTile,AllBaseLocalYX,nMatches,Error)
 % loop through all tiles, finding spot colors
-% o: iss object
-% LocalYX(s): YX coordinate of spot s on tile given by LocalTile(s).
-% LocalTile(s): Tile that spot s was found on.
-% RoundTile(s,r): stores appropriate tile for spot s on round r
-% AllBaseLocalYX: cell(nTiles,o.nBP,nRounds). AllBaseLocalYX{t,b,r} gives
-% YX local coordinates of all spots found on tile t, channel b, round r.
-% nMatches(t,b,r): gives PCR matches to tile t, channel b, round r.
-% Error(t,b,r): gives PCR error to tile t, channel b, round r. 
-% SpotColors(s,b,r): gives intensity for spot s in channel b, round r.
-% PointCorrectedLocalYX(s,:,r,b): gives local coordinate of spot s but
-% transformed to round r, channel b according to o.D(:,:,t,r,b).
+% Input
+%   o: iss object
+%   LocalYX(s): YX coordinate of spot s on tile given by LocalTile(s).
+%   LocalTile(s): Tile that spot s was found on.
+%   RoundTile(s,r): stores appropriate tile for spot s on round r
+%   AllBaseLocalYX: cell(nTiles,o.nBP,nRounds). AllBaseLocalYX{t,b,r} gives
+%       YX local coordinates of all spots found on tile t, channel b, round r.
+%   nMatches(t,b,r): gives PCR matches to tile t, channel b, round r.
+%   Error(t,b,r): gives PCR error to tile t, channel b, round r. 
+% Output
+%   SpotColors(s,b,r): gives intensity for spot s in channel b, round r.
+%   PointCorrectedLocalYX(s,:,r,b): gives local coordinate of spot s but
+%       transformed to round r, channel b according to o.D(:,:,t,r,b).
 
 Verbose = nargin>=6;        %print if have more than 6 arguments. 
 

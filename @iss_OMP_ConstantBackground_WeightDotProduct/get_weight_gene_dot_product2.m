@@ -1,5 +1,21 @@
 function [AllSpotScore,BestGeneNo] = get_weight_gene_dot_product2(o,...
 z_scoredSpotColors,BledCodeWeight,AlreadyAddedGenes)
+%% [AllSpotScore,BestGeneNo] = get_weight_gene_dot_product2(o,...
+% z_scoredSpotColors,BledCodeWeight,AlreadyAddedGenes)
+% This finds a modified dot product taking into account contribution from
+% each round more equally and accounting for genes which fail in some
+% rounds as given by o.GeneEfficiency. 
+%
+% Input
+%   z_scoredSpotColors: normalised spot colors [o.nBP*o.nRounds, nSpots]
+%   BledCodeWeight = sqrt(1./(1+exp(-o.ompNormBledCodeScale*(o.GeneEfficiency-o.ompNormBledCodeShift)))); 
+%       It accounts for genes which fail in some rounds.
+%   AlreadyAddedGenes: previously added genes for each spot
+%       to ensure don't add it again [nSpots, nGenesAdded]
+% Output
+%   AllSpotScore(s,g): modified dot product score for spot s, gene g.
+%   BestGeneNo(s): Gene g such that 
+%       max(abs(AllSpotScore(s,:))) = abs(AllSpotScore(s,g))
 %%
 % DP = ΣW_gr^2 * DP_r where max(DP_r)=1 and min(DP_r)=0
 % DP_R = ΣW_gb * W_sg_Rb * g_bR * s_bR

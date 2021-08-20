@@ -1,15 +1,24 @@
 function FinalCoefs = get_omp_coefs2(o,z_scoredSpotColors, SpotYX)
 %% coefs = get_omp_coefs2(o,z_scoredSpotColors)
-% coefs(s,g) is the weighting of spot s for gene g. Most are zero.
-% The last o.nBackground are background codes and are always non zero.
+% This performs omp on every pixel in z_scoredSpotColors, the stopping
+% criterion is that the residual reduction between iterations falls below
+% ResidualThresh or the number of genes added to the pixel exceeds
+% o.ompMaxGenes. 
+%
+% This removes background first and then doesn't update background
+%   coefficients.
+% Uses a modified OMP with a different weighted dot product.
+%   i.e., different method for finding gene to add but once gene known,
+%   coefficient found in the same way.
+%
+% Intense genes found in first iteration have surrounding pixels also added.
+% 
 % o: iss_OMP object
-% z_scoredSpotColors: spot colors that have been z-scored by channel and
-% round.
-% This forces intese genes found in the first iteration to be subsequently
-% added in the next iterations. 
+% z_scoredSpotColors: spot colors that have been z-scored by channel and round.
+% coefs(s,g) is the weighting of spot s for gene g found by the omp algorithm.
+%   Most are zero. The last o.nBackground genes are background codes and are always non zero.
 
-
-% OMP stops when reduction in residual drops below ResidualThresh.
+%% OMP stops when reduction in residual drops below ResidualThresh.
 % Prctile bit gets 2nd largest intensity for each spot.
 nCodes = length(o.CharCodes);
 ResidualThresh = o.ResidualThreshParam*prctile(abs(z_scoredSpotColors(:,:))',47.5*100/49.0)';
@@ -21,7 +30,7 @@ nSpots = size(z_scoredSpotColors,1);
 
 z_scoredSpotColors = z_scoredSpotColors(:,:)';
 FinalCoefs = zeros(nSpots,nCodes+o.nBackground);
-%Remove background and then don't update BackgroundCoefs again
+%% Remove background and then don't update BackgroundCoefs again
 %Subsequent genes will be removed off new z_scoredSpotColors
 %Do OMP on post background residual (Not current residual as fitting
 %multiple genes all at once). 

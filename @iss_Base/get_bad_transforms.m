@@ -1,22 +1,23 @@
 function [A, D, D_average, PcFailed] = get_bad_transforms(o,NonemptyTiles,nMatches,D)
 %% [A, D, D_average, PcFailed] = get_bad_transforms(o,NonemptyTiles,nMatches,D)
-%
+% Used in PointCloudRegister6.m
 % This finds the transforms that need to be re-evaluated. It also updates
 % the starting transforms for this re-evaluation to be the average
 % transform. The regularization will also ensure the new transform found is
 % close to this average transform.
-%
-% o: iss object
-% NonemptyTiles: tile numbers of tiles to evaluate
-% nMatches(t,b,r): the number of matches found with the current transform
-% for tile t, channel b, round r.
-% D(:,:,t,r,b): the current transform found for tile t, channel b, round r.
-% A(b,:): the median chromatic aberration scaling for channel b.
-% D: the current transforms with the ones for which PcFailed set to D_average.
-% D_average: the average transform - scaling is A(b,:). Shift is average
-% over all colour channels for that tile and round. Rotation=0.
-% PcFailed(t,b,r): This is true if tile t, channel b, round r is to be
-% re-evaluated.
+% Input
+%   o: iss object
+%   NonemptyTiles: tile numbers of tiles to evaluate
+%   nMatches(t,b,r): the number of matches found with the current transform
+%   for tile t, channel b, round r.
+%   D(:,:,t,r,b): the current transform found for tile t, channel b, round r.
+% Output
+%   A(b,:): the median chromatic aberration scaling for channel b.
+%   D: the current transforms with the ones for which PcFailed set to D_average.
+%   D_average: the average transform - scaling is A(b,:). Shift is average
+%   over all colour channels for that tile and round. Rotation=0.
+%   PcFailed(t,b,r): This is true if tile t, channel b, round r is to be
+%   re-evaluated.
 
 %% Find bad transforms that need to be re-evaluated using regularization
 %These either have few matches, bad CA scalings or bad shifts
