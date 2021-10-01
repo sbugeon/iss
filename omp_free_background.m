@@ -1,8 +1,9 @@
 function [x,r,r_norm] = omp_free_background(A,b,n_nonzero_coefs,...
     thresh,background_indices,gene_indices)
 
-% Orthogonal Matching Pursuit (OMP)
-% https://github.com/seunghwanyoo/omp
+%% [x,r,r_norm] = omp_free_background(A,b,n_nonzero_coefs,...
+%    thresh,background_indices,gene_indices)
+% Extended from https://github.com/seunghwanyoo/omp
 % Input:
 %   A: dictionary (matrix) such that norm(A(:,i))=1 for all i. 
 %   b: signal 
@@ -15,6 +16,11 @@ function [x,r,r_norm] = omp_free_background(A,b,n_nonzero_coefs,...
 %   x: coeff vector for sparse representation
 %   r: residual
 %   r_norm: norm of residual
+%
+% This explains the signal, b, with all atoms indicated by
+% background_indices.
+% It then fits atoms indicated by gene_indices until the residual reduction
+% falls below thresh or more than n_nonzero_coefs atoms have been added.
 
 [N,K] = size(A); % N:dim of signal, K:#atoms in dictionary
 if (N ~= size(b))
