@@ -119,6 +119,11 @@ classdef iss_Base
         %will have a value of 0. 
         StripHack = true;
         
+        % If normalisation found by get_channel_norm for particular channel
+        % is less than ChannelNormQualThresh, check_channels function will 
+        % recommend to neglect these channels.
+        ChannelNormQualThresh = 500;
+        
         %% parameters: registration and alignment
         
         % correlation threshold for image alignment. Can be low since 
