@@ -16,9 +16,10 @@ end
 
 p = o.get_channel_norm;
 channels_to_change = find(min(p,[],3)<o.ChannelNormQualThresh);
+UseChannelsAdjust = setdiff(1:o.nBP, channels_to_change);
     
-if size(channels_to_change,2) > 0
-    UseChannelsAdjust = setdiff(1:o.nBP, channels_to_change);
+if size(channels_to_change,2) > 0  && ~isempty(setdiff(o.UseChannels,...
+        UseChannelsAdjust))
     str_bad_channels = [sprintf('%d,', channels_to_change(1:end-1)), ...
         sprintf('%d', channels_to_change(end))];
     if size(UseChannelsAdjust,2) == 0
