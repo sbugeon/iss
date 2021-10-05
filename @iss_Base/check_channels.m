@@ -14,6 +14,10 @@ if nargin < 2 || isempty(auto_adjust)
     auto_adjust = false;
 end
 
+if isempty(o.UseChannels)
+    o.UseChannels = 1:o.nBP;
+end
+
 p = o.get_channel_norm;
 channels_to_change = find(min(p,[],3)<o.ChannelNormQualThresh);
 UseChannelsAdjust = setdiff(1:o.nBP, channels_to_change);
