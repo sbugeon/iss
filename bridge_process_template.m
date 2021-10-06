@@ -15,6 +15,7 @@ o.ReferenceChannel = o.AnchorChannel;         %o.ReferenceChannel. If RefRound =
 o.RawFileExtension = '.nd2';    %Format of raw data
 o.LogToFile = 1;                %Set to 1 if you want to save command window to txt file, else set to 0.
 o.StripHack = true;             %Hack to deal with strips of all zeros in raw data. Recommend on.
+%o.EmptyTiles = [1,5,7];        %Can specify tiles to work with if don't want to get tiles for all data.
 
 %% File Names
 %CHECK BEFORE EACH RUN
