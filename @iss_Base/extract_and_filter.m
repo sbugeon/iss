@@ -182,10 +182,10 @@ for r = 1:o.nRounds+o.nExtraRounds
         
         if exist(fName{t}, 'file')
             fprintf('Round %d tile %d already done.\n', r, t);
-            if (o.AnchorChannel < nChannels) && (o.AutoThresh(t,o.AnchorChannel,r) == 0)
-                TifObj = Tiff(fName{t});
-                for c=1:nChannels
-                    if c ~= o.AnchorChannel && r == o.AnchorRound; continue; end
+            TifObj = Tiff(fName{t});
+            for c=1:nChannels
+                if c ~= o.AnchorChannel && r == o.AnchorRound; continue; end
+                if o.AutoThresh(t,c,r) == 0
                     TifObj.setDirectory(o.FirstBaseChannel + c - 1);
                     IFS = int32(TifObj.read())-o.TilePixelValueShift;
                     o.AutoThresh(t,c,r) = median(abs(IFS(:)))*o.AutoThreshMultiplier;
