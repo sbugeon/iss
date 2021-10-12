@@ -395,7 +395,7 @@ end
 %Plot histograms to make sure they are smooth
 %Avoid ExtraRounds as only need histograms for the 7 rounds used to
 %define genes
-if max(max(o.HistCounts)) > 0
+if max(o.HistCounts(:)) > 0
     nPixels = sum(o.HistCounts(:,1,1));
     if o.Graphics
         figure(43291);

@@ -387,40 +387,42 @@ end
 %Plot histograms to make sure they are smooth
 %Avoid ExtraRounds as only need histograms for the 7 rounds used to
 %define genes
-nPixels = sum(o.HistCounts(:,1,1));
-if o.Graphics
-    figure(43291);
-    index = 1;
+if max(o.HistCounts(:))>0
+    nPixels = sum(o.HistCounts(:,1,1));
+    if o.Graphics
+        figure(43291);
+        index = 1;
+        for r=1:o.nRounds
+            for b=1:nChannels
+                subplot(o.nRounds,nChannels,index)
+                histogram('BinEdges',[o.HistValues-0.5,max(o.HistValues)+0.5],'BinCounts',o.HistCounts(:,b,r)/nPixels,'DisplayStyle','stairs');
+                xlim([-1000,1000]);
+                ylim([0,max(o.HistCounts(:,b,r))/nPixels]);
+                if b==4
+                    title(strcat('Round ',num2str(r)));
+                end
+                index = index+1;
+            end
+        end
+    end
+    
+    %Make sure histogram is peaked at 0
+    o.HistMaxValues = zeros(o.nBP,o.nRounds);
     for r=1:o.nRounds
         for b=1:nChannels
-            subplot(o.nRounds,nChannels,index)
-            histogram('BinEdges',[o.HistValues-0.5,max(o.HistValues)+0.5],'BinCounts',o.HistCounts(:,b,r)/nPixels,'DisplayStyle','stairs');
-            xlim([-1000,1000]);
-            ylim([0,max(o.HistCounts(:,b,r))/nPixels]);
-            if b==4
-                title(strcat('Round ',num2str(r)));
+            [~,PeakIndex] = max(o.HistCounts(:,b,r));
+            o.HistMaxValues(b,r) = o.HistValues(PeakIndex);
+            if abs(o.HistMaxValues(b,r))>2
+                warning('Histogram for round %d, channel %d peaked at %d, not 0',r,b,o.HistMaxValues(b,r));
             end
-            index = index+1;
         end
     end
-end
-
-%Make sure histogram is peaked at 0
-o.HistMaxValues = zeros(o.nBP,o.nRounds);
-for r=1:o.nRounds
-    for b=1:nChannels
-        [~,PeakIndex] = max(o.HistCounts(:,b,r));
-        o.HistMaxValues(b,r) = o.HistValues(PeakIndex);
-        if abs(o.HistMaxValues(b,r))>2
-            warning('Histogram for round %d, channel %d peaked at %d, not 0',r,b,o.HistMaxValues(b,r));
-        end
+    if max(abs(o.HistMaxValues(:)))>o.HistMaxShiftThresh
+        ErrorFile = fullfile(o.OutputDirectory, 'oExtract-Error_with_histograms');
+        save(ErrorFile, 'o', '-v7.3');
+        error(['Histogram is not peaked at pixel value of 0 as expected.'...
+            '\nLook at o.HistMaxValues in saved file and also look at figure 43291.'...
+            '\nProgress up to this point saved as:\n%s.mat'],ErrorFile);
     end
-end
-if max(abs(o.HistMaxValues(:)))>o.HistMaxShiftThresh
-    ErrorFile = fullfile(o.OutputDirectory, 'oExtract-Error_with_histograms');
-    save(ErrorFile, 'o', '-v7.3');
-    error(['Histogram is not peaked at pixel value of 0 as expected.'...
-        '\nLook at o.HistMaxValues in saved file and also look at figure 43291.'...
-        '\nProgress up to this point saved as:\n%s.mat'],ErrorFile);
 end
 end
