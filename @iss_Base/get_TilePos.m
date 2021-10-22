@@ -10,9 +10,17 @@ function o = get_TilePos(o, xypos, nTiles)
 % find x and y grid spacing as median of distances that are about
 % right
 dx = xypos(:,1)-xypos(:,1)'; % all pairs of x distances
-xStep = median(dx(abs(1- dx(:)/o.MicroscopeStepSize)<.5));
+if max(abs(dx(:)))==0
+    xStep = o.MicroscopeStepSize;
+else
+    xStep = median(dx(abs(1- dx(:)/o.MicroscopeStepSize)<.5));
+end
 dy = xypos(:,2)-xypos(:,2)'; % all pairs of y distances
-yStep = median(dy(abs(1- dy(:)/o.MicroscopeStepSize)<.5));
+if max(abs(dy(:)))==0
+    yStep = o.MicroscopeStepSize;
+else
+    yStep = median(dy(abs(1- dy(:)/o.MicroscopeStepSize)<.5));
+end
 
 
 % find index for each tile
