@@ -40,6 +40,12 @@ Y = uniqueY(diff([0;uniqueY])==1 & uniqueY<=nTiles);
 X = uniqueX(diff([0;uniqueX])==1 & uniqueX<=nTiles);
 MaxY = max(Y);
 MaxX = max(X);
+if isempty(MaxX)
+    MaxX = NaN;
+end
+if isempty(MaxY)
+    MaxY = NaN;
+end
 
 %Sometimes get Nan, if only one Nan, then check if all tiles 
 %arranged along only one direction i.e. Nan should be 1.
