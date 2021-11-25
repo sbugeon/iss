@@ -21,6 +21,7 @@ o.StripHack = true;             %Hack to deal with strips of all zeros in raw da
 %CHECK BEFORE EACH RUN
 o.InputDirectory = '...\Experiment1\raw_data';     %Folder path of raw data
 
+o.TileSz = 2048;        %Dimension of tile in pixels
 o.nBP = 7;              %Number of Channels
 o.nRounds = 7;          %Number of Imaging Rounds
 o.nExtraRounds = 1;     %Treat Anchor channel as extra round
@@ -96,7 +97,6 @@ o = o.check_channels;
 %% register
 %o.AutoThresh(:,o.AnchorChannel,o.AnchorRound) = o.AutoThresh(:,o.AnchorChannel,o.AnchorRound)*0.25;     %As Anchor Threshold seemed too high
 %parameters
-o.TileSz = 2048;
 
 %Anchor spots are detected in register2
 o.DetectionRadius = 2;
