@@ -159,7 +159,7 @@ if nargin<3 || SkipRegistration == false
     a(find(a==min(o.AllBaseSpotNo(NonemptyTiles,:,ImageRounds),[],1))) = inf;
     MinColorChannelSpotNo = min(min(a,[],1),[],3);
     clear a;
-    if ~ismember(string(o.InitialShiftChannel),string(o.UseRounds))
+    if ~ismember(string(o.InitialShiftChannel),string(o.UseChannels))
         [~,o.InitialShiftChannel] = max(MinColorChannelSpotNo);
     end
     
