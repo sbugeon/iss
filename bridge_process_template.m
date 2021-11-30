@@ -88,12 +88,6 @@ catch
 end
 save(fullfile(o.OutputDirectory, 'oExtract'), 'o', '-v7.3');
 
-%% check channels
-% below will flag error if some channels are weak
-o = o.check_channels;
-% below will not flag error but remove weak channels automatically.
-% o = o.check_channels(true); 
-
 %% register
 %o.AutoThresh(:,o.AnchorChannel,o.AnchorRound) = o.AutoThresh(:,o.AnchorChannel,o.AnchorRound)*0.25;     %As Anchor Threshold seemed too high
 %parameters
@@ -123,6 +117,12 @@ o.RegWidenSearch = [50,50];
 %good ones in o.UseChannels and o.UseRounds.
 o.UseChannels = 1:o.nBP;
 o.UseRounds = 1:o.nRounds;
+
+% check channels
+% below will flag error if some channels are weak
+o = o.check_channels;
+% below will not flag error but remove weak channels automatically.
+% o = o.check_channels(true); 
 
 %run code
 o = o.register2;
