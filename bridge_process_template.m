@@ -5,7 +5,7 @@
 
 %% Parameters that should be checked before each run
 %CHECK BEFORE EACH RUN
-o = iss_OMP;
+o = iss_OMP_ConstantBackground_WeightDotProduct;
 o.AnchorRound = 8;              %Round that contains Dapi image
 o.AnchorChannel =  ;            %Channel that has most spots in o.AnchorRound
 o.DapiChannel = 1;              %Channel in o.AnchorRound that contains Dapi images
