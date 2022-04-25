@@ -259,7 +259,7 @@ if nargin<3 || SkipRegistration == false
 end
 
 %% now make array of global coordinates
-rSumSpots = cellfun(@numel, o.RawIsolated);
+rSumSpots = cellfun(@numel, o.RawIsolated(NonemptyTiles,:));
 nAll = sum(sum(rSumSpots(:,o.UseChannels)));
 
 AllGlobalYX = zeros(nAll,2);
