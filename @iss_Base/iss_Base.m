@@ -273,8 +273,8 @@ classdef iss_Base
         ThreshParam = 5;
         
         % find isolated spots by annular filtering with these radii
-        IsolationRadius1 = 2;
-        IsolationRadius2 = 7;
+        IsolationRadius1 = 4;
+        IsolationRadius2 = 14;
         
         % annular filtered value needs to be less than this:
         IsolationThresh = 'auto';
@@ -668,13 +668,13 @@ classdef iss_Base
         
         % PcMinSpots is the minimum number of spots to do PCR without
         % regularization. Below this amount regularisation is used.
-        PcMinSpots = 200;       
+        PcMinSpots = 50;       
         
         % If a tile has a chromatic aberration scaling that has an 
         % absolute deviation of more than PcMaxScaleDev from the median 
         % for that colour channel and nMatches<PcMinSpotsScaling,
         % it will be re-evaluated with regularization.
-        PcMaxScaleDev = 0.5e-3;
+        PcMaxScaleDev = 0.01;
         PcMinSpotsScaling = 500;
         
         % If a tile has a shift that has an absolute deviation of more than
