@@ -153,7 +153,7 @@ save(fullfile(o.OutputDirectory, 'oFind_spots'), 'o', '-v7.3');
 %run code
 o.CallSpotsCodeNorm = 'WholeCode';      %Other alternative is 'Round'
 o = o.call_spots;
-[o,LookupTable] = o.call_spots_prob;
+% [o,LookupTable] = o.call_spots_prob;
 save(fullfile(o.OutputDirectory, 'oCall_spots'), 'o', '-v7.3');
 
 % %Pixel based
