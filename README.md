@@ -5,7 +5,7 @@
 * There is now a script called RedoDAPI.m which allows to save background images using an extra round.
 
 # How to run
-The only file that you need to run to obtain and save the data is [bridge_process_template.m](https://github.com/jduffield65/iss/blob/master/bridge_process_templateOMP.m). The following will explain the changes to this file that need to made in order for it work with your data.
+The only file that you need to run to obtain and save the data is [bridge_process_templateOMP.m](https://github.com/sbugeon/iss/blob/master/bridge_process_template_OMP.m). The following will explain the changes to this file that need to made in order for it work with your data.
 
 ## Parameters that should be checked before each run
 There are a few parameters that need double checking or adjusting before each run:
