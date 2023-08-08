@@ -4,6 +4,7 @@
 * The plot functions have been modified to allow changing the markers' line width and size.
 * There is now a script called RedoDAPI.m which allows to save background images using an extra round.
 
+see [commit description](https://github.com/jduffield65/iss/commit/87c365c46f4c600c6601858f60dc45265d1863b9) for a full description of the main changes compared to the original branch.
 # How to run
 The only file that you need to run to obtain and save the data is [bridge_process_templateOMP.m](https://github.com/sbugeon/iss/blob/master/bridge_process_template_OMP.m). The following will explain the changes to this file that need to made in order for it work with your data.
 
