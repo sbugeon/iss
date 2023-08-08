@@ -1,5 +1,11 @@
+# Branch description in comparison to the original  (https://github.com/jduffield65/iss/blob/master/)
+This branch fixes a bug in @iss_OMP\get_gene_efficiencies.m, which was not changing the order of the color channels accordingly when o.bpLabels was modified. This meant that if o.bpLabels was modified, the actual bled codes used by the OMP spot calling were wrong.
+This branch also modifies call_cells.m which now directly uses the cell boundaries coordinates as input.
+The plot functions have been modified to allow changing the markers' line width and size.
+
+
 # How to run
-The only file that you need to run to obtain and save the data is [bridge_process_template.m](https://github.com/jduffield65/iss/blob/master/bridge_process_template.m). The following will explain the changes to this file that need to made in order for it work with your data.
+The only file that you need to run to obtain and save the data is [bridge_process_template.m](https://github.com/jduffield65/iss/blob/master/bridge_process_templateOMP.m). The following will explain the changes to this file that need to made in order for it work with your data.
 
 ## Parameters that should be checked before each run
 There are a few parameters that need double checking or adjusting before each run:
