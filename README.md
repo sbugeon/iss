@@ -1,8 +1,8 @@
 # Branch description in comparison to the original  (https://github.com/jduffield65/iss/blob/master/)
-* This branch fixes a bug in @iss_OMP\get_gene_efficiencies.m, which was not changing the order of the color channels accordingly when o.bpLabels was modified. This meant that if o.bpLabels was modified, the actual bled codes used by the OMP spot calling were wrong.
-* This branch also modifies call_cells.m which now directly uses the cell boundaries coordinates as input.
+* This branch fixes a bug in [get_gene_efficiencies.m](https://github.com/sbugeon/iss/blob/master/%40iss_OMP/get_gene_efficiencies.m), which was not changing the order of the color channels accordingly when o.bpLabels was modified. This meant that if o.bpLabels was modified, the actual bled codes used by the OMP spot calling were wrong.
+* This branch also modifies [call_cells.m](https://github.com/sbugeon/iss/blob/master/%40iss_Base/call_cells.m) which now directly uses the cell boundaries coordinates as input.
 * The plot functions have been modified to allow changing the markers' line width and size.
-* There is now a script called RedoDAPI.m which allows to save background images using an extra round.
+* There is now a script called [RedoDAPI.m](https://github.com/sbugeon/iss/blob/master/RedoDAPI.m) which allows to save background images using an extra round.
 
 see [commit description](https://github.com/jduffield65/iss/commit/87c365c46f4c600c6601858f60dc45265d1863b9) for a full description of the main changes compared to the original branch.
 # How to run
