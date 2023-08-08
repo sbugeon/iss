@@ -35,7 +35,9 @@ end
 
 [~, ~, ~, SpotNo, ~]  = get_crosshair_location(o, FigNo, true, 'OMP', SpotNum);
 
-pf = o.CallMethodPrefix('OMP');  
+pf = o.CallMethodPrefix('OMP'); 
+o.([pf,'SpotScore'])(SpotNo)
+o.([pf,'SpotIntensity2'])(SpotNo)
 %Different parameters for different methods
 CodeNo = o.([pf,'SpotCodeNo'])(SpotNo);
 %SpotColor is raw values (Norm 1)
@@ -208,7 +210,7 @@ for i=1:nCodes
 end
 legend(S.h,o.GeneNames);
 legend off
-change_gene_symbols(0);
+change_gene_symbols_original(0);
 %set(gcf, 'color', 'w');
 set(gca, 'color', 'k');
 h=findobj(gcf,'type','axes');

@@ -63,10 +63,12 @@ else
     end   
 end
 
+
 if ~ismember({ScoreMethod},o.CallMethods)
     error('Method invalid, must be member of o.CallMethods.');
 end
 pf = o.CallMethodPrefix(ScoreMethod);
+
 
 if strcmpi(ScoreMethod,'OMP') && SpotLocation == true
     S.NonZeroCoefs = find(o.([pf,'Coefs'])(SpotNo,:)~=0);
@@ -164,7 +166,7 @@ for g=1:S.nCodes
     %Highlight gene with the largest dot product
 
     
-    subplot(10, 8, g);
+    subplot(14, 10, g);
     DotProductIm = reshape(S.DotProduct(:,g),S.ImShape);
     imagesc(DotProductIm, 'ButtonDownFcn', {@getCoord, g}); hold on;
     caxis(S.climits);

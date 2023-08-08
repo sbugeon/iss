@@ -50,6 +50,8 @@ omega = zeros(S,1);  % selected support
 omega_last = omega;
 %A_omega = [];        % corresponding columns of A
 cnt = 0;
+% figure
+% background_indices = background_indices([1 3 2 4 5 6 7]);
 while (cnt < S)  % choose S atoms
     cnt = cnt+1;
     if cnt<=S_background
@@ -87,6 +89,8 @@ while (cnt < S)  % choose S atoms
         omega_last = omega;
         r_norm_last = r_norm;
     end
+%     plot(x_ls)
+%     pause;
 end
 
 for i = 1:S

@@ -39,7 +39,9 @@ for g=1:nCodes
     for r=1:o.nRounds
         %W = abs(o.z_scoreBleedMatrix(:,ChannelNo)');
         W = 1;
-        ChannelNo = str2num(o.CharCodes{g}(r))+1;
+        % ChannelNo = str2num(o.CharCodes{g}(r))+1; %% wrong if the channel order is changed!!!!!
+        [~, ChannelNo] = ismember(o.CharCodes{g}(r), o.bpLabels); % changed by SB 2023-07-10
+        
         if sum(Use)>=o.GeneEfficiencyMinSpots && ismember(ChannelNo,o.UseChannels)
             o.GeneEfficiency(g,r) = (W.*NormMeanCode(:,o.UseChannels,r))/...
                 (W.*o.z_scoreBleedMatrix(o.UseChannels,ChannelNo)');

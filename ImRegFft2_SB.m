@@ -1,4 +1,4 @@
-function [shift, cc, fa1, fa2] = ImRegFft2(Im1, Im2, CorrThresh, MinSize)
+function [shift, cc, fa1, fa2] = ImRegFft2_SB(Im1, Im2, CorrThresh, MinSize)
 % [shift, cc, f1, ft2] = ImRegFft2(Im1, Im2, CorrThresh)
 %
 % do image registration via fft convolution, finding match as point of 
@@ -27,9 +27,10 @@ function [shift, cc, fa1, fa2] = ImRegFft2(Im1, Im2, CorrThresh, MinSize)
 % Kenneth D. Harris, 9/8/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
  
-
+%Max distance of match
+Md = 200;
 % not tapering images yet but could
-Graphics = 0;
+Graphics = 2;
 
 if nargin<3; CorrThresh = [.2 .6]; end
 if length(CorrThresh)<2; CorrThresh = CorrThresh*[1, 1]; end
@@ -109,8 +110,16 @@ Conv = ifft2(f1 .* conj(f2));
 
 % compute correlation for each shift
 Correl = (Conv./(MinSize + sqrt(Energy1.*Energy2)));
-  
-[cc, MaxShift] = max(Correl(:));
+LogCorrel = zeros(size(Correl));
+TileSzY = size(Correl,1)/2;
+TileSzX = size(Correl,2)/2;
+%Recentre Image so 0 shifts is in the middle
+LogCorrel(1:TileSzY,1:TileSzX) = Correl(TileSzY+1:TileSzY*2,TileSzX+1:TileSzX*2);
+LogCorrel(1:TileSzY,TileSzX+1:TileSzX*2) = Correl(TileSzY+1:TileSzY*2,1:TileSzX);
+LogCorrel(TileSzY+1:TileSzY*2,1:TileSzX) = Correl(1:TileSzY,TileSzX+1:TileSzX*2);
+LogCorrel(TileSzY+1:TileSzY*2,TileSzX+1:TileSzX*2) = Correl(1:TileSzY,1:TileSzX);
+    
+[cc, MaxShift] = max(LogCorrel(:));
 
 % if found zero shift, did you pass the stringent threshold?
 if MaxShift==1
@@ -119,16 +128,26 @@ if MaxShift==1
         shift = mod([dy0, dx0] +sz, sz*2) - sz - 1;  
     else
         % try second best
-        [sorted, order] = sort(Correl(:), 'descend');
-        cc = sorted(2);
-        MaxShift = order(2);
+        Cent = size(Conv)./2;
+        GoodMax = sub2ind(size(Conv),Cent(1)-Md:Cent(1)+Md,Cent(2)-Md:Cent(2)+Md);
+        [sorted, order] = sort(Correl(GoodMax), 'descend');
+        
+        cc = Correl(GoodMax(order(1)));
+        MaxShift = GoodMax(order(1));
     end
 end
+   [dy0, dx0] = ind2sub(size(Conv), 1:size(Conv,1)*size(Conv,2));
+Cent = size(Conv)./2;
+GoodMax = find(ismember(dx0, Cent(1)-Md:Cent(1)+Md-1) & ismember(dy0,Cent(2)-Md:Cent(2)+Md-1));
+[sorted, order] = sort(LogCorrel(GoodMax), 'descend');
 
+cc = LogCorrel(GoodMax(order(1)));
+MaxShift = GoodMax(order(1));
 if MaxShift~=1  % including if you just avoided the top one
     if cc>CorrThresh(1)
         [dy0, dx0] = ind2sub(size(Conv), MaxShift);
-        shift = mod([dy0, dx0] +sz, sz*2) - sz - 1;  
+%         shift = mod([dy0, dx0] +sz, sz*2) - sz - 1;  
+        shift = [dy0, dx0]  - sz - 1;  
     else
         shift = [NaN, NaN];
     end

@@ -6,13 +6,13 @@ function o = extract_and_filter(o)
 %   Inner positive window of radius o.ExtractR1
 %   Outer negative window of radius o.ExtractR2
 % Final images multiplied by o.ExtractScale so important that this is the
-% same for all tiles. 
+% same for all tiles.
 % Also produces HistCounts and AutoThresh.
 % Need bfmatlab in path.
 % This uses GPU for filtering
 
 %% So if no Parallel Computing Toolbox, fails straight away
-GPU_test = gpuArray([1]); 
+GPU_test = gpuArray([1]);
 
 %% Logging
 if o.LogToFile
@@ -251,8 +251,14 @@ for r = 1:o.nRounds+o.nExtraRounds
                 end
                 
                 % tophat
-                if c == o.DapiChannel && r == o.AnchorRound
-                    IFS = imtophat(I_mod, DapiSE);
+                if (c == o.DapiChannel  && r == o.DapiRound) ||...
+                        ((c == o.GcampChannel || c == o.GadChannel) &&...
+                        (r == o.DapiRound || r == o.AnchorRound))
+                    if o.RawDAPIGad
+                    	IFS = I_mod;
+                    else
+                        IFS = imtophat(I_mod, DapiSE);
+                    end
                     if o.StripHack
                         %Set faulty columns all to be 0 so peaks can't be found there.
                         IFS(:,BadColumns) = 0;
@@ -318,7 +324,6 @@ for r = 1:o.nRounds+o.nExtraRounds
                         end
                         IFS = uint16(IFS);
                     end
-                    
                 end
                 
                 % write stack image
@@ -327,6 +332,20 @@ for r = 1:o.nRounds+o.nExtraRounds
                     [o.FileBase{r}, '_t', num2str(t), '.tif']),...
                     'tiff', 'writemode', 'append');
                 fprintf('Round %d tile %d colour channel %d finished.\n', r, t, c);
+            end
+            % if the DAPI Round has less channels than other rounds,
+            % the missing channels will be replaced by the Anchor channel
+            if nChannels < length(o.bpLabels) && r == o.DapiRound
+                for c = (nChannels + 1) : 7
+                    imwrite(IFS,...
+                        fullfile(o.TileDirectory,...
+                        [o.FileBase{r}, '_t', num2str(t), '.tif']),...
+                        'tiff', 'writemode', 'append');
+                end
+                fprintf(['\n There was less channels than codes for DAPI round: ',num2str(r),....
+                    ' , replacing missing channels with Anchor'])
+            elseif nChannels < length(o.bpLabels) && r ~= o.DapiRound
+                error(['\n There were less channels than codes for round: ',num2str(r)])
             end
         end
         bfreader.close();
@@ -413,7 +432,7 @@ if max(o.HistCounts(:)) > 0
             end
         end
     end
-
+    
     %Make sure histogram is peaked at 0
     o.HistMaxValues = zeros(o.nBP,o.nRounds);
     for r=1:o.nRounds

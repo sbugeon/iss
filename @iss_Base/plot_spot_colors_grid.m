@@ -43,9 +43,10 @@ nRounds = max(o.UseRounds);
 MaxDist = 10;
 Ylegends = {o.bpLabels{:}};
 Xlegends = string(1:nRounds);
-
+ColorCh = cellfun(@str2num,o.bpLabels);
 for r=1:nRounds
     for b=1:o.nBP
+        c = ColorCh(b)+1;
         h = subplot(o.nBP, nRounds, (b-1)*nRounds + r);
         if r == 1 && b == 1
             Pos1 = get(h,'position');
@@ -85,7 +86,7 @@ for r=1:nRounds
         end
         axis([x0-ImSz, x0+ImSz, y0-ImSz, y0+ImSz]);
         colorbar;
-        if numCharCode(r)==b && Dist<MaxDist 
+        if numCharCode(r)==c && Dist<MaxDist 
             ax = gca;
             ax.XColor = 'r';
             ax.YColor = 'r';

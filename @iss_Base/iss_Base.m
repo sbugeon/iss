@@ -807,6 +807,20 @@ classdef iss_Base
         CallMethodPrefix = ...
             containers.Map({'DotProduct','Prob','Pixel','OMP','Spatial','GroundTruth'},...
             {'dp','p','px','omp','sp','gt_px'});
+        
+        %% SB
+        GadChannel = 4;           % Channel of Gad image
+        GadRound = 8;             % round of Gad image
+    	GcampChannel = 6;         % Channel of Gcamp image
+    	GcampRound = 8;           % round of Gcamp image
+    	DapiRound = 8;            % round of DAPI
+        
+        PlotLineWidth = 1;      % when plotting, LineWidth of markers
+        MarkerSize = 6;         % when plotting, size of markers
+        
+        ExcludeGenes;           % genes to exclude for cell calling
+        
+        RawDAPIGad = 0;         % set to 1 to save DAPI, Gad and Gcamp images without filtering
     end
     
 end

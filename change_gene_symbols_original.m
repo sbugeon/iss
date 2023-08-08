@@ -1,29 +1,29 @@
-function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWidth)
+function New_symbols = change_gene_symbols_original(MarkerSize, FontSize, MultiCol)
 % ChangeGeneSymbols(MarkerSize, FontSize, nPerCol);
 %
-% changes gene symbols so in situ plots look nice.
+% changes gene symbols so in situ plots look nice. 
 % MarkerSize defaults to 6 - if 0, won't change existing sizes
 %
 % FontSize is font size for legend
 %
 % nPerCol says how many legend entries per column (0 for one-column)
-%
+% 
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
-
+ 
 if nargin<1 || isempty(MarkerSize)
     MarkerSize = 6;
-    LineWidth=1;
 end
-% MarkerSize = 6;
+MarkerSize = 6;
 
 if nargin<2 || isempty(FontSize)
-    FontSize = 10;
+    FontSize = 5;
 end
 
-if nargin<3 || MultiCol == 0
-    MultiCol = 69;
+if nargin<3
+    MultiCol = 49;
 end
+
 
 % colors
 non_neuron = hsv2rgb([0 0 1]);
@@ -240,7 +240,7 @@ if nargout<1
             elseif strcmp(h(j).Type, 'scatter')
                 set(h(j), 'CData', New_symbols{i,2});
             end
-            set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
+            set(h(j), 'Marker', New_symbols{i,3});
             
             if MarkerSize>0
                 if strcmp(gc(l).Type, 'line')
@@ -271,7 +271,7 @@ if nargout<1
         lh = legend(all_h, all_sym, 'color', 'k', 'textcolor', 'w', 'fontsize', FontSize);
         set(lh, 'color', 'k');
     else
-        ah = axes('Position', [.75 .13 .15 .8]);
+        ah = axes('Position', [.925 .13 .05 .8]);
         set(ah, 'color', 'k'); cla; hold on; box off
         set(ah, 'UserData', 'key');
         for j=1:length(Present)
@@ -319,7 +319,7 @@ if nargout<1
     set(gcf, 'InvertHardcopy', 'off');
     
     axes(MainAxes)
-%     uistack(ah, 'top');
+    uistack(ah, 'top');
 end
 
 end

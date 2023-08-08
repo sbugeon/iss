@@ -1,6 +1,6 @@
 function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_index,t)
 %% o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t)
-% 
+%
 % This finds the scale by which to multiply each filtered image. This is
 % based on the max intensity of tile t round r across all color channels.
 % It also writes the images for this tile and round to o.TileDirectory
@@ -19,8 +19,8 @@ function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_i
 
 %%
 fName = fullfile(o.TileDirectory, ...
-                [o.FileBase{r}, '_t', num2str(t), '.tif']);
-                
+    [o.FileBase{r}, '_t', num2str(t), '.tif']);
+
 if exist(fName, 'file')
     if r~=o.AnchorRound
         fprintf('Tile %d, from which o.ExtractScale derived already exists.\n',o.ExtractScaleTile);
@@ -51,15 +51,21 @@ else
             iPlane = bfreader.getIndex(z-1, c-1, 0)+1;
             I{z} = bfGetPlane(bfreader, iPlane);
         end
-
+        
         % focus stacking
         I_mod = o.fstack_modified(I(o.FirstZPlane:end));
         if o.StripHack
             [I_mod,BadColumns] = o.StripHack_raw(I_mod);
         end
         RawImage_all(:,:,c) = I_mod;
-        if c == o.DapiChannel && r == o.AnchorRound
-            IFS = imtophat(I_mod, DapiSE);
+        if (c == o.DapiChannel  && r == o.DapiRound) ||...
+                ((c == o.GcampChannel || c == o.GadChannel) &&...
+                (r == o.DapiRound || r == o.AnchorRound))
+            if o.RawDAPIGad
+                IFS = I_mod;
+            else
+                IFS = imtophat(I_mod, DapiSE);
+            end
             if o.StripHack
                 %Set faulty columns all to be 0 so peaks can't be found there.
                 IFS(:,BadColumns) = 0;
@@ -79,26 +85,36 @@ else
         end
         clearvars I_mod I IFS %Free up memory
     end
-
+    
     if r==o.AnchorRound
         o.ExtractScaleAnchor = o.ExtractScaleNorm/MaxPixelValue;
-        IFS_all(:,:,setdiff(1:nChannels,o.DapiChannel)) = ...
-            IFS_all(:,:,setdiff(1:nChannels,o.DapiChannel))*o.ExtractScaleAnchor;
+        IFS_all(:,:,setdiff(1:nChannels,[o.DapiChannel,o.GadChannel,o.GcampChannel])) = ...
+            IFS_all(:,:,setdiff(1:nChannels,[o.DapiChannel,o.GadChannel,o.GcampChannel]))*o.ExtractScaleAnchor;
     else
         o.ExtractScale = o.ExtractScaleNorm/MaxPixelValue;
         IFS_all = IFS_all*o.ExtractScale;
     end
-
+    
     if r~=o.AnchorRound; fprintf('Value is %.2f\n', o.ExtractScale);
     else; fprintf('Value is %.2f\n', o.ExtractScaleAnchor);end
-
+    
     if o.Graphics
         o.TilePlot(IFS_all,RawImage_all,r,nChannels);
     end
-
+    
     for c=1:nChannels
-        if c == o.DapiChannel && r == o.AnchorRound
-            IFS = uint16(IFS_all(:,:,c));
+        if (c == o.DapiChannel  && r == o.DapiRound) ||...
+                ((c == o.GcampChannel || c == o.GadChannel) &&...
+                (r == o.DapiRound || r == o.AnchorRound))
+            if o.RawDAPIGad
+                IFS = I_mod;
+            else
+                IFS = imtophat(I_mod, DapiSE);
+            end
+            if o.StripHack
+                %Set faulty columns all to be 0 so peaks can't be found there.
+                IFS(:,BadColumns) = 0;
+            end
         else
             if c ~= o.AnchorChannel && r == o.AnchorRound
                 IFS = uint16(IFS_all(:,:,c)+o.TilePixelValueShift);
@@ -111,9 +127,13 @@ else
                     IFS = int32(IFS);
                     o.HistCounts(:,c,r) = o.HistCounts(:,c,r)+histc(IFS(:),o.HistValues);
                 end
+                if o.StripHack
+                    %Set faulty columns all to be 0 so peaks can't be found there.
+                    IFS(:,BadColumns) = 0;
+                end
                 IFS = uint16(IFS+o.TilePixelValueShift);
             end
-
+            
         end
         imwrite(IFS,...
             fullfile(o.TileDirectory,...
