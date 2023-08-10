@@ -21,7 +21,7 @@ if nargin<2 || isempty(FontSize)
     FontSize = 10;
 end
 
-if nargin<3 || MultiCol == 0
+if nargin<3 || isempty(MultiCol) || MultiCol == 0
     MultiCol = 69;
 end
 
