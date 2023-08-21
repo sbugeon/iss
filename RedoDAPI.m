@@ -16,6 +16,8 @@ for iSlice = 1:4
     o.FileBase{9} = strcat(SliceNb,'_DAPI');
    
     o.nExtraRounds = 2;         %Treat DAPI and Anchor channel as extra round
+    
+    o.RawDAPIGad = 1; % if set to 1, the DAPI images will not be filtered
     %% set ExtractScale with some arbitrary values
     o.ExtractScale = 9.3;
     o.ExtractScaleAnchor = 8.6;
