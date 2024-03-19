@@ -41,7 +41,7 @@ for c=1:nC
 
     pMy = o.pCellClass(c,:);
     [~ , WorthShowing] = max(pMy);
-    if WorthShowing>0.9 && ~isempty(Boundaries{c})
+    if pMy(WorthShowing)>0.01 && ~isempty(Boundaries{c})
         if sum(Colors(WorthShowing(1),:))>0
             patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none');
         end

@@ -106,6 +106,7 @@ else
         if (c == o.DapiChannel  && r == o.DapiRound) ||...
                 ((c == o.GcampChannel || c == o.GadChannel) &&...
                 (r == o.DapiRound || r == o.AnchorRound))
+            I_mod = uint16(IFS_all(:,:,c));
             if o.RawDAPIGad
                 IFS = I_mod;
             else

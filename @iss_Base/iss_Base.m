@@ -821,6 +821,11 @@ classdef iss_Base
         ExcludeGenes;           % genes to exclude for cell calling
         
         RawDAPIGad = 0;         % set to 1 to save DAPI, Gad and Gcamp images without filtering
+        
+        nRegions = 1;           % number of different regions contained in the raw files
+        
+        TileInitialRawPosYX     % theoric initial tile positions
+        TileConnectedID         % regions of connected tiles 
     end
     
 end

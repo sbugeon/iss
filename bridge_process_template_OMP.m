@@ -158,14 +158,14 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imread(fullfile(o.OutputDirectory,'background_image.tif'))*0; % background image
-
-o.ompScoreThresh = 10;
-o.ompScoreThresh2 = 5;
-o.ompIntensityThresh = 0.4;
-o.ompIntensityThresh2 = 0.005;
-o.ompNeighbThresh = 15;
-o.ompNeighbThresh2 = 12;
+% I = imread(fullfile(o.OutputDirectory,'background_image.tif'))*0; % background image
+I=[];
+o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
+o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
+o.ompIntensityThresh = 0.01; % more stringent threshold, need to be true for only one of the three
+o.ompIntensityThresh2 = 0.005; % less stringent threshold, need to be true for all three
+o.ompNeighbThresh = 12; % more stringent threshold, need to be true for only one of the three
+o.ompNeighbThresh2 = 10; % less stringent threshold, need to be true for all three
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
@@ -175,14 +175,22 @@ Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 %% adjust thresholds
-o.ompScoreThresh = 10;
-o.ompScoreThresh2 = 7;
-o.ompIntensityThresh = 0.4;
-o.ompIntensityThresh2 = 0.01;
-o.ompNeighbThresh = 15;
-o.ompNeighbThresh2 = 15;
+o.ompScoreThresh = 5;
+o.ompScoreThresh2 = 2;
+o.ompIntensityThresh = 0.01;
+o.ompIntensityThresh2 = 0.005;
+o.ompNeighbThresh = 12;
+o.ompNeighbThresh2 = 10;
+
+o.ompScoreThresh = 0;
+o.ompScoreThresh2 = 0;
+o.ompIntensityThresh = 0;
+o.ompIntensityThresh2 = 0;
+o.ompNeighbThresh = 0;
+o.ompNeighbThresh2 = 0;
+
 o.iss_change_plot('OMP',[],o.GeneNames)
-o.iss_change_plot('OMP',[],'Pvalb')  
+% o.iss_change_plot('OMP',[],{'Ddit4l'})  
 %% diagnostics per spot
 iss_view_spot_omp3(o,234321)
 iss_view_omp(o,234321)
