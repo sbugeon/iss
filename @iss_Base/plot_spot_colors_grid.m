@@ -1,4 +1,4 @@
-function plot_spot_colors_grid(o, SpotColors, PointCorrectedLocalYX, ImSz, Dist,...
+function Imgs = plot_spot_colors_grid(o, SpotColors, PointCorrectedLocalYX, ImSz, Dist,...
     SpotCodeNo, Clim, IncludeGT, Filter)
 %% plot_spot_colors_grid(o, SpotColors, PointCorrectedLocalYX, ImSz, Dist,...
 %    SpotCodeNo, Clim, IncludeGT, Filter)
@@ -44,6 +44,8 @@ MaxDist = 10;
 Ylegends = {o.bpLabels{:}};
 Xlegends = string(1:nRounds);
 ColorCh = cellfun(@str2num,o.bpLabels);
+
+Imgs = cell(nRounds,o.nBP);
 for r=1:nRounds
     for b=1:o.nBP
         c = ColorCh(b)+1;
@@ -74,6 +76,7 @@ for r=1:nRounds
         x1 = max(1,x0 - ImSz);
         x2 = min(o.TileSz,x0 + ImSz);
         BaseIm = reshape(SpotColors(:,b,r),[ImSz*2+1,ImSz*2+1]);
+        Imgs{b,r} = BaseIm;
         imagesc([x1 x2], [y1 y2], BaseIm); hold on
         if Filter
             if ~isempty(Clim) && sum(size(Clim) == [2,o.nBP,nRounds])==3

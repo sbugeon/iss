@@ -1,24 +1,24 @@
 function [o,x] = PointCloudRegister6(o, y0, x0, A0, nTiles)     %MADE A THE SAME FOR ALL TILES
 % o = o.PointCloudRegister6(o, y0, x0, A0, nTiles)
-% 
+%
 % Perform point cloud registration to map points x onto points y by
-% iterative closest point: repeatedly finding the best y for each x, 
+% iterative closest point: repeatedly finding the best y for each x,
 % and doing linear regression to find the M that maps best maps x to y
 %
 % PCR6 finds an affine separate affine transform for each round, channel, tile
 % as given by D(:,:,t,r,b). It also tries to provide a regularisation so for
-% a particular tile, for a particular round, shifts are similar across all 
+% a particular tile, for a particular round, shifts are similar across all
 % colour channels and for a particular tile, for a particular channel,
 % scalings are the similar across all rounds.
 %
 % inputs:
-% y0 is a cell containig the YX location of all spots in all rounds 
+% y0 is a cell containig the YX location of all spots in all rounds
 % and colour channels for all tiles
 %
-% x0{t,b} is a cell containing the YX location of spots in the 
+% x0{t,b} is a cell containing the YX location of spots in the
 % reference round for tile t, channel b
 %
-% A0 are the initial scaling values for each colour channel 
+% A0 are the initial scaling values for each colour channel
 % taking account of chromatic aberration. All default to 1 if not
 % specified
 %
@@ -47,7 +47,7 @@ x0(NonemptyTiles,o.ReferenceSpotChannels) = cellfun(@(x0) x0(:,1:2)-o.TileCentre
     x0(NonemptyTiles,o.ReferenceSpotChannels),'UniformOutput',false);
 x = cell(nTiles,o.nBP);
 for t=NonemptyTiles
-    for b = o.ReferenceSpotChannels        
+    for b = o.ReferenceSpotChannels
         %Append array of ones for translation
         x(t,b) = {[x0{t,b},ones(size(x0{t,b},1),1)]};
     end
@@ -61,7 +61,7 @@ elseif max(size(A0))==1
     for b=1:o.nBP
         A(b,1:2) = A0;
     end
-    A0 = A;    
+    A0 = A;
 end
 
 if isempty(o.PcDist)
@@ -90,7 +90,7 @@ for t=NonemptyTiles
             % make kd tree - default options!
             k0 = KDTreeSearcher(y0{t,b,r});
             [~, d2] = k0.knnsearch(y0{t,b,r}, 'k', 2);
-            if isfinite(o.PcDist) && size(y0{t,b,r},1) > 1 
+            if isfinite(o.PcDist) && size(y0{t,b,r},1) > 1
                 y(t,b,r) = {y0{t,b,r}(d2(:,2)>o.PcDist*2,:)};
             end
             
@@ -169,7 +169,7 @@ for i=1:o.PcIter
             end
         end
     end
-        
+    
     if isempty(o.ToPlot) == 0
         t = o.ToPlot(1);
         b = o.ToPlot(2);
@@ -196,12 +196,12 @@ for i=1:o.PcIter
         IsConverged(o.PcFailed) = false;
         nNeighbMatches = sum(sum(sum(IsConverged(NonemptyTiles,o.UseChannels,o.UseRounds))));
         FinishedGoodImages = true;
-        i_finished_good = i;        
+        i_finished_good = i;
     elseif i == i_finished_good+1
         IsConverged(o.PcFailed) = false;
         nNeighbMatches = sum(sum(sum(IsConverged(NonemptyTiles,o.UseChannels,o.UseRounds))));
     end
-        
+    
     fprintf('\nPCR - Iteration %d: Converged images = %d/%d',i,nNeighbMatches,TotalNeighbMatches);
     %if min(min(min(cellfun(@isequal, Neighbor, LastNeighbor)))) == 1; break; end
     if nNeighbMatches == TotalNeighbMatches; break; end
@@ -220,4 +220,31 @@ o.nPcCovergedImg = nNeighbMatches/TotalNeighbMatches;
 %Uncentre reference spot YX
 x(NonemptyTiles,o.ReferenceSpotChannels) = cellfun(@(x) x(:,1:2)+o.TileCentre,...
     x(NonemptyTiles,o.ReferenceSpotChannels),'UniformOutput',false);
+
+%%
+
+if o.Graphics == 1
+    id=1;
+    figure
+    for b = 5
+        for r = o.UseRounds
+            t = NonemptyTiles(1);
+            ax(id) = subplot(1,length(o.UseRounds),id);
+            fprintf('\n %d matches, mean error %f',  nMatches(t,b,r), Error(t,b,r));
+            hold on
+            scatter(y{t,b,r}(:,2), y{t,b,r}(:,1), '.g');
+            plot(xM{t,b,r}(:,2), xM{t,b,r}(:,1), 'or');
+            %                 plot([xM{t,b,r}(UseMe{t,b,r}>0,2) y{t,b,r}(MyNeighb{t,b,r},2)]',...
+            %                     [xM{t,b,r}(UseMe{t,b,r}>0,1) y{t,b,r}(MyNeighb{t,b,r},1)]', 'k-', 'linewidth', 1);
+            xlabel(['Round ',num2str(r)])
+            ylabel(['Channel ',num2str(b)])
+            drawnow;
+            id=id+1;
+        end
+    end
+    linkaxes(ax,'xy')
+    legend({'Moving round','Reference Round'})
 end
+
+end
+

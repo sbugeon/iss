@@ -1,18 +1,28 @@
 function o = get_TilePos(o, xypos, nTiles)
-%% o = o = o.get_TilePos(xypos,nSeries);
 % This function takes the tile coordinates and derives the Y,X index of
 % each tile. Adds o.TileInitialPosYX and o.TilePosYX to o object.
 % o: iss object
 % xypos: [X,Y] coordinate of each tile as given from metadata.
 % nTiles: number of tiles
+
 o.TilePosYX = zeros(size(xypos));
 o.TileInitialRawPosYX = xypos;
-o = o.getConnectedRegions;  % find regions
-xypos0 = xypos;
+%%%%%%%% find regions that are connected, split the ones that aren't
+o = o.getConnectedRegions;
+
+if strcmp(o.RawFileExtension,'.czi')
+    B = max(xypos);
+    
+    xypos0 = B - xypos;
+end
+
+% xypos0 = xypos;
 for i = 1:length(o.TileConnectedID)
+    
     SubTiles = o.TileConnectedID{i};
     xypos = xypos0(SubTiles,:);
-    nTiles = length( SubTiles);
+    nTiles = length(SubTiles);
+    
     % find x and y grid spacing as median of distances that are about
     % right
     dx = xypos(:,1)-xypos(:,1)'; % all pairs of x distances
@@ -22,7 +32,8 @@ for i = 1:length(o.TileConnectedID)
         xStep = median(dx(abs(1- dx(:)/o.MicroscopeStepSize)<.5));
     end
     dy = xypos(:,2)-xypos(:,2)'; % all pairs of y distances
-    if max(abs(dy(:)))==0
+    
+    if max(abs(dy(:)))<o.MicroscopeStepSize/3
         yStep = o.MicroscopeStepSize;
     else
         yStep = median(dy(abs(1- dy(:)/o.MicroscopeStepSize)<.5));
@@ -30,13 +41,13 @@ for i = 1:length(o.TileConnectedID)
     
     
     % find index for each tile
-    if isempty(o.TileInitialPosYX)
-        if nTiles==1
-            o.TileInitialPosYX = [1,1];
-        else
-            o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
-        end
+    %     if isempty(o.TileInitialPosYX)
+    if nTiles==1
+        o.TileInitialPosYX = [1,1];
+    else
+        o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
     end
+    %     end
     
     % only consider tiles with index less than number of tiles and only 1
     % away from another tile index.
@@ -85,17 +96,16 @@ for i = 1:length(o.TileConnectedID)
         o.TilePosYX(:,1) = TilePosY;
         TilePosX = repmat([flip(1:MaxX),1:MaxX],1,ceil(MaxY/2));
         o.TilePosYX(1:nTiles,2) = TilePosX(1:nTiles);
-    elseif strcmp(o.RawFileExtension,'.czi')
+    elseif strcmp(o.RawFileExtension,'.czi') %%%%%%%%%%%%
         M = max(o.TilePosYX);
-        o.TilePosYX(SubTiles,:) = o.TileInitialPosYX + [M(1) 0];   
+        o.TilePosYX(SubTiles,:) = o.TileInitialPosYX + [M(1) 0];
+        dd = o.TileInitialPosYX + [M(1) 0];
+        if any(isnan(dd(:)))
+            error
+        end
     end
-
+    
 end
 
-o.TilePosYX = flipud(o.TilePosYX);
-% 
-% t_save_value = sub2ind([max(o.TilePosYX(:,1)),max(o.TilePosYX(:,2))],...
-%         o.TilePosYX(:,1),o.TilePosYX(:,2));
-    
 end
 

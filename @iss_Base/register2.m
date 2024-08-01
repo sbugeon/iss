@@ -24,6 +24,7 @@ if o.LogToFile
     cleanup = onCleanup(@()diary('off'));
 end
 
+
 %% basic variables
 rr = o.ReferenceRound;
 [nY, nX] = size(o.EmptyTiles);
@@ -63,7 +64,12 @@ for t=NonemptyTiles(:)'
     TifObj = Tiff(FileName);
     for b=o.ReferenceSpotChannels        
         TifObj.setDirectory(o.FirstBaseChannel + b - 1);
-        ReferenceIm = int32(TifObj.read())-o.TilePixelValueShift;            
+%         Im = int32(TifObj.read()); 
+%         if ~any(Im(:)<0)
+%             ReferenceIm =Im;
+%         else
+        ReferenceIm = int32(TifObj.read())-o.TilePixelValueShift;     
+%         end
         if o.SmoothSize
             SE = fspecial('disk', o.SmoothSize);
             ReferenceImSm = imfilter(ReferenceIm ,SE);

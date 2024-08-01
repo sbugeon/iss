@@ -1,4 +1,4 @@
-function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] =...
+function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize,xyposRaw] =...
     get_ome_tilepos(reader)
 % [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] =...
 %     get_ome_tilepos(reader)
@@ -31,6 +31,7 @@ for i = 1:nSeries
 end
 
 if ~isempty(xypos)
+    xyposRaw = xypos/pixelsize;
     xypos = bsxfun(@minus, xypos, min(xypos,[],1))/pixelsize;
 end
 

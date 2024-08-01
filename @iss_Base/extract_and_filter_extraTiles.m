@@ -1,34 +1,11 @@
-function o = extract_and_filter(o)
-%% o = extract_and_filter(o)
-% create tiff files for each tile that are filtered versions of
-% original czi/nd2 files.
-% Filter is a difference of two hanning windows:
-%   Inner positive window of radius o.ExtractR1
-%   Outer negative window of radius o.ExtractR2
-% Final images multiplied by o.ExtractScale so important that this is the
-% same for all tiles.
-% Also produces HistCounts and AutoThresh.
-% Need bfmatlab in path.
-% This uses GPU for filtering
+function  o = extract_and_filter_extraTiles(o,RefRounds)
 
-%% So if no Parallel Computing Toolbox, fails straight away
-GPU_test = gpuArray([1]);
-
-%% Logging
-if o.LogToFile
-    diary(o.LogFile);
-    cleanup = onCleanup(@()diary('off'));
-end
-%%
-
-if o.ReferenceRound == o.AnchorRound && o.ReferenceChannel ~=o.AnchorChannel
-    error('o.ReferenceRound = o.AnchorRound but o.ReferenceChannel is not equal to o.AnchorChannel');
-end
-
-o.TileFiles = cell(o.nRounds+o.nExtraRounds,1,1); % 1,1 because we don't yet know how many tiles
+t_save_value0 = sub2ind([max(o.TilePosYX(:,1)),max(o.TilePosYX(:,2))],...
+        o.TilePosYX(:,1),o.TilePosYX(:,2));
+    
 UsedEmptyTiles = false;   %If running for only a few tiles, this will change to true.
 
-for r = 1:o.nRounds+o.nExtraRounds
+for r = o.nRounds+o.nExtraRounds+1:length(o.FileBase)
     if r == o.AnchorRound; ExtractScale = o.ExtractScaleAnchor;
     else; ExtractScale = o.ExtractScale; end
     
@@ -94,6 +71,20 @@ for r = 1:o.nRounds+o.nExtraRounds
     
     bfreader.close();
     
+    %New filter
+    if strcmpi(o.ExtractR1, 'auto')
+        o.ExtractR1 = round(0.5/pixelsize);  %Gives value of 3 for pixelsize = 0.1669 of most data tested
+    end
+    if strcmpi(o.ExtractR2, 'auto')
+        o.ExtractR2 = o.ExtractR1*2;
+    end
+    h = -hanning(o.ExtractR2*2+1);
+    h = -h/sum(h);
+    h(o.ExtractR2+1-o.ExtractR1:o.ExtractR2+1+o.ExtractR1) = ...
+        h(o.ExtractR2+1-o.ExtractR1:o.ExtractR2+1+o.ExtractR1)+hanning(o.ExtractR1*2+1)/sum(hanning(o.ExtractR1*2+1));
+    SE = ftrans2(h');
+    SE = single(gpuArray(SE));
+        o = o.get_TilePos(xypos,nSeries);
     if r == 1
         if isempty(o.TilePosYX)
             o = o.get_TilePos(xypos,nSeries);
@@ -188,24 +179,6 @@ for r = 1:o.nRounds+o.nExtraRounds
         
         if exist(fName{t}, 'file')
             fprintf('Round %d tile %d already done.\n', r, t);
-            TifObj = Tiff(fName{t});
-            for c=1:nChannels
-                if c ~= o.AnchorChannel && r == o.AnchorRound; continue; end
-                if o.AutoThresh(t,c,r) == 0
-                    TifObj.setDirectory(o.FirstBaseChannel + c - 1);
-                    IFS = int32(TifObj.read())-o.TilePixelValueShift;
-                    o.AutoThresh(t,c,r) = median(abs(IFS(:)))*o.AutoThreshMultiplier;
-                    if ismember(r,1:o.nRounds)
-                        o.HistCounts(:,c,r) = o.HistCounts(:,c,r)+histc(IFS(:),o.HistValues);
-                        if o.StripHack
-                            [~,BadColumns] = o.StripHack_raw(IFS);
-                            %Correct for BadColumns
-                            ZeroIndex = find(o.HistValues==0);
-                            o.HistCounts(ZeroIndex,c,r) = o.HistCounts(ZeroIndex,c,r)-length(BadColumns)*o.TileSz;
-                        end
-                    end
-                end
-            end
             continue;
         elseif min(size(o.EmptyTiles))==1 && ~ismember(t,o.EmptyTiles)
             UsedEmptyTiles = true;
@@ -358,107 +331,27 @@ for r = 1:o.nRounds+o.nExtraRounds
         bfreader.close();
         
     end
-    for t_index=1:length(t_save_value)
-        o.TileFiles{r,o.TilePosYX(t_index,1), o.TilePosYX(t_index,2)} = fName{t_save_value(t_index)};
-    end
-end
- nChannels = length(o.bpLabels);
-o.EmptyTiles = cellfun(@isempty, squeeze(o.TileFiles(o.ReferenceRound,:,:)));
-
-%Get a bug here if one dimension is only 1.
-if sum(size(o.TileFiles(o.ReferenceRound,:,:),2:3)==size(o.EmptyTiles))==0
-    o.EmptyTiles = o.EmptyTiles';
-end
-if UsedEmptyTiles
-    o.EmptyTiles(:) = true;
-    o.EmptyTiles(EmptyTilesOrig) = false;
-end
-
-o.xypos = xyposRaw;
-
-%Plot boxplots showing distribution af AutoThresholds
-if o.Graphics
-    UseRounds = setdiff(1:o.nRounds+o.nExtraRounds,o.AnchorRound);
-    Thresholds = [];
-    group = [];
-    index = 1;
-    for c=1:nChannels
-        for r=UseRounds
-            Thresholds = [Thresholds;o.AutoThresh(~o.EmptyTiles(:),c,r)];
-            group = [group;index*ones(size(o.AutoThresh(~o.EmptyTiles(:),1,1)))];
-            index = index+1;
-        end
-    end
-    if o.nExtraRounds>0
-        %Add anchor
-        AnchorLabel = {'Anchor'};
-        Thresholds = [Thresholds;o.AutoThresh(~o.EmptyTiles(:),o.AnchorChannel,o.AnchorRound)];
-        group = [group;index*ones(size(o.AutoThresh(~o.EmptyTiles(:),1,1)))];
+    
+    % find closest tile in 1st acquisition 
+    id = r - (o.nRounds+o.nExtraRounds);
+    RR = RefRounds(id);
+    
+    % find closest tile
+    for i=1:length(t_save_value)
+    D = pdist([xyposRaw(i,:);o.xypos]);
+    Z = squareform(D); [~,Same] = min(Z(1,2:end));
+    TileNb = t_save_value0(Same);
+    
+    % replace bad tile with better z-focused tile 
+    copyfile(fullfile(o.TileDirectory,[o.FileBase{RR}, '_t', num2str(TileNb), '.tif']),...
+        fullfile(o.TileDirectory,[o.FileBase{RR}, '_t', num2str(TileNb), '_wrongZ.tif']));
+     copyfile(fullfile(o.TileDirectory,[o.FileBase{r}, '_t', num2str(t_save_value(i)), '.tif']),...
+        fullfile(o.TileDirectory,[o.FileBase{RR}, '_t', num2str(TileNb), '.tif']));
     end
     
-    
-    figure(43290);
-    colors = colormap(lines(nChannels));
-    Colors = repelem(colors,length(UseRounds),1);
-    if o.nExtraRounds>0
-        Colors = [Colors;repelem([0,0,0],nChannels,1)];
-        Labels = [string(repmat(UseRounds,1,nChannels)),string(AnchorLabel)];
-    else
-        Labels = string(repmat(UseRounds,1,nChannels));
-    end
-    boxplot(Thresholds,group,'Colors',Colors, 'plotstyle', 'compact','labels', Labels);
-    set(gca,'TickLength',[0 0]);
-    ylabel('AutoThreshold');
-    xlabel('Round');
-    hold on
-    for c=1:nChannels
-        plot(NaN,1,'color', colors(c,:), 'LineWidth', 4);       %For legend labels
-    end
-    leg = legend(o.bpLabels,'Location','northwest');
-    title(leg,'Color Channel');
-    hold off
 end
 
 
-%Plot histograms to make sure they are smooth
-%Avoid ExtraRounds as only need histograms for the 7 rounds used to
-%define genes
-if max(o.HistCounts(:)) > 0
-    nPixels = sum(o.HistCounts(:,1,1));
-    if o.Graphics
-        figure(43291);
-        index = 1;
-        for r=1:o.nRounds
-            for b=1:nChannels
-                subplot(o.nRounds,nChannels,index)
-                histogram('BinEdges',[o.HistValues-0.5,max(o.HistValues)+0.5],'BinCounts',o.HistCounts(:,b,r)/nPixels,'DisplayStyle','stairs');
-                xlim([-1000,1000]);
-                ylim([0,max(o.HistCounts(:,b,r))/nPixels]);
-                if b==4
-                    title(strcat('Round ',num2str(r)));
-                end
-                index = index+1;
-            end
-        end
-    end
-    
-    %Make sure histogram is peaked at 0
-    o.HistMaxValues = zeros(o.nBP,o.nRounds);
-    for r=1:o.nRounds
-        for b=1:nChannels
-            [~,PeakIndex] = max(o.HistCounts(:,b,r));
-            o.HistMaxValues(b,r) = o.HistValues(PeakIndex);
-            if abs(o.HistMaxValues(b,r))>2
-                warning('Histogram for round %d, channel %d peaked at %d, not 0',r,b,o.HistMaxValues(b,r));
-            end
-        end
-    end
-    if max(abs(o.HistMaxValues(:)))>o.HistMaxShiftThresh
-        ErrorFile = fullfile(o.OutputDirectory, 'oExtract-Error_with_histograms');
-        save(ErrorFile, 'o', '-v7.3');
-        error(['Histogram is not peaked at pixel value of 0 as expected.'...
-            '\nLook at o.HistMaxValues in saved file and also look at figure 43291.'...
-            '\nProgress up to this point saved as:\n%s.mat'],ErrorFile);
-    end
-end
+
+
 end

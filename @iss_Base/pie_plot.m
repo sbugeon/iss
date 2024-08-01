@@ -28,7 +28,7 @@ Colors0 = hsv(ceil(nColorWheel*1.2));
 Colors(~CollapseMe,:) = Colors0(1:nColorWheel,:); % last is zero
 
 figure(43908765)
-clf; 
+clf;
 set(gcf, 'Color', 'k');
 set(gca, 'color', 'k');
 hold on
@@ -38,10 +38,23 @@ hold on
 for c=1:nC
     hold on
     fprintf(['\n Cell Nb', num2str(c)]);
-
+    
     pMy = o.pCellClass(c,:);
+    
+    % max prob for subclasses
+    Group1 = o.ClassCollapse(:,2);
+    Psubclass=[];
+    for i = 1 : length(Group1)
+        ClassList = o.ClassCollapse{i,1};
+        MyClasses = [];
+        for j=1:length(ClassList)
+            MyClasses(j) = find(strcmp(ClassList{j}, o.ClassNames));
+        end
+        Psubclass(i) = sum(pMy(MyClasses));
+    end
+    
     [~ , WorthShowing] = max(pMy);
-    if pMy(WorthShowing)>0.01 && ~isempty(Boundaries{c})
+    if pMy(WorthShowing)>0.5 && max(Psubclass)>0.8 && ~isempty(Boundaries{c})
         if sum(Colors(WorthShowing(1),:))>0
             patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none');
         end

@@ -22,10 +22,10 @@ function [SpotNo,ViewOMP3_Info] = iss_view_spot_omp2(o, FigNo, ImSz, SpotLocatio
 if nargin<3 || isempty(ImSz)
     ImSz = 7;
 end
-if ImSz>100
-    warning('ImSz too large, setting to 7');
-    ImSz = 7;
-end
+% if ImSz>100
+%     warning('ImSz too large, setting to 7');
+%     ImSz = 7;
+% end
 
 if nargin<4 || isempty(SpotLocation)
     SpotLocation = false;
@@ -231,6 +231,7 @@ ViewOMP3_Info.ImSz = ImSz;
 ViewOMP3_Info.Dist = Dist;
 ViewOMP3_Info.coefs = coefs;
 ViewOMP3_Info.nCodes = S.nCodes;
+ViewOMP3_Info.xy =xy;
 end
 
 function S = update_view_omp3(aH,~,idx,o)

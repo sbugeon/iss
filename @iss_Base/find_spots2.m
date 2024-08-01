@@ -99,7 +99,7 @@ if nargin<2
                 % pointcloud-corrected positions of the spots detected in the reference round home tiles
                 Spots = o.detect_spots(BaseIm,t,b,r);
                 AllBaseLocalYX(t,b,r) = {Spots};
-                
+%                 pause
             end
             TifObj.close();
         end
@@ -199,9 +199,10 @@ if nargin<3 || SkipRegistration == false
                 t, o.ReferenceRound,r, o.D0(t,:,r),Scores(t,r));
             
             %Change search range after 3 tiles or if search has had to be widened twice (This is for speed).
-            if t == 3 || (mod(ChangedSearch(r),2) == 0) && (ChangedSearch(r)>0)
-                o = o.GetNewSearchRange_FindSpots(t,r);
-            end
+%             if t == 3 || (mod(ChangedSearch(r),2) == 0) && (ChangedSearch(r)>0)
+%                 o = o.GetNewSearchRange_FindSpots(t,r);
+%             end
+%             pause
         end
     end
     
@@ -254,7 +255,7 @@ if nargin<3 || SkipRegistration == false
         error(['%d/%d images have nMatches<o.MinPCMatchFract*o.AllBaseSpotNo, where o.MinPCMatchFract =  %.2f'...
             '\nThis exceeds threshold of o.PcImageMatchesThresh = %d.'...
             '\nProgress up to this point saved as:\n%s.mat'],...
-            nBadRegImages,nTiles*o.nBP*o.nRounds,o.MinPCMatchFract,o.PcImageMatchesThresh,ErrorFile);
+            nBadRegImages,length(NonemptyTiles)*o.nBP*o.nRounds,o.MinPCMatchFract,o.PcImageMatchesThresh,ErrorFile);
     end
 end
 

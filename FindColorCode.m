@@ -19,3 +19,4 @@ GeneColor = Colors(dd+1);
 roundname = ['GeneColor_r',num2str(i-1)];
 T.(roundname) = GeneColor';
 end
+writetable(T,fullfile('C:\Users\bugeon\Documents\73gColorRound.xlsx'))

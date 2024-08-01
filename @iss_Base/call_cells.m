@@ -205,6 +205,8 @@ o.ClassNames = ClassNames;
 cellCallData.GeneNames = GeneNames;
 cellCallData.ClassNames = ClassNames;
 cellCallData.IncludeSpot = IncludeSpot;
+
+cellCallData.NegBin = sum(reshape(CellGeneCount,[nC 1 nG]).*log(pNegBin) + o.rSpot*log(1-pNegBin),3) - LogClassPrior;
 cellCallData.pCellClass = pCellClass;
 cellCallData.CellGeneCount = CellGeneCount;
 cellCallData.Neighbors = Neighbors;
@@ -215,4 +217,6 @@ cellCallData.CellMap = CellMap;
 cellCallData.CellGeneCount = CellGeneCount;
 cellCallData.eGeneGamma = eGeneGamma;
 cellCallData.ScaledExp = ScaledExp;
+cellCallData.ClassTotPredicted = ClassTotPredicted;
+cellCallData.GeneContrib = sum(reshape(CellGeneCount,[nC 1 nG]).*log(pNegBin) + o.rSpot*log(1-pNegBin),3);
 end

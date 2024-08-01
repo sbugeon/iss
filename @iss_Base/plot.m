@@ -79,7 +79,8 @@ try
 catch
     S.FigNo = 234321;
 end
-S.fh = figure(S.FigNo);set(S.fh,'units','pixels','position',[500 200 800 600]);  %Left, Bottom, Width, Height
+S.fh = figure(S.FigNo);
+% set(S.fh,'units','pixels','position',[500 200 800 600]);  %Left, Bottom, Width, Height
 set(gcf, 'color', 'k');
 set(gca, 'color', 'k');
 
@@ -131,7 +132,7 @@ legend off;
 set(gca, 'Clipping', 'off');
 
 if ~isempty(PlotSpots)
-   change_gene_symbols(o.MarkerSize,[],[],o.PlotLineWidth);
+   change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
 else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    
@@ -179,7 +180,7 @@ legend off;
 set(gca, 'Clipping', 'off');
 
 if ~isempty(PlotSpots)
-    change_gene_symbols(o.MarkerSize,[],[],o.PlotLineWidth);
+    change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth);
 else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    

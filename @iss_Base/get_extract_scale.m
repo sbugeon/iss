@@ -54,6 +54,7 @@ else
         
         % focus stacking
         I_mod = o.fstack_modified(I(o.FirstZPlane:end));
+
         if o.StripHack
             [I_mod,BadColumns] = o.StripHack_raw(I_mod);
         end
@@ -136,12 +137,24 @@ else
             end
             
         end
+        
+        
         imwrite(IFS,...
             fullfile(o.TileDirectory,...
             [o.FileBase{r}, '_t', num2str(t), '.tif']),...
             'tiff', 'writemode', 'append');
         fprintf('Round %d tile %d colour channel %d finished.\n', r, t, c);
     end
+     if nChannels < length(o.bpLabels) && r == o.DapiRound
+                for c = (nChannels + 1) : 7
+                    imwrite(IFS,...
+                        fullfile(o.TileDirectory,...
+                        [o.FileBase{r}, '_t', num2str(t), '.tif']),...
+                        'tiff', 'writemode', 'append');
+                end
+                fprintf(['\n There was less channels than codes for DAPI round: ',num2str(r),....
+                    ' , replacing missing channels with Anchor'])
+     end
 end
 
 %Save o object so keep ExtractScale values

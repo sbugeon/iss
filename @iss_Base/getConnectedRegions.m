@@ -2,7 +2,7 @@ function o = getConnectedRegions(o)
 
 Pos = o.TileInitialRawPosYX;
 L = size(Pos,1);
-Sz = o.TileSz;
+Sz = o.TileSz*0.91;
 D=[];
 for i=1:L
     for j=1:L
@@ -19,7 +19,7 @@ for i=1:length(Connected.PixelIdxList)
     C{i} = unique([row;col]);
 end
 
-o.TileConnectedID = C;
+o.TileConnectedID = fliplr(C);
 
 % plot results
 

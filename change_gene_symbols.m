@@ -1,4 +1,4 @@
-function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWidth)
+function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWidth,MarkerType)
 % ChangeGeneSymbols(MarkerSize, FontSize, nPerCol);
 %
 % changes gene symbols so in situ plots look nice.
@@ -14,6 +14,7 @@ function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWi
 if nargin<1 || isempty(MarkerSize)
     MarkerSize = 6;
     LineWidth=1;
+    MarkerType = 'GeneSpots';
 end
 % MarkerSize = 6;
 
@@ -21,7 +22,7 @@ if nargin<2 || isempty(FontSize)
     FontSize = 10;
 end
 
-if nargin<3 || isempty(MultiCol) || MultiCol == 0
+if nargin<3 || isempty(MultiCol)  || MultiCol ==0
     MultiCol = 69;
 end
 
@@ -57,7 +58,7 @@ New_symbols = {...
 'Zcchc12',    in_general, 'd'; ...
 'Col25a1',  in_general, '^'; ...
 'Pnoc',     in_general, '>'; ...
-'Rab3c',    in_general, '<'; ...
+'Rab3b',    in_general, '<'; ...
 'Gad1',     in_general, 'p'; ...
 'Slc6a1',   in_general, 'h'; ...
 %      '',    in_general, 'v'; ...
@@ -240,7 +241,11 @@ if nargout<1
             elseif strcmp(h(j).Type, 'scatter')
                 set(h(j), 'CData', New_symbols{i,2});
             end
-            set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
+            if strcmp(MarkerType,'GeneSymbols')
+                set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
+            elseif strcmp(MarkerType,'Letters')
+                 set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
+            end
             
             if MarkerSize>0
                 if strcmp(gc(l).Type, 'line')

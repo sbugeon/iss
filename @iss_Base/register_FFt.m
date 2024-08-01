@@ -21,6 +21,9 @@ function o=register_FFt(o)
 % we index tiles by their yx coordinate (sometimes as a linear index). Not
 % all of these tiles are actually there. NonemptyTiles lists the ones that
 % are.
+% o.TileFiles = o.TileFiles(:,fliplr(1:size(o.TileFiles,2)),:);
+% o.TileFiles = o.TileFiles(:,:,fliplr(1:size(o.TileFiles,3)));
+% o.EmptyTiles = fliplr(flipud(o.EmptyTiles));
 
 rr = o.ReferenceRound;
 [nY, nX] = size(o.EmptyTiles);
@@ -37,6 +40,7 @@ for t=NonemptyTiles(:)'
     else
         RefImages(:,:,t) = Im;
     end
+    o.TileFiles{rr,y,x}
 end
 %% get arrays ready
 

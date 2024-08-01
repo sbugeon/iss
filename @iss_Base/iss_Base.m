@@ -817,6 +817,7 @@ classdef iss_Base
         
         PlotLineWidth = 1;      % when plotting, LineWidth of markers
         MarkerSize = 6;         % when plotting, size of markers
+        MarkerType = 'GeneSymbols';   % which type of markers to use 'GeneSymbols','Letters','Dots'
         
         ExcludeGenes;           % genes to exclude for cell calling
         
@@ -826,6 +827,7 @@ classdef iss_Base
         
         TileInitialRawPosYX     % theoric initial tile positions
         TileConnectedID         % regions of connected tiles 
+        xypos;                  % absolute tile position
     end
     
 end
