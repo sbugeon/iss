@@ -100,7 +100,7 @@ set(gca, 'Clipping', 'off');
 
 if ~isempty(PlotSpots)
     if strcmpi(GeneType,'Neuron')
-         change_gene_symbols(o.MarkerSize,[],[],o.PlotLineWidth);
+         change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
     elseif strcmpi(GeneType,'NonNeuron')
         change_gene_symbols_NonNeuron(0);
     end

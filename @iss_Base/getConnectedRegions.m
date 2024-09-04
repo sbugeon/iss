@@ -16,9 +16,13 @@ Connected = bwconncomp(~NonOver,4);
 C = {};
 for i=1:length(Connected.PixelIdxList)
     [row col] = ind2sub(size(NonOver),Connected.PixelIdxList{i});
-    C{i} = unique([row;col]);
+    if any(~ismember(row,col))
+        C{i} = [];
+    else
+        C{i} = unique([row;col]);
+    end
 end
-
+C = C(cell2mat(cellfun(@(x) ~isempty(x),C,'UniformOutput',false)));
 o.TileConnectedID = fliplr(C);
 
 % plot results
