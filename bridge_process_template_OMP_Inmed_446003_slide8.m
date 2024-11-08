@@ -1,7 +1,7 @@
 clear
 SliceList = {'Round-'};
-MainFolder = {'F:\446003\Slide5'};
-OutputF = 'D:\ISS\446003\Slide5';
+MainFolder = {'F:\446003\Slide8'};
+OutputF = 'D:\ISS\446003\Slide8';
 for iSlice = 1:length(SliceList)
     SliceNb = SliceList{iSlice};
     
@@ -35,19 +35,19 @@ for iSlice = 1:length(SliceList)
     
     %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SliceNb,'01'); %r0
-    o.FileBase{2} = strcat(SliceNb,'03'); %r1
-    o.FileBase{3} = strcat(SliceNb,'02'); %r2
-    o.FileBase{4} = strcat(SliceNb,'04'); %r3
-    o.FileBase{5} = strcat(SliceNb,'05'); %r4
-    o.FileBase{6} = strcat(SliceNb,'06'); %r5
-    o.FileBase{7} = strcat(SliceNb,'09'); %r6
-    o.FileBase{8} = strcat(SliceNb,'12'); %anchor/dapi % 14;
+    o.FileBase{1} = strcat(SliceNb,'03'); %r0
+    o.FileBase{2} = strcat(SliceNb,'05'); %r1
+    o.FileBase{3} = strcat(SliceNb,'06'); %r2
+    o.FileBase{4} = strcat(SliceNb,'07'); %r3
+    o.FileBase{5} = strcat(SliceNb,'08'); %r4
+    o.FileBase{6} = strcat(SliceNb,'09'); %r5
+    o.FileBase{7} = strcat(SliceNb,'10'); %r6
+    o.FileBase{8} = strcat(SliceNb,'02'); %anchor/dapi % 14;
     
 %     o.FileBase{9} = strcat(SliceNb,'06'); %supp r3
-%     o.FileBase{10} = strcat(SliceNb,'11'); %supp r6
-%     o.FileBase{11} = strcat(SliceNb,'12'); %supp r6
-%     RefRounds = [4 7 7];
+% %     o.FileBase{10} = strcat(SliceNb,'11'); %supp r6
+% %     o.FileBase{11} = strcat(SliceNb,'12'); %supp r6
+%     RefRounds = [4];
     
     o.TileDirectory = fullfile(OutputF,SliceNb,'\tiles');
     mkdir(o.TileDirectory);
@@ -198,7 +198,7 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = [];%imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.01]); % background image
+I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.5]); % background image
 
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
@@ -232,7 +232,7 @@ Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
     1, max(o.dpSpotGlobalYX(:,1))]);
 o.plot(I,Roi,'OMP');
 daspect([1 1 1])
-camroll(180)
+camroll(90)
 % hold on
 % scatter(CellCalled.CellYX(:,2),CellCalled.CellYX(:,1),'ob','LineWidth',2)
 %% adjust thresholds

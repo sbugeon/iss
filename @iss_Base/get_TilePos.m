@@ -71,9 +71,8 @@ for i = 1:length(o.TileConnectedID)
     end
     
     if MaxY*MaxX ~= nTiles & strcmp(o.RawFileExtension,'.czi')
-        error('Need to write a fix for czi')
-    end
-    if MaxY*MaxX ~= nTiles
+        warning('Need to write a fix for czi')
+    elseif MaxY*MaxX ~= nTiles & ~strcmp(o.RawFileExtension,'.czi')
         %Hack if one of the dimensions is correct
         Ydiff = unique(diff(Y));
         Xdiff = unique(diff(X));

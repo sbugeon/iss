@@ -229,7 +229,7 @@ o.plot(I,Roi,'OMP');
 
 daspect([1 1 1])
 camroll(90)
-o.iss_change_plot('OMP',[], {'Npy'});
+% o.iss_change_plot('OMP',[], {'Npy'});
 % hold on
 % scatter(CellCalled.CellYX(:,2),CellCalled.CellYX(:,1),'ob','LineWidth',2)
 %% adjust thresholds
@@ -420,7 +420,7 @@ for k=1:length(H)
         end
     end
 end
-   C = C(1:364,:);
+% C = C(1:364,:);
 AllSessionROI.CellGeneCount(isnan(AllSessionROI.CellGeneCount))= 0; %%%%%%%%%%%%%% remove NaNs
 %%
 % MeanGC = nansum(AllSessionROI.CellGeneCount,2);
@@ -431,7 +431,7 @@ for i=1:length(D)
 end
 
 addpath('G:\Code\Matlab_OneDrive\MATLAB\umap')
-adppath('C:\Users\bugeon\Documents\GitHub\Functional_Pipeline_struct')
+addpath('C:\Users\bugeon\Documents\GitHub\Functional_Pipeline_struct')
 id=1;
 
 yy = makeUMAP(log(1+AllSessionROI2.CellGeneCount),0.2,10);
@@ -505,6 +505,77 @@ for k=1:length(H)
     end
     saveas(gcf,fullfile('D:\ISS\445951',['Barplot-',H{k},'.png']))
 end
+%% find slices in DG
+
+Us = unique(AllSessionROI.NSlice);
+DG=[];
+for i=1:length(Us)
+   gg= strcmp(Us{i}, AllSessionROI.NSlice);
+   DG(i) = sum(contains(AllSessionROI.cluster(gg),'DG'));
+end
+
+ThisS = find(DG>50);
+ThisC = ismember(AllSessionROI.NSlice,Us(ThisS)) & strcmp(AllSessionROI.class,'GABAergic');
+
+DG_ROI = struct();
+F = fields(AllSessionROI);
+
+for i = 1:length(F)
+    DG_ROI.(F{i}) = AllSessionROI.(F{i})(ThisC,:);
+end
+
+yy = makeUMAP(log(1+ DG_ROI.CellGeneCount),0.2,10);
 
 
+figure
+XY = [];
+for k=1:length(H)
+    figure
+    [ClassCollapse,ia] = unique(C.([H{k},'_label']));
+    for j=1:size(ClassCollapse,1)
+        CC_color = hex2rgb(C.([H{k},'_color']){ia(j)});
+        hold on
+        dd = find(strcmp(DG_ROI.(H{k}),ClassCollapse{j}));
+        if length(dd)>1
+            nn = nanmedian(yy(dd,:));
+            % find cell the closest to mean of point cloud 
+            D = squareform(pdist( [nn;yy(dd,:)]));D = D(1,2:end);
+            [~,m] = min(D);
+            XY(j,:) = yy(dd(m),:);
+            
+        else
+            XY(j,:) = [NaN NaN];
+        end
+        hold on
+        scatter(yy(dd,1),yy(dd,2),'.','MarkerEdgeColor',CC_color)
+       
+    end
+     text(XY(:,1),XY(:,2),strrep(ClassCollapse,'_','-'),'FontSize',10,'LineWidth',2,'Color','k')
+end
 
+dd = unique(DG_ROI.cluster);shortN={};
+% resort clusters based on marker
+for i=1:length(dd)
+    s = strfind(dd{i},'_');
+    shortN{i,1} = dd{i}(s(1)+1:end);
+end
+[~,S]= sort(shortN);dd = dd(S);
+[~,ThisG] = ismember({'Sst','Pnoc','Calb2','Tac1','Nos1','Chrm2'},Gn);
+DG_GE = [];DG_c={};
+for i=1:length(dd)
+    gg = strcmp(DG_ROI.cluster,dd{i});
+    DG_GE = [DG_GE;DG_ROI.CellGeneCount(gg,ThisG)];
+    DG_c = [DG_c;DG_ROI.cluster(gg)];
+end
+DG_GE = log(1+DG_GE);
+figure
+imagesc(DG_GE)
+set(gcf,'Position',[1000,312,560,1026])
+set(gca,'XTick',1:length(ThisG),'XTickLabel',{'Sst','Pnoc','Calb2','Tac1','Nos1','Chrm2'})
+set(gca,'YTick',1:length(DG_c),'YTickLabel',strrep(DG_c,'_','-'))
+xtickangle(45)
+
+yy = makeUMAP(log(1+ DG_ROI.CellGeneCount(contains(DG_ROI.cluster,'Sst'),:)),0.2,10);
+
+figure
+scatter(yy(:,1),yy(:,2))

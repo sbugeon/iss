@@ -1,7 +1,7 @@
 clear
 SliceList = {'Round-'};
-MainFolder = {'F:\446003\Slide5'};
-OutputF = 'D:\ISS\446003\Slide5';
+MainFolder = {'F:\446003\Slide9'};
+OutputF = 'D:\ISS\446003\Slide9';
 for iSlice = 1:length(SliceList)
     SliceNb = SliceList{iSlice};
     
@@ -35,14 +35,14 @@ for iSlice = 1:length(SliceList)
     
     %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SliceNb,'01'); %r0
-    o.FileBase{2} = strcat(SliceNb,'02'); %r1
-    o.FileBase{3} = strcat(SliceNb,'04'); %r2
-    o.FileBase{4} = strcat(SliceNb,'05'); %r3
-    o.FileBase{5} = strcat(SliceNb,'07'); %r4
-    o.FileBase{6} = strcat(SliceNb,'08'); %r5
-    o.FileBase{7} = strcat(SliceNb,'09'); %r6
-    o.FileBase{8} = strcat(SliceNb,'12'); %anchor/dapi % 14;
+    o.FileBase{1} = strcat(SliceNb,'03'); %r0
+    o.FileBase{2} = strcat(SliceNb,'05'); %r1
+    o.FileBase{3} = strcat(SliceNb,'06'); %r2
+    o.FileBase{4} = strcat(SliceNb,'07'); %r3
+    o.FileBase{5} = strcat(SliceNb,'08'); %r4
+    o.FileBase{6} = strcat(SliceNb,'09'); %r5
+    o.FileBase{7} = strcat(SliceNb,'10'); %r6
+    o.FileBase{8} = strcat(SliceNb,'02'); %anchor/dapi % 14;
     
     o.FileBase{9} = strcat(SliceNb,'06'); %supp r3
 %     o.FileBase{10} = strcat(SliceNb,'11'); %supp r6
@@ -198,7 +198,7 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.01]); % background image
+I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.5]); % background image
 
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
