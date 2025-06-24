@@ -1,5 +1,5 @@
 function show7by7(o,Size,spath,I)
-%% this scrip will produce a 7 color image for each round after alignment, 
+%% this script will produce a 7 color image for each round after alignment, 
 % and the final spot calling results around a given point of interest selected with the cross-hair
 
 % I background image
@@ -74,3 +74,4 @@ for i=1:size(Imgs,2)
     imwrite(Image, fullfile(spath,['Round',num2str(i),'.png']))
 
 end
+close all

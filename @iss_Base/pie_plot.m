@@ -37,7 +37,7 @@ hold on
 % B = bwconncomp(Idx);
 for c=1:nC
     hold on
-    fprintf(['\n Cell Nb', num2str(c)]);
+    % fprintf(['\n Cell Nb', num2str(c)]);
     
     pMy = o.pCellClass(c,:);
     

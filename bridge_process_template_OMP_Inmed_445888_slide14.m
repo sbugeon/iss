@@ -252,6 +252,23 @@ camroll(90)
 % sgtitle(['Gene efficiency per round and per channel for region ', num2str(k)])
 % end
 % dd = o.TileConnectedID;
+
+%% run cellpose in matlab! 
+model_path = 'G:\Code\training_cellposeDAPI\models\CP_myDAPI_SB';
+img = imread("AT3_1m4_01.tif");
+cp = cellpose(Model="cyto2");
+labels = segmentCells2D(cp,img,ImageCellDiameter=56);
+B = labeloverlay(img,labels);
+imshow(B)
+OutputModelFile = "diamondDetectionModel";
+trainCellpose(trainingFolderName,OutputModelFile,...
+    PreTrainedModel="cyto2", ...
+    MaxEpoch=2, ... 
+    ImageSuffix="_im", ...
+    LabelSuffix="_mask");
+cpt = cellpose(Model=OutputModelFile);
+cpt.TrainingCellDiameter
+
 %% copy dapi image to Cellpose folder
 clear
 MainFolder = {'\\NETDATA\Apotome\Stephane\445888\Slide14','\\NETDATA\Apotome\Stephane\445884\Slide 17','\\NETDATA\Apotome\Stephane\445879\Slide10'};
