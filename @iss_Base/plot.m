@@ -180,7 +180,7 @@ legend off;
 set(gca, 'Clipping', 'off');
 
 if ~isempty(PlotSpots)
-    change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth);
+    change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
 else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    

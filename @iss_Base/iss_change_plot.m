@@ -1,4 +1,4 @@
-function iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
+function PlotSpots = iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 %% iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 %
 % Given issPlot2DObject, this function lets you change the details

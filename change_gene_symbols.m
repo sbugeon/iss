@@ -243,8 +243,8 @@ if nargout<1
             end
             if strcmp(MarkerType,'GeneSymbols')
                 set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
-            elseif strcmp(MarkerType,'Letters')
-                 set(h(j), 'Marker', New_symbols{i,3},'LineWidth',LineWidth);
+            elseif strcmp(MarkerType,'Points')
+                 set(h(j), 'Marker', '.','LineWidth',LineWidth);
             end
             
             if MarkerSize>0

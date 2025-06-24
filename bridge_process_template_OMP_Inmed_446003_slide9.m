@@ -235,7 +235,7 @@ daspect([1 1 1])
 camroll(90)
 % hold on
 % scatter(CellCalled.CellYX(:,2),CellCalled.CellYX(:,1),'ob','LineWidth',2)
-%% adjust thresholds
+%=% adjust thresholds
 o.ompScoreThresh = 5;
 o.ompScoreThresh2 = 2;
 o.ompIntensityThresh = 0.01;
@@ -244,7 +244,7 @@ o.ompNeighbThresh = 12;
 o.ompNeighbThresh2 = 10;
 
 o.iss_change_plot('OMP',[],o.GeneNames)
-o.iss_change_plot('OMP',[], {'Prkca','Pthlh','Rasgfr2','Tac1'});
+o.iss_change_plot('OMP',[], {'Chrm2','Lamp5','Gad1'});
 %% diagnostics per spot
 iss_view_omp(o,234321)
 iss_view_spot_omp3(o, 234321)

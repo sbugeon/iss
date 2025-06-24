@@ -814,6 +814,9 @@ classdef iss_Base
     	GcampChannel = 6;         % Channel of Gcamp image
     	GcampRound = 8;           % round of Gcamp image
     	DapiRound = 8;            % round of DAPI
+        GadImage;
+        GcampImage;
+        DapiImage;
         
         PlotLineWidth = 1;      % when plotting, LineWidth of markers
         MarkerSize = 6;         % when plotting, size of markers

@@ -204,6 +204,7 @@ o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 camroll(90)
 
+
 %% adjust thresholds
 o.ompScoreThresh = 5;
 o.ompScoreThresh2 = 2;
@@ -214,7 +215,7 @@ o.ompNeighbThresh2 = 10;
 
 o.iss_change_plot('OMP',[],o.GeneNames)
 % show only some genes
-o.iss_change_plot('OMP',[], {'Prkca','Pthlh','Rasgfr2','Tac1'});
+o.iss_change_plot('OMP',[], {'Npy','Pvalb','Penk','Pcp4'});
 %% diagnostics per spot
 iss_view_omp(o,234321)
 iss_view_spot_omp3(o, 234321)

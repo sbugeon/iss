@@ -193,8 +193,8 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))*0,[0 0.1]); % background image
-
+% I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))*0,[0 0.1]); % background image
+I=[];
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
 o.ompIntensityThresh = 0.01; % more stringent threshold, need to be true for only one of the three
@@ -236,8 +236,9 @@ o.ompIntensityThresh2 = 0.005;
 o.ompNeighbThresh = 12;
 o.ompNeighbThresh2 = 10;
 
-o.iss_change_plot('OMP',[],o.GeneNames)
-o.iss_change_plot('OMP',[], {'Calb1'});
+% o.iss_change_plot('OMP',[],o.GeneNames)
+o.iss_change_plot('OMP',[], {'Nov','Nr4a2','Thsd7a','Gda','Rasgrf2','Kcnk2','Plcxd2','Cort'});
+o.iss_change_plot('OMP',[], {'Ntng1','Pvalb','Tpbg'});
 %% diagnostics per spot
 iss_view_omp(o,234321)
 iss_view_spot_omp3(o, 234321)

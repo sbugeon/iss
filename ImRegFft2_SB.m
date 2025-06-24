@@ -30,7 +30,7 @@ function [shift, cc, fa1, fa2] = ImRegFft2_SB(Im1, Im2, CorrThresh, MinSize)
 %Max distance of match
 Md = 200;
 % not tapering images yet but could
-Graphics = 2;
+Graphics = 0;
 
 if nargin<3; CorrThresh = [.2 .6]; end
 if length(CorrThresh)<2; CorrThresh = CorrThresh*[1, 1]; end
