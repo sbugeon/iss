@@ -1,17 +1,17 @@
 clear
 SliceList = {'Round-'};
 MainFolder = {'F:\446003\Slide5'};
-OutputF = 'D:\ISS\446003\Slide5';
+OutputF = 'D:\ISS\446003\Slide5_test';
 for iSlice = 1:length(SliceList)
     SliceNb = SliceList{iSlice};
     
     %% Parameters that should be checked before each run
     o = iss_OMP;
-    o.AnchorChannel = 2; % in which round
+    o.AnchorChannel = 3; % in which round
     o.AnchorRound = 8;            %Channel that has most spots in o.AnchorRound
-    o.GadChannel = 1;
+    o.GadChannel = 2;
     o.GadRound = 8;
-    o.GcampChannel = 1;
+    o.GcampChannel = 2;
     o.GcampRound = 8;
     o.DapiChannel = 1;
     o.DapiRound = 8;             %Channel in o.AnchorRound that contains Dapi images
@@ -42,7 +42,7 @@ for iSlice = 1:length(SliceList)
     o.FileBase{5} = strcat(SliceNb,'05'); %r4
     o.FileBase{6} = strcat(SliceNb,'06'); %r5
     o.FileBase{7} = strcat(SliceNb,'09'); %r6
-    o.FileBase{8} = strcat(SliceNb,'12'); %anchor/dapi % 14;
+    o.FileBase{8} = strcat(SliceNb,'08'); %anchor/dapi % 14;
     
 %     o.FileBase{9} = strcat(SliceNb,'06'); %supp r3
 %     o.FileBase{10} = strcat(SliceNb,'11'); %supp r6
@@ -97,7 +97,7 @@ for iSlice = 1:length(SliceList)
 %     o.extract_and_filter_extraTiles(RefRounds);
     oOut = o.OutputDirectory;
     
-    for j = 1:length(o.TileConnectedID)
+    for j = 1:13%length(o.TileConnectedID)
         load(fullfile(oOut,'oExtract'));
         o.Graphics=1;
         o.EmptyTiles(:) = 1;
@@ -198,7 +198,7 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = [];%imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.01]); % background image
+I = imadjust(imread(fullfile(o.OutputDirectory,'background_image_fixed.tif'))); % background image
 
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three

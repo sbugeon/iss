@@ -7,16 +7,16 @@ addpath('C:\Users\bugeon\Documents\GitHub\RegSessPipeline\GUI_Slice_Curation') %
 
 clear
 % Folders and names
-InputF = '\\NETDATA\Apotome\Stephane\'; % where to find the raw data
+InputF = 'F:\';%'\\NETDATA\Apotome\Stephane\'; % where to find the raw data
 OutputF = 'D:\ISS\'; % where to save the iss output
 CodebookF = 'G:\Documents\C_doc\codebook_7rounds.txt'; % where to find the codebook for the genes
 model_path = 'G:\Code\training_cellposeDAPI\models\CP_myDAPI_SB';  % where to find the trained model for DAPI segmentation
 GenesetF = 'C:\Users\bugeon\Documents\MATLAB'; % where to find the scRNAseq reference dataset
 
 An = '445888'; % animal name
-SlideN = 'Slide14'; % slide name
-SlicePrefix = 'Round-'; % file prefix
-DoISS = 0; % perform gene calling
+SlideN = 'Slide16'; % slide name
+SlicePrefix = 'Round-Anchor-'; % file prefix
+DoISS = 1; % perform gene calling
 DoCellCall = 1; % perform cell calling
 
 MainFolder = fullfile(InputF,An,SlideN);
@@ -39,14 +39,14 @@ if DoISS
     % File Names
     % FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SlicePrefix,'01');
-    o.FileBase{2} = strcat(SlicePrefix,'02');
-    o.FileBase{3} = strcat(SlicePrefix,'03');
-    o.FileBase{4} = strcat(SlicePrefix,'04');
-    o.FileBase{5} = strcat(SlicePrefix,'05');
-    o.FileBase{6} = strcat(SlicePrefix,'06');
-    o.FileBase{7} = strcat(SlicePrefix,'07');
-    o.FileBase{8} = strcat(SlicePrefix,'08');
+    o.FileBase{1} = strcat(SlicePrefix,'02');
+    o.FileBase{2} = strcat(SlicePrefix,'03');
+    o.FileBase{3} = strcat(SlicePrefix,'04');
+    o.FileBase{4} = strcat(SlicePrefix,'05');
+    o.FileBase{5} = strcat(SlicePrefix,'06');
+    o.FileBase{6} = strcat(SlicePrefix,'07');
+    o.FileBase{7} = strcat(SlicePrefix,'08');
+    o.FileBase{8} = strcat(SlicePrefix,'09');
 
     % Other important parameters to be checked
     o.InitialShiftChannel = 5; % Channel to use to find initial shifts between rounds, needs to contain lots of spots in all rounds
@@ -109,6 +109,8 @@ if DoISS
     % process the different regions (if there are some)
     for j = 1:length(o.TileConnectedID)
         load(fullfile(oOut,'oExtract'));
+        o.AnchorChannel = 4; % Channel where to find the anchor spots
+        o.ReferenceChannel = o.AnchorChannel;
         o.Graphics=1;
         o.EmptyTiles(:) = 1;
         gg = o.TilePosYX;
@@ -196,41 +198,41 @@ end
 %%% Diagnostics_iss 
 
 %% detect cells using DAPI (cellpose - requires Deep Learning Toolbox™, Computer Vision Toolbox™, and the Medical Imaging Toolbox™)
-F = fullfile(OutputF,SlicePrefix,'\output');
-cpt = cellpose(Model=model_path);
-load(fullfile(F,'oExtract'));
-
-for j = 1:length(o.TileConnectedID)
-    Fj = fullfile(F,num2str(j));
-    img = imadjust(imread(fullfile(Fj,'background_image_fixed.tif')));
-    labels = segmentCells2D(cpt,img);
-    DapiBound = convert_cellpose_labels(labels);
-    save(fullfile(Fj,'DAPI_Bound'), 'DapiBound', '-v7.3');
-    
-    % plot 
-    B = labeloverlay(img,labels);
-    figure;imshow(B);title(num2str(j));
-end
-
-%% manually pick tdtomato cells (if relevant) and adjust DAPI boundaries
-F = fullfile(OutputF,SlicePrefix,'\output');
-GUI_findtdTomato(F)
-
-%% call cells using reference geneSet
-% load('C:\Users\bugeon\Documents\MATLAB\gsetYao.mat') % whole hippocampus and cortex scRNAseq
-load(fullfile(GenesetF,'gsetTasic_123g.mat')) % Tasic cortex scRNAseq
-ExcludeGenes = {'Akr1c18','Yjefn3'}; % gene to be excluded from cell calling
-Inefficiency = 0.01; % 0.1 for Yao?; 0.01 for Tasic
-
-F = fullfile(OutputF,SlicePrefix,'\output');
-cpt = cellpose(Model=model_path);
-load(fullfile(F,'oExtract'));
-
-for j = 1%:length(o.TileConnectedID)
-    Fj = fullfile(F,num2str(j));
-    load(fullfile(Fj,'oCall_spots_OMP'));
-    load(fullfile(Fj,'DAPI_Bound'));
-    o.ExcludeGenes = ExcludeGenes;
-    CellCalled = DoCellCalling(o,DapiBound,gSet,Inefficiency);
-    save(fullfile(Fj,'Call_cells.mat'), 'CellCalled', '-v7.3');
-end
+% F = fullfile(OutputF,SlicePrefix,'\output');
+% cpt = cellpose(Model = model_path);
+% load(fullfile(F,'oExtract'));
+% 
+% for j = 1:length(o.TileConnectedID)
+%     Fj = fullfile(F,num2str(j));
+%     img = imadjust(imread(fullfile(Fj,'background_image_fixed.tif')));
+%     labels = segmentCells2D(cpt,img);
+%     DapiBound = convert_cellpose_labels(labels);
+%     save(fullfile(Fj,'DAPI_Bound'), 'DapiBound', '-v7.3');
+%     
+%     % plot 
+%     B = labeloverlay(img,labels);
+%     figure;imshow(B);title(num2str(j));
+% end
+% 
+% %% manually pick tdtomato cells (if relevant) and adjust DAPI boundaries
+% F = fullfile(OutputF,SlicePrefix,'\output');
+% GUI_findtdTomato(F)
+% 
+% %% call cells using reference geneSet
+% % load('C:\Users\bugeon\Documents\MATLAB\gsetYao.mat') % whole hippocampus and cortex scRNAseq
+% load(fullfile(GenesetF,'gsetTasic_123g.mat')) % Tasic cortex scRNAseq
+% ExcludeGenes = {'Akr1c18','Yjefn3'}; % gene to be excluded from cell calling
+% Inefficiency = 0.01; % 0.1 for Yao?; 0.01 for Tasic
+% 
+% F = fullfile(OutputF,SlicePrefix,'\output');
+% cpt = cellpose(Model=model_path);
+% load(fullfile(F,'oExtract'));
+% 
+% for j = 1%:length(o.TileConnectedID)
+%     Fj = fullfile(F,num2str(j));
+%     load(fullfile(Fj,'oCall_spots_OMP'));
+%     load(fullfile(Fj,'DAPI_Bound'));
+%     o.ExcludeGenes = ExcludeGenes;
+%     CellCalled = DoCellCalling(o,DapiBound,gSet,Inefficiency);
+%     save(fullfile(Fj,'Call_cells.mat'), 'CellCalled', '-v7.3');
+% end
