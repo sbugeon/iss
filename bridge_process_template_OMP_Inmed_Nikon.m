@@ -32,13 +32,13 @@ for iSlice = 1
     
     %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SliceNb,'00');
-    o.FileBase{2} = strcat(SliceNb,'01');
-    o.FileBase{3} = strcat(SliceNb,'02');
-    o.FileBase{4} = strcat(SliceNb,'03');
-    o.FileBase{5} = strcat(SliceNb,'04');
-    o.FileBase{6} = strcat(SliceNb,'05');
-    o.FileBase{7} = strcat(SliceNb,'06');
+    o.FileBase{1} = strcat(SliceNb,'01');
+    o.FileBase{2} = strcat(SliceNb,'02');
+    o.FileBase{3} = strcat(SliceNb,'03');
+    o.FileBase{4} = strcat(SliceNb,'04');
+    o.FileBase{5} = strcat(SliceNb,'05');
+    o.FileBase{6} = strcat(SliceNb,'06');
+    o.FileBase{7} = strcat(SliceNb,'07');
     o.FileBase{8} = strcat(SliceNb,'Anchor');
 
     o.TileDirectory = fullfile(o.InputDirectory,SliceNb,'\tiles');
