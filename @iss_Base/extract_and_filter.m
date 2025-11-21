@@ -74,6 +74,7 @@ for r = 1:o.nRounds+o.nExtraRounds
     % get some basic image metadata
     [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize,xyposRaw] = ...
         get_ome_tilepos(bfreader);
+   
     if isempty(xypos) || (nSeries>1 && size(xypos, 1)==1)
         if r == 1
             warning('first round xypos empty - using values from initial manual input')

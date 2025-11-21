@@ -14,6 +14,8 @@ if strcmp(o.RawFileExtension,'.czi')
     B = max(xypos);
     
     xypos0 = B - xypos;
+else
+    xypos0=xypos;
 end
 
 % xypos0 = xypos;

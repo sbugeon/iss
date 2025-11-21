@@ -9,11 +9,11 @@ for iSlice = 1:length(SliceList)
     o = iss_OMP;
     o.AnchorChannel = 2; % in which round
     o.AnchorRound = 8;            %Channel that has most spots in o.AnchorRound
-    o.GadChannel = 1;
+    o.GadChannel = 4;
     o.GadRound = 8;
-    o.GcampChannel = 1;
+    o.GcampChannel = 4;
     o.GcampRound = 8;
-    o.DapiChannel = 1;
+    o.DapiChannel = 4;
     o.DapiRound = 8;             %Channel in o.AnchorRound that contains Dapi images
     o.nRegions = 7;
     
@@ -198,7 +198,7 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.5]); % background image
+I =[];% imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif')),[0 0.5]); % background image
 
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
@@ -206,7 +206,7 @@ o.ompIntensityThresh = 0.01; % more stringent threshold, need to be true for onl
 o.ompIntensityThresh2 = 0.005; % less stringent threshold, need to be true for all three
 o.ompNeighbThresh = 12; % more stringent threshold, need to be true for only one of the three
 o.ompNeighbThresh2 = 10; % less stringent threshold, need to be true for all three
-
+o.MarkerType = 'Dots';
 % o.ompScoreThresh = 0; % more stringent threshold, need to be true for only one of the three
 % o.ompScoreThresh2 = 0; % less stringent threshold, need to be true for all three
 % o.ompIntensityThresh = 0; % more stringent threshold, need to be true for only one of the three
@@ -225,7 +225,7 @@ o.ompNeighbThresh2 = 10; % less stringent threshold, need to be true for all thr
 % o.ompIntensityThresh2 = 0; % less stringent threshold, need to be true for all three
 % o.ompNeighbThresh = 0; % more stringent threshold, need to be true for only one of the three
 % o.ompNeighbThresh2 = 0; % less stringent threshold, need to be true for all three
-o.MarkerSize = 5;
+o.MarkerSize = 10;
 o.PlotLineWidth = 1.2;
 o.CombiQualThresh = 0.5;
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
@@ -243,8 +243,8 @@ o.ompIntensityThresh2 = 0.005;
 o.ompNeighbThresh = 12;
 o.ompNeighbThresh2 = 10;
 
-o.iss_change_plot('OMP',[],o.GeneNames)
-o.iss_change_plot('OMP',[], {'Chrm2','Lamp5','Gad1'});
+% o.iss_change_plot('OMP',[],o.GeneNames)
+% o.iss_change_plot('OMP',[], {'Chrm2','Lamp5','Gad1'});
 %% diagnostics per spot
 iss_view_omp(o,234321)
 iss_view_spot_omp3(o, 234321)

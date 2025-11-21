@@ -126,11 +126,11 @@ for t=NonemptyTiles
                 min(size(o.RawLocalYX{t,o.ReferenceChannel},1),...
                 size(o.RawLocalYX{t+1,o.ReferenceChannel},1))<o.OutlierMinScore
             BadShifts = BadShifts+1;
-            if BadShifts>o.RegMaxBadShifts &&...
-                    length(NonemptyTiles)-(find(NonemptyTiles==t)-1)>InSignificantTilesLeft
-                %Only break if significant amount of tiles left
-                break;
-            end
+%             if BadShifts>o.RegMaxBadShifts &&...
+%                     length(NonemptyTiles)-(find(NonemptyTiles==t)-1)>InSignificantTilesLeft
+%                 %Only break if significant amount of tiles left
+%                 break;
+%             end
             warning('tile %d to tile %d shift = [%d, %d], which is faulty, trying with Fft method',...
                 t, t+1, shift(1), shift(2));
             o.RegInfo.SingleFft.Pairs = [o.RegInfo.SingleFft.Pairs; t, t+1];
@@ -167,11 +167,11 @@ for t=NonemptyTiles
                 min(size(o.RawLocalYX{t,o.ReferenceChannel},1),...
                 size(o.RawLocalYX{t+nY,o.ReferenceChannel},1))<o.OutlierMinScore
             BadShifts = BadShifts+1;
-            if BadShifts>o.RegMaxBadShifts &&...
-                    length(NonemptyTiles)-(find(NonemptyTiles==t)-1)>InSignificantTilesLeft
-                %Only break if significant amount of tiles left
-                break;
-            end
+%             if BadShifts>o.RegMaxBadShifts &&...
+%                     length(NonemptyTiles)-(find(NonemptyTiles==t)-1)>InSignificantTilesLeft
+%                 %Only break if significant amount of tiles left
+%                 break;
+%             end
             warning('tile %d to tile %d shift = [%d, %d], which is faulty, trying with Fft method',...
                 t, t+nY, shift(1), shift(2));
             o.RegInfo.SingleFft.Pairs = [o.RegInfo.SingleFft.Pairs; t, t+nY];

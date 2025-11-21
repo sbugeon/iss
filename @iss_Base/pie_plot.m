@@ -54,7 +54,7 @@ for c=1:nC
     end
     
     [~ , WorthShowing] = max(pMy);
-    if pMy(WorthShowing)>0.5 && max(Psubclass)>0.8 && ~isempty(Boundaries{c})
+    if ~isempty(Boundaries{c}) %&&  pMy(WorthShowing)>0.5 && max(Psubclass)>0.8
         if sum(Colors(WorthShowing(1),:))>0
             patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none');
         end
@@ -68,12 +68,12 @@ xMin = min(o.CellYX(:,2));
 
 ClassShown = true(length(DisplayName),1);
 ClassDisplayNameShown = DisplayName(ClassShown);
-[uDisplayNames, idx] = unique(ClassDisplayNameShown, 'stable');
-nShown = length(uDisplayNames);
-for k=1:nShown
-    h = text(xMax*1.1 - xMin*.5, yMin + k*(yMax-yMin)/nShown, uDisplayNames{k});
-    set(h, 'color', Colors((idx(k)),:));
-    h.FontSize = 35;
-end
+% [uDisplayNames, idx] = unique(ClassDisplayNameShown, 'stable');
+% nShown = length(uDisplayNames);
+% for k=1:nShown
+%     h = text(xMax*1.1 - xMin*.5, yMin + k*(yMax-yMin)/nShown, uDisplayNames{k});
+%     set(h, 'color', Colors((idx(k)),:));
+%     h.FontSize = 35;
+% end
 daspect([1 1 1])
 

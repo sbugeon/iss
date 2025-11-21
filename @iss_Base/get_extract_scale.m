@@ -99,9 +99,9 @@ else
     if r~=o.AnchorRound; fprintf('Value is %.2f\n', o.ExtractScale);
     else; fprintf('Value is %.2f\n', o.ExtractScaleAnchor);end
     
-    if o.Graphics
-        o.TilePlot(IFS_all,RawImage_all,r,nChannels);
-    end
+%     if o.Graphics
+%         o.TilePlot(IFS_all,RawImage_all,r,nChannels);
+%     end
     
     for c=1:nChannels
         if (c == o.DapiChannel  && r == o.DapiRound) ||...
