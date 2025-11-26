@@ -139,7 +139,6 @@ for t=NonemptyTiles
             [shift, score] = o.get_Fft_shift_single(t,o.ReferenceRound,o.ReferenceChannel,...
                 t+1,o.ReferenceRound,o.ReferenceChannel,'Register','South');
         end
-            
         if all(isfinite(shift))
             VerticalPairs = [VerticalPairs; t, t+1];
             vShifts = [vShifts; shift];

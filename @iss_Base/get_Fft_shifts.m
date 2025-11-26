@@ -49,9 +49,10 @@ AbsoluteMinShift = o.RegInfo.AbsoluteMinShift;
 
 %% now do the alignments
 for t=NonemptyTiles
-%     if t == NonemptyTiles(1)
-%         o.Graphics = 2;     
-%     end
+    %     if t == NonemptyTiles(1)
+    %         o.Graphics = 2;
+    %     end
+
     [y,x] = ind2sub([nY nX], t);    
     
     % can I align ref round to south neighbor?

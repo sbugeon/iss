@@ -90,7 +90,6 @@ for r = 1:o.nRounds+o.nExtraRounds
         xyposOld = xypos;
     end
     
-    
     scene = nSeries/nSerieswPos;
     
     bfreader.close();

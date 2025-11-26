@@ -81,6 +81,9 @@ for iSlice = 1
     o = o.extract_and_filter;
     
     save(fullfile(o.OutputDirectory, 'oExtract'), 'o', '-v7.3');
+    
+    %% 
+%     rename_tiles(o)
     %% register
     %o.AutoThresh(:,o.AnchorChannel,o.AnchorRound) = o.AutoThresh(:,o.AnchorChannel,o.AnchorRound)*0.25;     %As Anchor Threshold seemed too high
     %parameters
@@ -99,10 +102,11 @@ for iSlice = 1
     %paramaters to find shifts between overlapping tiles
     o.RegMinScore = 'auto';
     o.RegStep = [5,5];
-    o.RegSearch.South.Y = -1900:o.RegStep(1):-1700;
+ o.RegSearch.South.Y = -2600:o.RegStep(1):-2400;
     o.RegSearch.South.X = -150:o.RegStep(2):150;
     o.RegSearch.East.Y = -150:o.RegStep(1):150;
-    o.RegSearch.East.X = -1900:o.RegStep(2):-1700;
+    o.RegSearch.East.X = -2600:o.RegStep(2):-2400;
+
     o.RegWidenSearch = [50,50];
     
     %If a channel or round is faulty, you can ignore it by selecting only the
@@ -116,6 +120,11 @@ for iSlice = 1
     % below will not flag error but remove weak channels automatically.
     % o = o.check_channels(true);
     %run code
+    
+%     o.EmptyTiles(:) = 1;
+% o.EmptyTiles(25) = 0;
+
+o.RegMethod='Fft';
     o = o.register2;
     save(fullfile(o.OutputDirectory, 'oRegister'), 'o', '-v7.3');
     %% find spots
@@ -155,14 +164,21 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-% I = imread(fullfile(o.OutputDirectory,'background_image.tif'))*0; % background image
-I=[];
+I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image
+% I=[];
 o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
 o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
 o.ompIntensityThresh = 0.01; % more stringent threshold, need to be true for only one of the three
 o.ompIntensityThresh2 = 0.005; % less stringent threshold, need to be true for all three
 o.ompNeighbThresh = 12; % more stringent threshold, need to be true for only one of the three
 o.ompNeighbThresh2 = 10; % less stringent threshold, need to be true for all three
+
+% o.ompScoreThresh = 0;
+% o.ompScoreThresh2 = 0;
+% o.ompIntensityThresh = 0;
+% o.ompIntensityThresh2 = 0;
+% o.ompNeighbThresh = 0;
+% o.ompNeighbThresh2 = 0;
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
@@ -179,12 +195,7 @@ daspect([1 1 1])
 % o.ompNeighbThresh = 12;
 % o.ompNeighbThresh2 = 10;
 % 
-% o.ompScoreThresh = 0;
-% o.ompScoreThresh2 = 0;
-% o.ompIntensityThresh = 0;
-% o.ompIntensityThresh2 = 0;
-% o.ompNeighbThresh = 0;
-% o.ompNeighbThresh2 = 0;
+
 % 
 % o.iss_change_plot('OMP',[],o.GeneNames)
 % % o.iss_change_plot('OMP',[],{'Ddit4l'})  

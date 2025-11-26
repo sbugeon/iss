@@ -831,6 +831,9 @@ classdef iss_Base
         TileInitialRawPosYX     % theoric initial tile positions
         TileConnectedID         % regions of connected tiles 
         xypos;                  % absolute tile position
+        
+        TileSnakeDirection = 'reverse'; % normal: if snake is starting to go from top to bottom and left ro right
+        % reverse: if snake is starting to go from bottome to top and right to left
     end
     
 end

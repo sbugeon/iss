@@ -91,12 +91,24 @@ for i = 1:length(o.TileConnectedID)
     end
     
     if strcmp(o.RawFileExtension,'.nd2')
-        %Once found correct MaxY and MaxX, we know what the answer should be.
+        %Once found correct MaxY and MaxX, we know what the answer should
+        %be, but it depends on snake direction
         o.TilePosYX = zeros(size(o.TileInitialPosYX));
-        TilePosY = flip(repelem(1:MaxY,MaxX));
-        o.TilePosYX(:,1) = TilePosY;
-        TilePosX = repmat([flip(1:MaxX),1:MaxX],1,ceil(MaxY/2));
-        o.TilePosYX(1:nTiles,2) = TilePosX(1:nTiles);
+        if strcmp(o.TileSnakeDirection,'normal')
+            TilePosY = flip(repelem(1:MaxY,MaxX));
+            o.TilePosYX(:,1) = TilePosY;
+            TilePosX = repmat([flip(1:MaxX),1:MaxX],1,ceil(MaxY/2));
+            o.TilePosYX(1:nTiles,2) = TilePosX(1:nTiles);
+            
+        elseif strcmp(o.TileSnakeDirection,'reverse')
+            TilePosY = repelem(1:MaxY,MaxX);
+            o.TilePosYX(:,1) = TilePosY;
+            TilePosX = repmat([1:MaxX, flip(1:MaxX)],1,ceil(MaxY/2));
+            o.TilePosYX(1:nTiles,2) = TilePosX(1:nTiles);
+        else
+            error('Incorrect Tile Snake direction')
+        end
+    
     elseif strcmp(o.RawFileExtension,'.czi') %%%%%%%%%%%%
         M = max(o.TilePosYX);
         o.TilePosYX(SubTiles,:) = o.TileInitialPosYX + [M(1) 0];
