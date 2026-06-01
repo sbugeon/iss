@@ -1,7 +1,7 @@
 clear
-SliceList = {'Round_00'};
-MainFolder = {'H:\SBI010-S10-2025-11-20'};
-for iSlice = 1
+SliceList = {'Region1_','Region2_'};
+MainFolder = {'E:\sb0010-Arthur-20260528','E:\sb0010-Arthur-20260528'};
+for iSlice = 2%:length(SliceList)
     SliceNb = SliceList{iSlice};
     
     %     %% Parameters that should be checked before each run
@@ -25,20 +25,20 @@ for iSlice = 1
     %CHECK BEFORE EACH RUN
     o.InputDirectory = MainFolder{iSlice};     %Folder path of raw data
     
-    o.TileSz = 2720;        %Dimension of tile in pixels
+    o.TileSz = 3200;        %Dimension of tile in pixels
     o.nBP = 7;              %Number of Channels
     o.nRounds = 7;          %Number of Imaging Rounds
     o.nExtraRounds = 1;     %Treat Anchor channel as extra round
     
     %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SliceNb,'01');
-    o.FileBase{2} = strcat(SliceNb,'02');
-    o.FileBase{3} = strcat(SliceNb,'03');
-    o.FileBase{4} = strcat(SliceNb,'04');
-    o.FileBase{5} = strcat(SliceNb,'05');
-    o.FileBase{6} = strcat(SliceNb,'06');
-    o.FileBase{7} = strcat(SliceNb,'07');
+    o.FileBase{1} = strcat(SliceNb,'00');
+    o.FileBase{2} = strcat(SliceNb,'01');
+    o.FileBase{3} = strcat(SliceNb,'02');
+    o.FileBase{4} = strcat(SliceNb,'03');
+    o.FileBase{5} = strcat(SliceNb,'04');
+    o.FileBase{6} = strcat(SliceNb,'05');
+    o.FileBase{7} = strcat(SliceNb,'06');
     o.FileBase{8} = strcat(SliceNb,'Anchor');
 
     o.TileDirectory = fullfile(o.InputDirectory,SliceNb,'\tiles');
@@ -50,7 +50,7 @@ for iSlice = 1
     %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
     %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
 %     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx.txt';
-     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_7rounds.txt';%%%%%%%%%%%%
+     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx_OtrAdra_Cholinergic_IEG_final.txt';%%%%%%%%%%%%
     %% Logging
     if o.LogToFile
         if isempty(o.LogFile)
@@ -124,7 +124,7 @@ for iSlice = 1
 %     o.EmptyTiles(:) = 1;
 % o.EmptyTiles(25) = 0;
 
-o.RegMethod='Fft';
+    o.RegMethod='Fft';
     o = o.register2;
     save(fullfile(o.OutputDirectory, 'oRegister'), 'o', '-v7.3');
     %% find spots
@@ -198,7 +198,7 @@ daspect([1 1 1])
 
 % 
 % o.iss_change_plot('OMP',[],o.GeneNames)
-% % o.iss_change_plot('OMP',[],{'Ddit4l'})  
+o.iss_change_plot('OMP',[],{'Nos1','Chrm2'})  
 % %% diagnostics per spot
 % iss_view_spot_omp3(o,234321)
 % iss_view_omp(o,234321)
