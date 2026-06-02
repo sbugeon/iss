@@ -50,7 +50,7 @@ for iSlice = 2%:length(SliceList)
     %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
     %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
 %     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx.txt';
-     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx_OtrAdra_Cholinergic_IEG_final.txt';%%%%%%%%%%%%
+     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_OtrAdra_Cholinergic_IEG_final.txt';%%%%%%%%%%%%
     %% Logging
     if o.LogToFile
         if isempty(o.LogFile)
@@ -137,9 +137,9 @@ for iSlice = 2%:length(SliceList)
     o.FindSpotsStep = [5,5];
     %FindSpotsSearch can either be a 1x1 struct or a o.nRounds x 1 cell of
     %structs - have a different range for each round:
-    %o.FindSpotsSearch = cell(o.nRounds,1);
-    o.FindSpotsSearch.Y = -100:o.FindSpotsStep(1):100;
-    o.FindSpotsSearch.X = -100:o.FindSpotsStep(2):100;
+    o.FindSpotsSearch = struct();
+    o.FindSpotsSearch.Y = -150:o.FindSpotsStep(1):150;
+    o.FindSpotsSearch.X = -150:o.FindSpotsStep(2):150;
     %Make WidenSearch larger if you think you have a large shift between rounds
     o.FindSpotsWidenSearch = [50,50];
     
@@ -164,21 +164,26 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image
-% I=[];
-o.ompScoreThresh = 5; % more stringent threshold, need to be true for only one of the three
-o.ompScoreThresh2 = 2; % less stringent threshold, need to be true for all three
-o.ompIntensityThresh = 0.01; % more stringent threshold, need to be true for only one of the three
-o.ompIntensityThresh2 = 0.005; % less stringent threshold, need to be true for all three
-o.ompNeighbThresh = 12; % more stringent threshold, need to be true for only one of the three
-o.ompNeighbThresh2 = 10; % less stringent threshold, need to be true for all three
+I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % background image
+%  QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
+%          o.([pf,'SpotScore'])>o.ompScoreThresh;
+%  QualOK = QualOK & o.([pf,'SpotIntensity2'])>o.ompIntensityThresh2 & ...
+%       NeighbNonZeros>o.ompNeighbThresh2 & o.([pf,'SpotScore'])>o.ompScoreThresh2;
 
-% o.ompScoreThresh = 0;
-% o.ompScoreThresh2 = 0;
-% o.ompIntensityThresh = 0;
-% o.ompIntensityThresh2 = 0;
-% o.ompNeighbThresh = 0;
-% o.ompNeighbThresh2 = 0;
+o.ompIntensityThresh = 0.5;
+o.ompIntensityThresh2 = 0.005;
+o.ompNeighbThresh = 18;
+o.ompNeighbThresh2 = 10;
+o.ompScoreThresh = 4.3;
+o.ompScoreThresh2 = 1.1;
+
+%Spots assigned to gene that is not largest coefficient for pixel
+%have a stronger thresholding as given by these:
+o.ompIntensityThresh3 = 0.01;
+o.ompIntensityThresh3_CoefDiffFactor = 0.27;
+o.ompNeighbThresh3 = 28;
+o.ompScoreThresh3 = 6.9;
+
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
@@ -197,8 +202,12 @@ daspect([1 1 1])
 % 
 
 % 
-% o.iss_change_plot('OMP',[],o.GeneNames)
-o.iss_change_plot('OMP',[],{'Nos1','Chrm2'})  
+% o.iss_change_plot('OMP',[],o.GeneNames);
+o.iss_change_plot('OMP',[],{'Oxtr','Chodl','Chrm2','Sst','Lamp5'})  ;
+% Panels = readtable('Z:\shared\GeneLists_73g_ctx_OtrAdra_Cholinergic_IEG_final.txt');
+% CortexPanel = Panels.Gene( strcmp(Panels.Panel,'73genes'));
+% 
+% o.iss_change_plot('OMP',[],o.GeneNames(ismember(o.GeneNames,CortexPanel)))  ;
 % %% diagnostics per spot
 % iss_view_spot_omp3(o,234321)
 % iss_view_omp(o,234321)

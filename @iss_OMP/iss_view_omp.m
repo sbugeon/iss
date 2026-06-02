@@ -220,7 +220,7 @@ delete(h(1));
 scatter(nCodes+1:nCodes+o.nBackground,SpotCoefs(nCodes+1:nCodes+o.nBackground),46,'cyan','.');
 %ylim([min([backWt-0.05,-0.05,gWt-0.05]),max([backWt+0.05,gWt+0.05,1])]);
 ylabel('Coefficient','Color','w');
-set(gca, 'xtick', [1:nCodes,nCodes+int8((o.nBackground+1)/2)]);
+set(gca, 'xtick', [1:nCodes,nCodes+round((o.nBackground+1)/2)]);
 Labels = o.GeneNames;
 Labels{end+1} = 'Background';
 set(gca, 'XTickLabel', Labels);
