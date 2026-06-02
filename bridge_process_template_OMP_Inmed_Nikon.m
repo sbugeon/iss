@@ -164,7 +164,11 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % background image
+I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image = DAPI
+I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % background image = Anchor
+
+% Parameters to select spot to plot
+
 %  QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
 %          o.([pf,'SpotScore'])>o.ompScoreThresh;
 %  QualOK = QualOK & o.([pf,'SpotIntensity2'])>o.ompIntensityThresh2 & ...
@@ -184,7 +188,6 @@ o.ompIntensityThresh3_CoefDiffFactor = 0.27;
 o.ompNeighbThresh3 = 28;
 o.ompScoreThresh3 = 6.9;
 
-
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
 
@@ -192,23 +195,21 @@ Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
 o.plot(I,Roi,'OMP');
 daspect([1 1 1])
-% %% adjust thresholds
-% o.ompScoreThresh = 5;
-% o.ompScoreThresh2 = 2;
-% o.ompIntensityThresh = 0.01;
-% o.ompIntensityThresh2 = 0.005;
-% o.ompNeighbThresh = 12;
-% o.ompNeighbThresh2 = 10;
-% 
 
-% 
-% o.iss_change_plot('OMP',[],o.GeneNames);
-o.iss_change_plot('OMP',[],{'Oxtr','Chodl','Chrm2','Sst','Lamp5'})  ;
-% Panels = readtable('Z:\shared\GeneLists_73g_ctx_OtrAdra_Cholinergic_IEG_final.txt');
-% CortexPanel = Panels.Gene( strcmp(Panels.Panel,'73genes'));
-% 
-% o.iss_change_plot('OMP',[],o.GeneNames(ismember(o.GeneNames,CortexPanel)))  ;
-% %% diagnostics per spot
-% iss_view_spot_omp3(o,234321)
-% iss_view_omp(o,234321)
+o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
+o.iss_change_plot('OMP',[],{'Oxtr','Chodl','Chrm2','Sst','Lamp5','Grik5'}); % show some genes
 
+%% diagnostics per spot
+
+iss_view_spot_omp3(o,234321) % diagnostic showing spot image for each round and color
+
+iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
+
+%% 
+% o.ompSpotGlobalYX:    2D coordinates of the spots
+% o.ompSpotCodeNo:      Gene code number for each spots (index on o.GeneNames)
+% o.GeneNames:          Name of the genes
+
+% QualOK = quality_threshold(o,'omp'); % boolean selecting good spots using parameters above (o.ompIntensityThresh, o.ompNeighbThresh, o.ompScoreThresh)
+% change_gene_symbols function: assign a color and marker for each gene for
+% plotting
