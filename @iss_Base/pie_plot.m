@@ -1,8 +1,10 @@
-function o = pie_plot(o,Boundaries)
+function o = pie_plot(o,Boundaries,Alpha)
 % plot pie chart for each cell, showing probability of it belonging to all
 % classes
 
-
+if nargin<3
+    Alpha = 1;
+end
 nC = size(o.CellYX,1);
 nK = size(o.pCellClass,2);
 
@@ -27,8 +29,7 @@ nColorWheel = sum(CollapseMe==0);
 Colors0 = hsv(ceil(nColorWheel*1.2));
 Colors(~CollapseMe,:) = Colors0(1:nColorWheel,:); % last is zero
 
-figure(43908765)
-clf;
+
 set(gcf, 'Color', 'k');
 set(gca, 'color', 'k');
 hold on
@@ -54,9 +55,13 @@ for c=1:nC
     end
     
     [~ , WorthShowing] = max(pMy);
-    if ~isempty(Boundaries{c}) %&&  pMy(WorthShowing)>0.5 && max(Psubclass)>0.8
+    if ~isempty(Boundaries{c}) %&& max(Psubclass)>0.8
         if sum(Colors(WorthShowing(1),:))>0
-            patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none');
+            if  pMy(WorthShowing(1))>0.6 || max(Psubclass)>0.8
+                patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none','FaceAlpha',Alpha);
+            else % cell not above threshold are in grey
+                patch(Boundaries{c}(:,1),Boundaries{c}(:,2),[0.2 0.2 0.2],'EdgeColor', 'none','FaceAlpha',Alpha);
+            end
         end
     end
     
@@ -68,12 +73,17 @@ xMin = min(o.CellYX(:,2));
 
 ClassShown = true(length(DisplayName),1);
 ClassDisplayNameShown = DisplayName(ClassShown);
-% [uDisplayNames, idx] = unique(ClassDisplayNameShown, 'stable');
-% nShown = length(uDisplayNames);
-% for k=1:nShown
-%     h = text(xMax*1.1 - xMin*.5, yMin + k*(yMax-yMin)/nShown, uDisplayNames{k});
-%     set(h, 'color', Colors((idx(k)),:));
-%     h.FontSize = 35;
-% end
+
+ClassDisplayNameShown(end+1) = {'Not-assigned'};
+Colors= [Colors;[0.2 0.2 0.2]];
+[uDisplayNames, idx] = unique(ClassDisplayNameShown, 'stable');
+nShown = length(uDisplayNames);
+if Alpha ==1
+    for k=1:nShown
+        h = text(xMax*1.1 - xMin*.5, yMin + k*(yMax-yMin)/nShown, uDisplayNames{k});
+        set(h, 'color', Colors((idx(k)),:));
+        h.FontSize = 35;
+    end
+end
 daspect([1 1 1])
 

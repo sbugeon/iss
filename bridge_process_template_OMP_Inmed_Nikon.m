@@ -166,7 +166,7 @@ end
 % iss_color_diagnostics(o);
 I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image = DAPI
 I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % background image = Anchor
-
+I=[];
 % Parameters to select spot to plot
 
 %  QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...

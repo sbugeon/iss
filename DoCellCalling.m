@@ -15,8 +15,8 @@ o.Inefficiency = Ineff;
 
 %
 LocalFolder = o.OutputDirectory;
-BigDapi = imadjust(imread(fullfile(LocalFolder,'background_image_fixed.tif')));
-GcampImg = imadjust(imread(fullfile(LocalFolder,'tdTomato_image_fixed.tif')));
+BigDapi = imadjust(imread(fullfile(LocalFolder,'background_image.tif')));
+GcampImg = imadjust(imread(fullfile(LocalFolder,'tdTomato_image.tif')));
 ypoly = [size(BigDapi,1); size(BigDapi,1); 1; 1; size(BigDapi,1) ];
 xpoly = [1; size(BigDapi,2); size(BigDapi,2); 1; 1];
 o.CellCallRegionYX = round([ypoly xpoly]);

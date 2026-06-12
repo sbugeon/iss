@@ -34,7 +34,7 @@ ThreshVal = prctile(Dapi(Mask), o.DapiThresh);
 
 bwDapi = imerode(Dapi>ThreshVal, strel('disk', 2));
 
-if Debug
+if 0
     figure(300)
     subplot(2,1,1);
     imagesc(Dapi); 
@@ -52,7 +52,7 @@ ddist = imdilate(dist0, strel('disk', o.DapiMinSep));
 %clear dist 
 impim = imimposemin(-dist0, imregionalmax(ddist));
 clear dist0
-if Debug
+if 0
     figure(301);
     subplot(2,1,1)
     imagesc(dist);
@@ -85,7 +85,7 @@ CellMap(CellMap0>0) = NewNumber(CellMap0(CellMap0>0));
 if Debug
     figure(302)
     image(label2rgb(CellMap, 'jet', 'w', 'shuffle'));
-
+daspect([1 1 1])
 end
 
 %%

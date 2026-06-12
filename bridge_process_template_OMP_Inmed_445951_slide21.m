@@ -290,7 +290,7 @@ Dn = Dn(3:end);
 %     copyfile(fullfile(OutputF,Dn{i},'background_image_fixed.tif'),fullfile(DapiF,[Ani,'_',Slide,'_',Dn{i},'.tif']))
 % end
 %
-% ConvertCellPose2Bound_folder(DapiF)
+ConvertCellPose2Bound_folder(DapiF)
 %
 % for i=1:length(Dn)
 %     copyfile(fullfile(DapiF,['DAPI_Bound_',Ani,'_',Slide,'_',Dn{i},'.mat']),fullfile(OutputF,Dn{i},['DAPI_Bound_',Ani,'_',Slide,'_',Dn{i},'.mat']))
