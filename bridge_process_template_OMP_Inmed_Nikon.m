@@ -1,7 +1,7 @@
 clear
-SliceList = {'Region1_','Region2_'};
-MainFolder = {'E:\sb0010-Arthur-20260528','E:\sb0010-Arthur-20260528'};
-for iSlice = 2%:length(SliceList)
+SliceList = {'HB004-Slide50-Slice002','HB004-Slide50-Slice003','HB004-Slide50-Slice004'};%,'Slice002','Slice003','Slice004'};
+MainFolder = repmat({'E:\Bertrand\HB004\Slide50'},length(SliceList),1);
+for iSlice = 1:4
     SliceNb = SliceList{iSlice};
     
     %     %% Parameters that should be checked before each run
@@ -32,14 +32,14 @@ for iSlice = 2%:length(SliceList)
     
     %FileBase{r} is the file name of the raw data of round r in o.InputDirectory
     o.FileBase = cell(1,1);
-    o.FileBase{1} = strcat(SliceNb,'00');
-    o.FileBase{2} = strcat(SliceNb,'01');
-    o.FileBase{3} = strcat(SliceNb,'02');
-    o.FileBase{4} = strcat(SliceNb,'03');
-    o.FileBase{5} = strcat(SliceNb,'04');
-    o.FileBase{6} = strcat(SliceNb,'05');
-    o.FileBase{7} = strcat(SliceNb,'06');
-    o.FileBase{8} = strcat(SliceNb,'Anchor');
+    o.FileBase{1} = strcat(SliceNb,'-00');
+    o.FileBase{2} = strcat(SliceNb,'-01');
+    o.FileBase{3} = strcat(SliceNb,'-02');
+    o.FileBase{4} = strcat(SliceNb,'-03');
+    o.FileBase{5} = strcat(SliceNb,'-04');
+    o.FileBase{6} = strcat(SliceNb,'-05');
+    o.FileBase{7} = strcat(SliceNb,'-06');
+    o.FileBase{8} = strcat(SliceNb,'-anchor');
 
     o.TileDirectory = fullfile(o.InputDirectory,SliceNb,'\tiles');
     mkdir(o.TileDirectory);
@@ -49,8 +49,8 @@ for iSlice = 2%:length(SliceList)
     o.RawFileExtension = '.nd2';
     %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
     %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
-%     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx.txt';
-     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_OtrAdra_Cholinergic_IEG_final.txt';%%%%%%%%%%%%
+    o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_7rounds.txt';
+     
     %% Logging
     if o.LogToFile
         if isempty(o.LogFile)
@@ -102,10 +102,10 @@ for iSlice = 2%:length(SliceList)
     %paramaters to find shifts between overlapping tiles
     o.RegMinScore = 'auto';
     o.RegStep = [5,5];
- o.RegSearch.South.Y = -2600:o.RegStep(1):-2400;
+ o.RegSearch.South.Y = -3000:o.RegStep(1):-2800;
     o.RegSearch.South.X = -150:o.RegStep(2):150;
     o.RegSearch.East.Y = -150:o.RegStep(1):150;
-    o.RegSearch.East.X = -2600:o.RegStep(2):-2400;
+    o.RegSearch.East.X = -3000:o.RegStep(2):-2800;
 
     o.RegWidenSearch = [50,50];
     
@@ -122,11 +122,16 @@ for iSlice = 2%:length(SliceList)
     %run code
     
 %     o.EmptyTiles(:) = 1;
-% o.EmptyTiles(25) = 0;
+% o.EmptyTiles(3) = 0;
 
     o.RegMethod='Fft';
+%        o.RegMethod= 'PointBased'; 
     o = o.register2;
     save(fullfile(o.OutputDirectory, 'oRegister'), 'o', '-v7.3');
+    
+%     o.EmptyTiles(:) = 0;
+%     o.EmptyTiles(4:end)  = 1;
+%     
     %% find spots
 
     %  o.PcImageMatchesThresh = 100;
@@ -138,7 +143,7 @@ for iSlice = 2%:length(SliceList)
     %FindSpotsSearch can either be a 1x1 struct or a o.nRounds x 1 cell of
     %structs - have a different range for each round:
     o.FindSpotsSearch = struct();
-    o.FindSpotsSearch.Y = -150:o.FindSpotsStep(1):150;
+    o.FindSpotsSearch.Y = -500:o.FindSpotsStep(1):500;
     o.FindSpotsSearch.X = -150:o.FindSpotsStep(2):150;
     %Make WidenSearch larger if you think you have a large shift between rounds
     o.FindSpotsWidenSearch = [50,50];
@@ -147,7 +152,12 @@ for iSlice = 2%:length(SliceList)
     o.PointCloudMethod = 1;     %1 or 2, set to 2 if no anchor round.
     %2 assumes same scaling to each color channel across all rounds.
     
+    o.DetectionThresh='auto';
+    o.IsolationThresh ='auto';
     %run code
+    
+%     nMatches<o.PcMinSpots | o.AllBaseSpotNo<o.PcMinSpots;
+   % o.PcMinSpotsScaling
     o = o.find_spots2;
     save(fullfile(o.OutputDirectory, 'oFind_spots'), 'o', '-v7.3');
     
@@ -164,9 +174,10 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image = DAPI
-I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % background image = Anchor
-I=[];
+
+% I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image = DAPI
+I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif'))); % background image = Anchor
+
 % Parameters to select spot to plot
 
 %  QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
@@ -190,6 +201,7 @@ o.ompScoreThresh3 = 6.9;
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
+o.MarkerType = 'Dots';
 
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
@@ -197,7 +209,6 @@ o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 
 o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
-o.iss_change_plot('OMP',[],{'Oxtr','Chodl','Chrm2','Sst','Lamp5','Grik5'}); % show some genes
 
 %% diagnostics per spot
 
@@ -212,4 +223,5 @@ iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
 
 % QualOK = quality_threshold(o,'omp'); % boolean selecting good spots using parameters above (o.ompIntensityThresh, o.ompNeighbThresh, o.ompScoreThresh)
 % change_gene_symbols function: assign a color and marker for each gene for
-% plotting
+% plotting3
+
