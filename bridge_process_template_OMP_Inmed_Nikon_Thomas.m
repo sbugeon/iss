@@ -226,8 +226,6 @@ iss_view_spot_omp3(o,234321) % diagnostic showing spot image for each round and 
 
 iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
 
-
-
 %% 
 % o.ompSpotGlobalYX:    2D coordinates of the spots
 % o.ompSpotCodeNo:      Gene code number for each spots (index on o.GeneNames)
