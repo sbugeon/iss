@@ -178,10 +178,9 @@ end
 %% plot results
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
-load('D:\bugeon\data\Thomas\Thomas-20260901\humansection-20260901-2\output\oCall_spots_OMP.mat')
 
-OldOut = 'E:\Thomas-20260901\';
-NewOut = 'D:\bugeon\data\Thomas\Thomas-20260901\';
+OldOut = 'D:\bugeon\data\Thomas\Thomas-20260901\';
+NewOut = 'Z:\shared\Stephane\Thomas\';
 
 o.TileFiles = cellfun(@(x) strrep(x,OldOut,NewOut), o.TileFiles, 'UniformOutput', false);
 o.OutputDirectory = strrep(o.OutputDirectory,OldOut,NewOut);
@@ -218,7 +217,6 @@ o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 
 o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
-% o.iss_change_plot('OMP',[],{'Oxtr','Chodl','Chrm2','Sst','Lamp5','Grik5'}); % show some genes
 
 % o.iss_change_plot('OMP',[],{'FGF13','FGF14','FGF14_isoform1','LRRC37B'}); % show some genes
 % o.iss_change_plot('OMP',[],{'ALDOC','CALB1'}); 
