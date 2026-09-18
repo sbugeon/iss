@@ -69,6 +69,7 @@ for t=NonemptyTiles(:)'
 %             ReferenceIm =Im;
 %         else
         ReferenceIm = int32(TifObj.read())-o.TilePixelValueShift;     
+%         ReferenceIm = int32(TifObj.read());     
 %         end
         if o.SmoothSize
             SE = fspecial('disk', o.SmoothSize);

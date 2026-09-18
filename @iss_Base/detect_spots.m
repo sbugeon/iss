@@ -114,10 +114,10 @@ if o.Graphics==2
     figure(50965467); clf;
     imagesc(Image); hold on; colormap hot
     if nargout==1
-        plot(PeakPos(:,2), PeakPos(:,1), 'wx');
+        plot(PeakPos(:,2), PeakPos(:,1), 'bx');
     elseif nargout==2
         plot(PeakPos(Isolated,2), PeakPos(Isolated,1), 'gx');
-        plot(PeakPos(~Isolated,2), PeakPos(~Isolated,1), 'wx');
+        plot(PeakPos(~Isolated,2), PeakPos(~Isolated,1), 'bx');
         legend('Isolated', 'Not isolated');
     end
     drawnow;

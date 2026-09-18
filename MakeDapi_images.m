@@ -115,6 +115,7 @@ else
     end
     %% Finally make new large images and save them
     o2 = load(fullfile(o.OutputDirectory,'oCall_spots_OMP.mat'));
+    
     o.TileOrigin(:,:,o.ReferenceRound) = o2.o.TileOrigin(:,:,o.ReferenceRound);
     try
         I = imread(o.TileFiles{o.ReferenceRound,1}, o.AnchorChannel);
@@ -191,8 +192,8 @@ else
     BigGadIm = BigGadIm./(uint16(BigGadIm_norm));
 
     imwrite(BigDapiIm, fullfile(o.OutputDirectory, 'background_image_fixed.tif'));
-    imwrite(BigGcampIm, fullfile(o.OutputDirectory, 'tdTomato_image_fixed.tif'));
-    imwrite(BigGadIm, fullfile(o.OutputDirectory, 'EGFP_image_fixed.tif'));
+    imwrite(BigGadIm, fullfile(o.OutputDirectory, 'tdTomato_image_fixed.tif'));
+    imwrite(BigGcampIm, fullfile(o.OutputDirectory, 'EGFP_image_fixed.tif'));
     imwrite(BigAnchorIm, fullfile(o.OutputDirectory, 'Anchor_image_fixed.tif'));
 
 end

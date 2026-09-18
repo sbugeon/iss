@@ -43,14 +43,15 @@ for i = 1:length(o.TileConnectedID)
     
     
     % find index for each tile
-    %     if isempty(o.TileInitialPosYX)
-    if nTiles==1
-        o.TileInitialPosYX = [1,1];
-    else
-        o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+    if isempty(o.TileInitialPosYX)
+        if nTiles==1
+            o.TileInitialPosYX = [1,1];
+        else
+            o.TileInitialPosYX = fliplr(1+round((xypos - min(xypos))./[xStep yStep]));
+        end
     end
-    %     end
-    
+
+ 
     % only consider tiles with index less than number of tiles and only 1
     % away from another tile index.
     uniqueY = unique(o.TileInitialPosYX(:,1),'sorted');

@@ -182,6 +182,7 @@ if nargin<3 || SkipRegistration == false
     for t=NonemptyTiles
         for r = ImageRounds
             tic
+            min(o.AllBaseSpotNo(t,o.InitialShiftChannel,r),o.RawLocalNo(t))
             if min(o.AllBaseSpotNo(t,o.InitialShiftChannel,r),o.RawLocalNo(t))<o.OutlierMinScore
                 warning('Tile %d, round %d, only has %d spots so using Fft method', t, r,...
                     min(o.AllBaseSpotNo(t,o.InitialShiftChannel,r),o.RawLocalNo(t)));
