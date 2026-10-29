@@ -159,7 +159,7 @@ for iSlice = 2
     o.DetectionThresh='auto';
     o.IsolationThresh ='auto';
     %run code
-    
+    o.PcMinSpots =10; %% attention, this is quite low (for testing only)
 %     nMatches<o.PcMinSpots | o.AllBaseSpotNo<o.PcMinSpots;
    % o.PcMinSpotsScaling
     o = o.find_spots2;
