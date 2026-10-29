@@ -104,7 +104,7 @@ for iSlice = 2
     %paramaters to find shifts between overlapping tiles
     o.RegMinScore = 'auto';
     o.RegStep = [5,5];
- o.RegSearch.South.Y = -3000:o.RegStep(1):-2800;
+    o.RegSearch.South.Y = -3000:o.RegStep(1):-2800;
     o.RegSearch.South.X = -150:o.RegStep(2):150;
     o.RegSearch.East.Y = -150:o.RegStep(1):150;
     o.RegSearch.East.X = -3000:o.RegStep(2):-2800;
@@ -223,7 +223,6 @@ o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
 %% diagnostics per spot
 
 iss_view_spot_omp3(o,234321) % diagnostic showing spot image for each round and color
-
 iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
 
 %% 

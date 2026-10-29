@@ -503,7 +503,7 @@ classdef iss_Base
         DapiChannel = 1;  
         
         % which channel of each file is anchor images
-        AnchorChannel = 2;
+        AnchorChannel = 6;
         
         % which channel has first round of sequencing images
         FirstBaseChannel = 3;
@@ -513,7 +513,7 @@ classdef iss_Base
         
         % AnchorRound is index of anchor imaging round that contains Dapi
         % image in DapiChannel.
-        AnchorRound;
+        AnchorRound = 8;
         
         % ReferenceChannel is the channel in the ReferenceRound that the
         % global coordinate system is built upon.
@@ -535,7 +535,7 @@ classdef iss_Base
         TileSz = 2048;
         
         % expected step size (in coordinates returned by bioformats)
-        MicroscopeStepSize = 2048;
+        MicroscopeStepSize = TileSz;
         
         RawFileExtension = '.nd2';      %e.g. '.nd2', '.czi'
         
@@ -814,6 +814,7 @@ classdef iss_Base
     	GcampChannel = 6;         % Channel of Gcamp image
     	GcampRound = 8;           % round of Gcamp image
     	DapiRound = 8;            % round of DAPI
+        
         GadImage;
         GcampImage;
         DapiImage;
