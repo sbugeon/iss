@@ -57,7 +57,7 @@ for c=1:nC
     [~ , WorthShowing] = max(pMy);
     if ~isempty(Boundaries{c}) %&& max(Psubclass)>0.8
         if sum(Colors(WorthShowing(1),:))>0
-            if  pMy(WorthShowing(1))>0.6 || max(Psubclass)>0.8
+            if  pMy(WorthShowing(1))>0.1 || max(Psubclass)>0.8
                 patch(Boundaries{c}(:,1),Boundaries{c}(:,2),Colors(WorthShowing(1),:),'EdgeColor', 'none','FaceAlpha',Alpha);
             else % cell not above threshold are in grey
                 patch(Boundaries{c}(:,1),Boundaries{c}(:,2),[0.2 0.2 0.2],'EdgeColor', 'none','FaceAlpha',Alpha);

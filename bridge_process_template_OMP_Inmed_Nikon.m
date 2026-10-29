@@ -175,8 +175,8 @@ end
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
 
-% I = imadjust(imread(fullfile(o.OutputDirectory,'background_image.tif'))); % background image = DAPI
-I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif'))); % background image = Anchor
+I = imadjust(imread(fullfile('Z:\data_proc\HB\HB004\coppaFISH\HB004-Slide50-Slice001\output','background_image_fixed.tif'))); % background image = DAPI
+% I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif'))); % background image = Anchor
 
 % Parameters to select spot to plot
 
@@ -201,7 +201,7 @@ o.ompScoreThresh3 = 6.9;
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
-o.MarkerType = 'Dots';
+o.MarkerType = 'GeneSymbols';
 
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);

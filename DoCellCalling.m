@@ -4,19 +4,27 @@ function CellCalled = DoCellCalling(o,DapiBound,gSet,Ineff)
 o.CellCallMaxIter = 100;
 o.nNeighbors = 3;
 o.CellCallTolerance = 0.05;
-o.ompScoreThresh = 5;
-o.ompScoreThresh2 = 2;
-o.ompIntensityThresh = 0.01;
+o.ompIntensityThresh = 0.5;
 o.ompIntensityThresh2 = 0.005;
-o.ompNeighbThresh = 12;
+o.ompNeighbThresh = 18;
 o.ompNeighbThresh2 = 10;
+o.ompScoreThresh = 4.3;
+o.ompScoreThresh2 = 1.1;
+
+%Spots assigned to gene that is not largest coefficient for pixel
+%have a stronger thresholding as given by these:
+o.ompIntensityThresh3 = 0.01;
+o.ompIntensityThresh3_CoefDiffFactor = 0.27;
+o.ompNeighbThresh3 = 28;
+o.ompScoreThresh3 = 6.9;
+
 o.rSpot = 2;
 o.Inefficiency = Ineff;
 
 %
 LocalFolder = o.OutputDirectory;
-BigDapi = imadjust(imread(fullfile(LocalFolder,'background_image.tif')));
-GcampImg = imadjust(imread(fullfile(LocalFolder,'tdTomato_image.tif')));
+BigDapi = imadjust(imread(fullfile(LocalFolder,'background_image_fixed.tif')));
+GcampImg = imadjust(imread(fullfile(LocalFolder,'tdTomato_image_fixed.tif')));
 ypoly = [size(BigDapi,1); size(BigDapi,1); 1; 1; size(BigDapi,1) ];
 xpoly = [1; size(BigDapi,2); size(BigDapi,2); 1; 1];
 o.CellCallRegionYX = round([ypoly xpoly]);
@@ -65,7 +73,7 @@ if length(gSet.Class) > 110
         o.ClassNames(351:358), 'PC.CA3', [146, 26, 237]./255 ; ...% purple
         o.ClassNames(349:350), 'MossyCells', [237, 170, 26]./255 ; ... % orange
         o.ClassNames(361:364), 'DG', [26, 237, 75]./255 ; ... % green
-        o.ClassNames(388), 'Zero', [0 0 0]};%black
+        o.ClassNames(388), 'Zero', [0.4 0.4 0.4]};%black
 else
 
     o.ClassCollapse = {o.ClassNames(95:109), 'Not neuron', [0 0 0]./255 ; ...
@@ -73,13 +81,49 @@ else
         o.ClassNames(64), 'Layer4', [5, 207, 230]./255 ; ...
         o.ClassNames([65:69,75:81]), 'Layer5', [166, 77, 235]./255 ; ...
         o.ClassNames([70:74,82:92]), 'Layer6', [250, 17, 130]./255 ; ...
-        o.ClassNames(1:60), 'Interneurons', [0 0 0] ; ...
+        o.ClassNames(1:60), 'Interneurons', [0.8 0.8 0.8] ; ...
         o.ClassNames(93:94), 'others', [0 0 0] ; ...
-        o.ClassNames(110), 'Zero', [0 0 0]};
+        o.ClassNames(110), 'Zero', [0.4 0.4 0.4]};
 end
 
-o = pie_plot(o,Boundaries);
+%%
+
+% o.ClassCollapse = {o.ClassNames(95:109), 'Not_neuron', [0, 0, 0]./255 ; ...	        o.ClassNames(5:36), 'Excitatory cells', [0 0 0] ; ...
+%         o.ClassNames(65:92), 'Excitatory cells', [0.4 0.4 0.4] ; ...	        o.ClassNames(37:43), 'Lamp5', [207, 109, 202]./255 ; ...
+%          o.ClassNames(61:63), 'Layer2-3', [250, 169, 17]./255 ; ...
+%         o.ClassNames(64), 'Layer4', [5, 207, 230]./255 ; ...
+%         o.ClassNames(1:7), 'Lamp5', [207, 0, 202]./255 ; ...	        o.ClassNames(91:106), 'Vip', [0, 76, 207]./255 ; ...
+%         o.ClassNames(14:29), 'Vip', [200, 200, 0]./255 ; ...	        o.ClassNames(52:61), 'Pvalb', [0, 207, 10]./255 ; ...
+%         o.ClassNames(51:60), 'Pvalb', [0, 0, 200]./255 ; ...	        o.ClassNames(70:90), 'Sst', [207, 0, 0]./255 ; ...
+%         o.ClassNames(30:50), 'Sst', [0, 200, 200]./255 ; ...	        o.ClassNames(66:69), 'Sncg', [0, 0, 0]./255 ; ...
+%         o.ClassNames(8:13), 'Sncg', [200, 0, 0]./255 ; ...
+%         o.ClassNames(93:94), 'others', [0 0 0] ; ...	        o.ClassNames(93:94), 'others', [0 0 0] ; ...
+%         o.ClassNames(110), 'Zero', [0.9 0.9 0.9]};
+% I = [];
+% 
+% o.MarkerSize = 5;
+% o.PlotLineWidth = 1.2;
+% o.MarkerType = 'GeneSymbols';
+% 
+% Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
+% 1, max(o.dpSpotGlobalYX(:,1))]);
+% o.plot(I,Roi,'OMP');
+% 
+% hold on
+% scatter(CellCalled.CellYX(:,2),CellCalled.CellYX(:,1),100,'or','LineWidth',2)
+figure
+o = pie_plot(o,Boundaries,1);
 daspect([1 1 1])
-set(gcf,'Position',[28,185,2362,1153])
-set(gcf,'InvertHardCopy','off');
+
+% 
+% [closestIdx, closestCoord, clickXY] = findClosestCell(CellCalled);
+% 
+% pThis = CellCalled.pCellClass(closestIdx,:);
+% 
+% figure
+% plot(pThis,'-o')
+% set(gca,'XTick',1:length(pThis),'XTickLabel',strrep(o.ClassNames,'_','-'))
+% xtickangle(90)
+
+
 

@@ -52,7 +52,7 @@ for iSlice = 2
     %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
     %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
 %     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx.txt';
-     o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_BaptisteHumanChimp.txt';%%%%%%%%%%%%
+     o.CodeFile = 'C:\Users\bugeon\Documents\codebook_BaptisteHumanChimp.txt';%%%%%%%%%%%%
     %% Logging
     if o.LogToFile
         if isempty(o.LogFile)
@@ -114,7 +114,7 @@ for iSlice = 2
     %If a channel or round is faulty, you can ignore it by selecting only the
     %good ones in o.UseChannels and o.UseRounds.
     o.UseChannels = 1:o.nBP;
-    o.UseRounds = 1:5;
+    o.UseRounds = 1:7;
     
     % check channels
     % below will flag error if some channels are weak

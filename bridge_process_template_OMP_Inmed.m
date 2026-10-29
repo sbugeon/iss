@@ -223,7 +223,7 @@ ExcludeGenes = {'Akr1c18','Yjefn3'}; % gene to be excluded from cell calling
 Inefficiency = 0.01; % 0.1 for Yao?; 0.01 for Tasic
 
 F = fullfile(OutputF,SlicePrefix,'\output');
-cpt = cellpose(Model=model_path);
+cpt = cellpose(Model = model_path);
 load(fullfile(F,'oExtract'));
 
 for j = 1%:length(o.TileConnectedID)
