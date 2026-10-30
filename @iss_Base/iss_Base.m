@@ -535,7 +535,7 @@ classdef iss_Base
         TileSz = 2048;
         
         % expected step size (in coordinates returned by bioformats)
-        MicroscopeStepSize = TileSz;
+        MicroscopeStepSize = 2048;
         
         RawFileExtension = '.nd2';      %e.g. '.nd2', '.czi'
         
@@ -835,6 +835,7 @@ classdef iss_Base
         
         TileSnakeDirection = 'reverse'; % normal: if snake is starting to go from top to bottom and left ro right
         % reverse: if snake is starting to go from bottome to top and right to left
+        IgnoreFirstChannel = 0;
     end
     
 end

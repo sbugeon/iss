@@ -11,6 +11,7 @@ function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWi
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
 
+filename = 'C:\Users\bugeon\Documents\GitHub\iss\GUI\GenePanelConfig.xlsx';
 if nargin<1 || isempty(MarkerSize)
     MarkerSize = 6;
     LineWidth=1;
@@ -255,7 +256,45 @@ New_symbols = {...
 'SKOR2',          pvalb, 'x'; ...
 
 };
+
+% try 
+%     
+%     % LOAD_GENE_PANEL_EXCEL Loads a saved gene panel Excel configuration file
+%     % and formats it into the standard New_symbols cell array structure.
+%     %
+%     % Usage:
+%     %   New_symbols = load_gene_panel_excel('GenePanelConfig.xlsx');
+%     
+%     if nargin < 1 || isempty(filename)
+%         error('No excel file with gene symbols')
+%     end
+%     
+%     % Read table safely
+%     T = readtable(filename, 'FileType', 'spreadsheet', 'ReadVariableNames', true);
+%     rawCell = table2cell(T);
+%     
+%     numRows = size(rawCell, 1);
+%     New_symbols = cell(numRows, 3);
+%     
+%     for i = 1:numRows
+%         % Column 1: Gene Symbol (character vector)
+%         New_symbols{i, 1} = char(string(rawCell{i, 1}));
+%         
+%         % Column 2: Color RGB vector (convert 'R, G, B' string back to a 1x3 numeric vector)
+%         rgbStr = char(string(rawCell{i, 2}));
+%         rgbVal = sscanf(rgbStr, '%f,%f,%f')';
+%         if length(rgbVal) ~= 3
+%             rgbVal = [0.7 0.7 0.7]; % Fallback grey if malformed
+%         end
+%         New_symbols{i, 2} = rgbVal;
+%         
+%         % Column 3: Marker Type (character vector)
+%         New_symbols{i, 3} = char(string(rawCell{i, 3}));
+%     end
+% end
+
 New_symbols = flipud(New_symbols);
+
 if nargout<1
     % delete any existing legend
     fc = get(gcf, 'Children');

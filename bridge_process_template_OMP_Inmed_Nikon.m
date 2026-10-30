@@ -49,7 +49,7 @@ for iSlice = 1:4
     o.RawFileExtension = '.nd2';
     %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
     %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
-    o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_7rounds.txt';
+    o.CodeFile = 'C:\Users\bugeon\Documents\data_coppaFISH\codebook_73g_ctx_OtrAdra_Cholinergic_IEG_final.txt';
      
     %% Logging
     if o.LogToFile
@@ -143,8 +143,8 @@ for iSlice = 1:4
     %FindSpotsSearch can either be a 1x1 struct or a o.nRounds x 1 cell of
     %structs - have a different range for each round:
     o.FindSpotsSearch = struct();
-    o.FindSpotsSearch.Y = -500:o.FindSpotsStep(1):500;
-    o.FindSpotsSearch.X = -150:o.FindSpotsStep(2):150;
+    o.FindSpotsSearch.Y = -100:o.FindSpotsStep(1):100;
+    o.FindSpotsSearch.X = -100:o.FindSpotsStep(2):100;
     %Make WidenSearch larger if you think you have a large shift between rounds
     o.FindSpotsWidenSearch = [50,50];
     
@@ -175,9 +175,9 @@ end
 % o = o.call_spots; % to plot bleed matrix
 % iss_color_diagnostics(o);
 
-I = imadjust(imread(fullfile('Z:\data_proc\HB\HB004\coppaFISH\HB004-Slide50-Slice001\output','background_image_fixed.tif'))); % background image = DAPI
+%I = imadjust(imread(fullfile('Z:\data_proc\HB\HB004\coppaFISH\HB004-Slide50-Slice001\output','background_image_fixed.tif'))); % background image = DAPI
 % I = imadjust(imread(fullfile(o.OutputDirectory,'tdTomato_image_fixed.tif'))); % background image = Anchor
-
+I=[];
 % Parameters to select spot to plot
 
 %  QualOK = NeighbNonZeros>o.ompNeighbThresh | o.([pf,'SpotIntensity2'])>o.ompIntensityThresh |...
@@ -205,10 +205,13 @@ o.MarkerType = 'GeneSymbols';
 
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
-o.plot(I,Roi,'OMP');
+o.plot(I,Roi,'DotProduct');
 daspect([1 1 1])
 
-o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
+o2 = load('D:\ISS\Round_-\outputB\1\oCall_spots_OMP.mat');
+GN = o2.o.GeneNames;
+o.iss_change_plot('DotProduct',[],GN'); % show all genes
+
 
 %% diagnostics per spot
 

@@ -235,3 +235,12 @@ iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
 % plotting3
 
 %%
+clear
+load('Z:\shared\Stephane\Thomas\humansection-20260901-2\output\oExtract.mat')
+NewOut = 'Z:\shared\Stephane\Thomas';
+o.TileFiles = cellfun(@(x) strrep(x,o.InputDirectory,NewOut), o.TileFiles, 'UniformOutput', false);
+o.OutputDirectory = strrep(o.OutputDirectory,o.InputDirectory,NewOut);
+
+%%
+o.EmptyTiles(:) = 0;
+o.EmptyTiles(9)=1;

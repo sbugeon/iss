@@ -1,4 +1,4 @@
-function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize,xyposRaw] =...
+function [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize,xyposRaw, imageSize] =...
     get_ome_tilepos(reader)
 % [nSeries, nSerieswPos, nChannels, nZstacks, xypos, pixelsize] =...
 %     get_ome_tilepos(reader)
@@ -20,6 +20,15 @@ pixelsize = double(omeMeta.getPixelsPhysicalSizeX(0).value());
 
 xypos  = [];
 for i = 1:nSeries
+    
+    % Extract image width (X) and height (Y) in pixels for the current series
+    % Note:OME-XML metadata index for pixels is usually 0 if shared, or matches series depending on format,
+    % but reader.setSeries(i-1) ensures reader methods target the correct series.
+    reader.setSeries(i-1);
+    imgWidth = reader.getSizeX();
+    imgHeight = reader.getSizeY();
+    imageSize = [imgWidth, imgHeight];
+
     if isempty(omeMeta.getPlanePositionX(i-1, 0)) || isempty(omeMeta.getPlanePositionY(i-1, 0))
         fprintf('Could not load tile positions for series %d\n', i);
     else

@@ -1,23 +1,17 @@
 function o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_index,t)
-%% o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t)
+%% o = get_extract_scale(o,nChannels,nZstacks,imfile,scene,SE,DapiSE,r,t_index,t)
 %
 % This finds the scale by which to multiply each filtered image. This is
 % based on the max intensity of tile t round r across all color channels.
 % It also writes the images for this tile and round to o.TileDirectory
-% This is performed once for the imaging rounds and once for the anchor
-% round as doesn't matter if anchor and imaging rounds scaling different.
-%
-% o: iss object
-% nChannels: number of color channels
-% nZstacks: number of z stacks in raw (nd2) data
-% imfile: path of raw data.
-% SE: filter for non Dapi image.
-% DapiSE: filter for Dapi image.
-% r: round
-% t_index: tile index in nd2 file
-% t: tile number as saved in tile directory.
 
-%%
+%% Determine channel offset
+if  o.IgnoreFirstChannel
+    channelOffset = 1; % Skip channel 1 (e.g., DAPI)
+else
+    channelOffset = 0;
+end
+
 fName = fullfile(o.TileDirectory, ...
     [o.FileBase{r}, '_t', num2str(t), '.tif']);
 
@@ -45,22 +39,27 @@ else
     MaxPixelValue = 0;
     RawImage_all = zeros(o.TileSz,o.TileSz,nChannels);
     IFS_all = zeros(o.TileSz,o.TileSz,nChannels);
+    
     for c=1:nChannels
+        file_c = c + channelOffset; % Map loop channel to file channel
+        
         I = cell(nZstacks,1);
         for z = 1:nZstacks
-            iPlane = bfreader.getIndex(z-1, c-1, 0)+1;
+            iPlane = bfreader.getIndex(z-1, file_c-1, 0)+1;
             I{z} = bfGetPlane(bfreader, iPlane);
         end
         
         % focus stacking
         I_mod = o.fstack_modified(I(o.FirstZPlane:end));
-
+        
         if o.StripHack
             [I_mod,BadColumns] = o.StripHack_raw(I_mod);
         end
         RawImage_all(:,:,c) = I_mod;
-        if (c == o.DapiChannel  && r == o.DapiRound) ||...
-                ((c == o.GcampChannel || c == o.GadChannel) &&...
+        
+        % Check against physical file channels
+        if (file_c == o.DapiChannel  && r == o.DapiRound) ||...
+                ((file_c == o.GcampChannel || file_c == o.GadChannel) &&...
                 (r == o.DapiRound || r == o.AnchorRound))
             if o.RawDAPIGad
                 IFS = I_mod;
@@ -89,8 +88,14 @@ else
     
     if r==o.AnchorRound
         o.ExtractScaleAnchor = o.ExtractScaleNorm/MaxPixelValue;
-        IFS_all(:,:,setdiff(1:nChannels,[o.DapiChannel,o.GadChannel,o.GcampChannel])) = ...
-            IFS_all(:,:,setdiff(1:nChannels,[o.DapiChannel,o.GadChannel,o.GcampChannel]))*o.ExtractScaleAnchor;
+        % Exclude special channels from scaling if they map correctly
+        skipChannels = [];
+        if isprop(o, 'DapiChannel') && ~isempty(o.DapiChannel), skipChannels = [skipChannels, o.DapiChannel - channelOffset]; end
+        if isprop(o, 'GadChannel') && ~isempty(o.GadChannel), skipChannels = [skipChannels, o.GadChannel - channelOffset]; end
+        if isprop(o, 'GcampChannel') && ~isempty(o.GcampChannel), skipChannels = [skipChannels, o.GcampChannel - channelOffset]; end
+        
+        validScaleIdx = setdiff(1:nChannels, skipChannels);
+        IFS_all(:,:,validScaleIdx) = IFS_all(:,:,validScaleIdx) * o.ExtractScaleAnchor;
     else
         o.ExtractScale = o.ExtractScaleNorm/MaxPixelValue;
         IFS_all = IFS_all*o.ExtractScale;
@@ -99,13 +104,11 @@ else
     if r~=o.AnchorRound; fprintf('Value is %.2f\n', o.ExtractScale);
     else; fprintf('Value is %.2f\n', o.ExtractScaleAnchor);end
     
-%     if o.Graphics
-%         o.TilePlot(IFS_all,RawImage_all,r,nChannels);
-%     end
-    
     for c=1:nChannels
-        if (c == o.DapiChannel  && r == o.DapiRound) ||...
-                ((c == o.GcampChannel || c == o.GadChannel) &&...
+        file_c = c + channelOffset;
+        
+        if (file_c == o.DapiChannel  && r == o.DapiRound) ||...
+                ((file_c == o.GcampChannel || file_c == o.GadChannel) &&...
                 (r == o.DapiRound || r == o.AnchorRound))
             I_mod = uint16(IFS_all(:,:,c));
             if o.RawDAPIGad
@@ -118,7 +121,7 @@ else
                 IFS(:,BadColumns) = 0;
             end
         else
-            if c ~= o.AnchorChannel && r == o.AnchorRound
+            if file_c ~= o.AnchorChannel && r == o.AnchorRound
                 IFS = uint16(IFS_all(:,:,c)+o.TilePixelValueShift);
             else
                 %Determine auto thresholds
@@ -135,9 +138,7 @@ else
                 end
                 IFS = uint16(IFS+o.TilePixelValueShift);
             end
-            
         end
-        
         
         imwrite(IFS,...
             fullfile(o.TileDirectory,...
@@ -145,16 +146,17 @@ else
             'tiff', 'writemode', 'append');
         fprintf('Round %d tile %d colour channel %d finished.\n', r, t, c);
     end
-     if nChannels < length(o.bpLabels) && r == o.DapiRound
-                for c = (nChannels + 1) : 7
-                    imwrite(IFS,...
-                        fullfile(o.TileDirectory,...
-                        [o.FileBase{r}, '_t', num2str(t), '.tif']),...
-                        'tiff', 'writemode', 'append');
-                end
-                fprintf(['\n There was less channels than codes for DAPI round: ',num2str(r),....
-                    ' , replacing missing channels with Anchor'])
-     end
+    
+    if nChannels < length(o.bpLabels) && r == o.DapiRound
+        for c = (nChannels + 1) : length(o.bpLabels)
+            imwrite(IFS,...
+                fullfile(o.TileDirectory,...
+                [o.FileBase{r}, '_t', num2str(t), '.tif']),...
+                'tiff', 'writemode', 'append');
+        end
+        fprintf(['\n There was less channels than codes for DAPI round: ',num2str(r),....
+            ' , replacing missing channels with Anchor'])
+    end
 end
 
 %Save o object so keep ExtractScale values
