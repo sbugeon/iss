@@ -205,18 +205,17 @@ o.MarkerType = 'GeneSymbols';
 
 Roi = round([1, max(o.dpSpotGlobalYX(:,2)), ...
 1, max(o.dpSpotGlobalYX(:,1))]);
-o.plot(I,Roi,'DotProduct');
+o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 
-o2 = load('D:\ISS\Round_-\outputB\1\oCall_spots_OMP.mat');
-GN = o2.o.GeneNames;
-o.iss_change_plot('DotProduct',[],GN'); % show all genes
+% o2 = load('D:\ISS\Round_-\outputB\1\oCall_spots_OMP.mat');
+% GN = o2.o.GeneNames;
+% o.iss_change_plot('DotProduct',[],GN'); % show all genes
 
 
 %% diagnostics per spot
 
 iss_view_spot_omp3(o,234321) % diagnostic showing spot image for each round and color
-
 iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
 
 %% 

@@ -194,19 +194,31 @@ I = imadjust(imread(fullfile(o.OutputDirectory,'anchor_image.tif'))); % backgrou
 %  QualOK = QualOK & o.([pf,'SpotIntensity2'])>o.ompIntensityThresh2 & ...
 %       NeighbNonZeros>o.ompNeighbThresh2 & o.([pf,'SpotScore'])>o.ompScoreThresh2;
 
-o.ompIntensityThresh = 0.5;
-o.ompIntensityThresh2 = 0.005;
-o.ompNeighbThresh = 18;
-o.ompNeighbThresh2 = 10;
-o.ompScoreThresh = 4.3;
-o.ompScoreThresh2 = 1.1;
-
+o.ompIntensityThresh = 1;
+o.ompIntensityThresh2 = 0.25;
+o.ompNeighbThresh = 20;
+o.ompNeighbThresh2 = 5;
+o.ompScoreThresh = 15;
+o.ompScoreThresh2 = 7;
 %Spots assigned to gene that is not largest coefficient for pixel
 %have a stronger thresholding as given by these:
-o.ompIntensityThresh3 = 0.01;
+o.ompIntensityThresh3 = 0.1;
 o.ompIntensityThresh3_CoefDiffFactor = 0.27;
-o.ompNeighbThresh3 = 28;
-o.ompScoreThresh3 = 6.9;
+o.ompNeighbThresh3 = 15;
+o.ompScoreThresh3 = 15;
+
+o.ompIntensityThresh = 1;
+o.ompIntensityThresh2 = 0.005;
+o.ompNeighbThresh = 20;
+o.ompNeighbThresh2 = 10;
+o.ompScoreThresh = 15;
+o.ompScoreThresh2 = 7;
+%Spots assigned to gene that is not largest coefficient for pixel
+%have a stronger thresholding as given by these:
+o.ompIntensityThresh3 = 0.1;
+o.ompIntensityThresh3_CoefDiffFactor = 0.27;
+o.ompNeighbThresh3 = 15;
+o.ompScoreThresh3 = 15;
 
 o.MarkerSize = 5;
 o.PlotLineWidth = 1.2;
@@ -217,13 +229,13 @@ o.plot(I,Roi,'OMP');
 daspect([1 1 1])
 
 o.iss_change_plot('OMP',[],o.GeneNames); % show all genes
-
+o.iss_change_plot('OMP',[],{'Chodl'});
 % o.iss_change_plot('OMP',[],{'FGF13','FGF14','FGF14_isoform1','LRRC37B'}); % show some genes
 % o.iss_change_plot('OMP',[],{'ALDOC','CALB1'}); 
 %% diagnostics per spot
 
-iss_view_spot_omp3(o,234321) % diagnostic showing spot image for each round and color
-iss_view_omp(o,234321) % diagnostic showing color code and gene probabilities
+Spotnb = iss_view_spot_omp3(o,234321); % diagnostic showing spot image for each round and color
+iss_view_omp(o,234321,[],[],Spotnb) % diagnostic showing color code and gene probabilities
 
 %% 
 % o.ompSpotGlobalYX:    2D coordinates of the spots

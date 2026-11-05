@@ -1,4 +1,4 @@
-function plot(o, BackgroundImageFile, Roi, Method)
+function plot(o, BackgroundImageFile, Roi, Method, QualOK)
 %% o.plot(BackgroundImage, Roi, Method)
 %
 % plot the results of in situ sequencing spot detection. 
@@ -108,7 +108,12 @@ S.SpotGeneName = o.GeneNames(o.([pf,'SpotCodeNo']));
 S.uGenes = unique(S.SpotGeneName);
 S.SpotYX = o.([pf,'SpotGlobalYX']);
 S.CallMethod = Method;
-S.QualOK = quality_threshold(o,S.CallMethod);
+
+if nargin<5 || isempty(QualOK)
+    S.QualOK = quality_threshold(o,S.CallMethod);
+else
+     S.QualOK = QualOK;
+end
 
 S.Roi = Roi(1:4);
 InRoi = all(int64(round(S.SpotYX))>=S.Roi([3 1]) & round(S.SpotYX)<=S.Roi([4 2]),2);

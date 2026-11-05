@@ -1,5 +1,7 @@
 function app = GUI_call_spots(app,o)
 
+o.CodeFile = app.Panel.CodeFile;
+
 % call spots
 %run code
 o.CallSpotsCodeNorm = 'WholeCode';      %Other alternative is 'Round'

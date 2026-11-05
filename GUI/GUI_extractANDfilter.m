@@ -34,7 +34,8 @@ o.StripHack = true;
 
 %Codebook is a text file containing 2 columns - 1st is the gene name. 2nd is
 %the code, length o.nRounds and containing numbers in the range from 0 to o.nBP-1.
-o.CodeFile = 'C:\Users\bugeon\Documents\codebook_73g_OtrAdra_Cholinergic_IEG_final.txt';
+o.CodeFile = app.Panel.CodeFile;
+
 %% Logging
 if o.LogToFile
     if isempty(o.LogFile)
