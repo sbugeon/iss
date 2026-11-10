@@ -1,4 +1,4 @@
-function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWidth,MarkerType)
+function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWidth,MarkerType,Ax)
 % ChangeGeneSymbols(MarkerSize, FontSize, nPerCol);
 %
 % changes gene symbols so in situ plots look nice.
@@ -11,7 +11,6 @@ function New_symbols = change_gene_symbols(MarkerSize, FontSize, MultiCol,LineWi
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
 
-filename = 'C:\Users\bugeon\Documents\GitHub\iss\GUI\GenePanelConfig.xlsx';
 if nargin<1 || isempty(MarkerSize)
     MarkerSize = 6;
     LineWidth=1;
@@ -20,11 +19,11 @@ end
 % MarkerSize = 6;
 
 if nargin<2 || isempty(FontSize)
-    FontSize = 10;
+    FontSize = 12;
 end
 
 if nargin<3 || isempty(MultiCol)  || MultiCol ==0
-    MultiCol = 69;
+    MultiCol = 40;
 end
 
 % colors
@@ -297,14 +296,18 @@ New_symbols = flipud(New_symbols);
 
 if nargout<1
     % delete any existing legend
-    fc = get(gcf, 'Children');
-    for i=1:length(fc)
-        if strcmp(get(fc(i), 'UserData'), 'key')
-            delete(fc(i));
+    if nargin<6 || isempty(Ax)
+        fc = get(gcf, 'Children');
+        for i=1:length(fc)
+            if strcmp(get(fc(i), 'UserData'), 'key')
+                delete(fc(i));
+            end
         end
+
+        MainAxes = gca;
+    else
+        MainAxes = Ax{1};
     end
-    
-    MainAxes = gca;
     
     n =  size(New_symbols,1);
     
@@ -371,20 +374,25 @@ if nargout<1
         lh = legend(all_h, all_sym, 'color', 'k', 'textcolor', 'w', 'fontsize', FontSize);
         set(lh, 'color', 'k');
     else
-        ah = axes('Position', [.75 .13 .15 .8]);
-        set(ah, 'color', 'k'); cla; hold on; box off
+        if nargin<6 || isempty(Ax)
+            ah = axes('Position', [.75 .13 .15 .8]);
+        else
+            ah = Ax{2};
+        end
+        set(ah, 'color', 'k'); cla(ah); hold(ah,'on'); box(ah,'off');
         set(ah, 'UserData', 'key');
         for j=1:length(Present)
             i = Present(j);
-            plot(ceil(j/MultiCol)+.1, mod(j-1,MultiCol), New_symbols{i,3}, 'Color', New_symbols{i,2});
-            text(ceil(j/MultiCol)+.3, mod(j-1,MultiCol), New_symbols{i,1}, 'color', 'w', 'fontsize', FontSize);
+            plot(ah,ceil(j/MultiCol)+.1, mod(j-1,MultiCol), New_symbols{i,3}, 'Color', New_symbols{i,2},'MarkerSize',MarkerSize,'LineWidth',LineWidth);
+            text(ah,ceil(j/MultiCol)+.3, mod(j-1,MultiCol), New_symbols{i,1}, 'color', 'w', 'fontsize', FontSize);
         end
         if ~isempty(setdiff(GeneNames,New_symbols(:,1)))
             j=j+1;
-            plot(ceil(j/MultiCol)+.1, mod(j-1,MultiCol), '.', 'Color', hsv2rgb([0,0,0.5]));
-            text(ceil(j/MultiCol)+.3, mod(j-1,MultiCol), 'Non Neuron', 'color', 'w', 'fontsize', FontSize);
+            plot(ah,ceil(j/MultiCol)+.1, mod(j-1,MultiCol), '.', 'Color', hsv2rgb([0,0,0.5]));
+            text(ah,ceil(j/MultiCol)+.3, mod(j-1,MultiCol), 'Non Neuron', 'color', 'w', 'fontsize', FontSize);
         end
-        ylim([-1 MultiCol]);
+        ylim(ah,[-1 MultiCol]);
+         xlim(ah,[0.8 ceil(length(Present)/MultiCol)+1]);
         set(ah, 'xtick', []);
         set(ah, 'ytick', []);
         set(ah, 'ydir', 'reverse');
@@ -415,9 +423,10 @@ if nargout<1
     %             %'color', 'k', 'textcolor', 'w', 'fontsize', FontSize);
     %         set(lh, 'color', 'k');
     %     end
+    if nargin<6 || isempty(Ax)
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');
-    
+    end
     axes(MainAxes)
 %     uistack(ah, 'top');
 end

@@ -1,8 +1,8 @@
-function plot(o, BackgroundImageFile, Roi, Method, QualOK)
+function plot(o, BackgroundImageFile, Roi, Method, QualOK, Ax)
 %% o.plot(BackgroundImage, Roi, Method)
 %
-% plot the results of in situ sequencing spot detection. 
-% 
+% plot the results of in situ sequencing spot detection.
+%
 % if BackgroundImage is empty or missing, loaded from file o.BigDapiFile
 % and subsetted to Roi (if present)
 % If it is a numerical array, that is plotted (not subsetted for ROI)
@@ -14,7 +14,7 @@ function plot(o, BackgroundImageFile, Roi, Method, QualOK)
 % Method is relavent gene calling method e.g. 'DotProduct', 'OMP',
 % this changes the gene assignments to those given by
 % that method. Default is 'DotProduct'.
-% 
+%
 % Kenneth D. Harris, 29/3/17
 % GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -29,7 +29,7 @@ pf = o.CallMethodPrefix(Method);
 
 if nargin<3 || isempty(Roi)
     Roi = round([1, max(o.([pf,'SpotGlobalYX'])(:,2)), ...
-    1, max(o.([pf,'SpotGlobalYX'])(:,1))]);
+        1, max(o.([pf,'SpotGlobalYX'])(:,1))]);
 end
 
 
@@ -51,57 +51,63 @@ if (nargin<2 || isempty(BackgroundImageFile))
         warning('not sure what to do with BackgroundImage, setting to off');
         Image = zeros(Roi(4),Roi(2),'uint16');
     end
-    
+
 elseif ~isempty(BackgroundImageFile) && ~isnumeric(BackgroundImageFile)
     if exist(BackgroundImageFile, 'file')
         %Load in Dapi image
         fprintf('loading background image...');
         Image = imread(BackgroundImageFile,'PixelRegion', {Roi(3:4), Roi(1:2)});
         fprintf('done\n');
-     else
+    else
         warning('not sure what to do with BackgroundImage, setting to off');
         Image = zeros(Roi(4),Roi(2),'uint16');
     end
-    
+
 elseif isnumeric(BackgroundImageFile)
     try
         Image = BackgroundImageFile(Roi(3):Roi(4),Roi(1):Roi(2));
     catch
         warning('Background Image wrong size - setting to off');
         Image = zeros(Roi(4),Roi(2),'uint16');
-    end    
+    end
 end
 
-
-try
-    S.FigNo = 234321;
-    clf(S.FigNo)
-catch
-    S.FigNo = 234321;
+if nargin<6 || isempty(Ax)
+    try
+        S.FigNo = 234321;
+        clf(S.FigNo)
+    catch
+        S.FigNo = 234321;
+    end
+    S.fh = figure(S.FigNo);
+    % set(S.fh,'units','pixels','position',[500 200 800 600]);  %Left, Bottom, Width, Height
+    set(gcf, 'color', 'k');
+    set(gca, 'color', 'k');
+    ThisA = gca;
+else
+  ThisA = Ax{1};
+    
 end
-S.fh = figure(S.FigNo);
-% set(S.fh,'units','pixels','position',[500 200 800 600]);  %Left, Bottom, Width, Height
-set(gcf, 'color', 'k');
-set(gca, 'color', 'k');
+
+set(ThisA, 'color', 'k');
 
 S.Image = Image;
-S.Background = imagesc(S.Image); hold on; colormap bone;
-%set(S.Background, 'XData', [Roi(3), Roi(4)]);
-%set(S.Background, 'YData', [Roi(1), Roi(2)]);
-xlim([Roi(1) Roi(2)]);
-ylim([Roi(3) Roi(4)]);
+S.Background = imagesc(ThisA,S.Image); hold(ThisA,'on'); colormap(ThisA,'bone');
+
+xlim(ThisA,[Roi(1) Roi(2)]);
+ylim(ThisA,[Roi(3) Roi(4)]);
 if min(S.Image(:))==0 && max(S.Image(:))==0
     %If no background, set to black
-    caxis([10,12]);
+    caxis(ThisA,[10,12]);
 elseif abs(int32(median(S.Image(:)))-o.TilePixelValueShift)<o.TilePixelValueShift/100
     %If anchor image, want black
-    caxis([o.TilePixelValueShift,o.TilePixelValueShift+o.TilePixelValueShift/5]);
+    caxis(ThisA,[o.TilePixelValueShift,o.TilePixelValueShift+o.TilePixelValueShift/5]);
 end
 
 %title(['Z Plane ' num2str(S.MinZ)],'Color','w');
 
 
-set(gca, 'YDir', 'normal');
+set(ThisA, 'YDir', 'normal');
 %axis on
 
 S.SpotGeneName = o.GeneNames(o.([pf,'SpotCodeNo']));
@@ -112,7 +118,7 @@ S.CallMethod = Method;
 if nargin<5 || isempty(QualOK)
     S.QualOK = quality_threshold(o,S.CallMethod);
 else
-     S.QualOK = QualOK;
+    S.QualOK = QualOK;
 end
 
 S.Roi = Roi(1:4);
@@ -126,32 +132,42 @@ S.h = zeros(size(S.uGenes));
 for i=1:length(S.uGenes)
     MySpots = PlotSpots(S.GeneNo==i);
     if any(MySpots)
-        S.h(i) = plot(S.SpotYX(MySpots,2), S.SpotYX(MySpots,1), '.', 'MarkerSize', 1,'Color',hsv2rgb([0 0 0.5]));
+        S.h(i) = plot(ThisA,S.SpotYX(MySpots,2), S.SpotYX(MySpots,1), '.', 'MarkerSize', 1,'Color',hsv2rgb([0 0 0.5]));
     end
-end 
+end
 %hold off
 
-legend(S.h(S.h~=0), S.uGenes(S.h~=0));
-legend off;
+legend(ThisA,S.h(S.h~=0), S.uGenes(S.h~=0));
+legend(ThisA,'off');
 
-set(gca, 'Clipping', 'off');
+
 
 if ~isempty(PlotSpots)
-   change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
+    if nargin<6 || isempty(Ax)
+        change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
+    else
+        change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType,Ax);
+    end
 else
+    if nargin<6 || isempty(Ax)
     set(gcf, 'color', 'k');
-    set(gcf, 'InvertHardcopy', 'off');    
+    set(gcf, 'InvertHardcopy', 'off');
+    end
 end
 
 %If anchor background or all zero then change climits.
 if min(S.Background.CData(:))>20 || max(S.Background.CData(:))==0
-    caxis([o.TilePixelValueShift,o.TilePixelValueShift+1500]);
+    caxis(ThisA,[o.TilePixelValueShift,o.TilePixelValueShift+1500]);
 end
 
 assignin('base','issPlot2DObject',S)
 
-S.sl = uicontrol('Style','text','callback',{@sl_call,S},'BackgroundColor',[0,0,0]);  
-set( findall( S.fh, '-property', 'Units' ), 'Units', 'Normalized' )
+
+if nargin<6 || isempty(Ax)
+    set(ThisA, 'Clipping', 'off');
+    S.sl = uicontrol('Style','text','callback',{@sl_call,S},'BackgroundColor',[0,0,0]);
+    set( findall( S.fh, '-property', 'Units' ), 'Units', 'Normalized' )
+end
 
 
 
@@ -176,7 +192,7 @@ for i=1:length(S.uGenes)
     if any(MySpots)
         S.h(i) = plot(S.SpotYX(MySpots,2), S.SpotYX(MySpots,1), '.', 'MarkerSize', 1,'Color',hsv2rgb([0 0 0.5]));
     end
-end 
+end
 %hold off
 
 legend(S.h(S.h~=0), S.uGenes(S.h~=0));
@@ -188,7 +204,7 @@ if ~isempty(PlotSpots)
     change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
 else
     set(gcf, 'color', 'k');
-    set(gcf, 'InvertHardcopy', 'off');    
+    set(gcf, 'InvertHardcopy', 'off');
 end
 
 %Update current Z position in woprkspace so can use for iss_view_codes

@@ -401,3 +401,4 @@ Roi = round([1, max(o.ompSpotGlobalYX(:,2)), ...
 1, max(o.ompSpotGlobalYX(:,1))]);
 o.plot(I,Roi,'OMP',QualOK);
 daspect([1 1 1])
+

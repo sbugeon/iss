@@ -1,4 +1,4 @@
-function PlotSpots = iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
+function PlotSpots = iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots,Ax)
 %% iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 %
 % Given issPlot2DObject, this function lets you change the details
@@ -20,8 +20,14 @@ function PlotSpots = iss_change_plot(o,Method,GeneType,GenesToShow,UseSpots)
 
 %%
 S = evalin('base', 'issPlot2DObject');
+  if nargin<6 || isempty(Ax)
 figure(S.FigNo);
 h = findobj('type','line'); %KEY LINES: DELETE EXISTING SCATTER PLOTS SO CHANGE_SYMBOLS WORKS
+Ax{1} = gca;
+  else
+    h = findobj(Ax{1},'type','line'); %
+  end
+
 delete(h);
 
 if nargin<3 || isempty(GeneType)
@@ -87,23 +93,28 @@ S.h = zeros(size(S.uGenes));
 for i=1:length(S.uGenes)
     MySpots = PlotSpots(S.GeneNo==i);
     if any(MySpots)
-        S.h(i) = plot(S.SpotYX(MySpots,2), S.SpotYX(MySpots,1), '.', 'MarkerSize',...
+        S.h(i) = plot(Ax{1},S.SpotYX(MySpots,2), S.SpotYX(MySpots,1), '.', 'MarkerSize',...
             1,'Color',hsv2rgb([0 0 0.5]));
     end
 end 
 %hold off
 
-legend(S.h(S.h~=0), S.uGenes(S.h~=0));
-legend off;
-
-set(gca, 'Clipping', 'off');
-
+legend(Ax{1},S.h(S.h~=0), S.uGenes(S.h~=0));
+legend(Ax{1},'off');
+if nargin<6 || length(Ax)<2
+    set(Ax{1}, 'Clipping', 'off');
+end
 if ~isempty(PlotSpots)
+     if nargin<6 || length(Ax)<2
     if strcmpi(GeneType,'Neuron')
          change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType);
     elseif strcmpi(GeneType,'NonNeuron')
         change_gene_symbols_NonNeuron(0);
     end
+
+     else
+         change_gene_symbols(o.MarkerSize,[],0,o.PlotLineWidth,o.MarkerType,Ax);
+     end
 else
     set(gcf, 'color', 'k');
     set(gcf, 'InvertHardcopy', 'off');    
